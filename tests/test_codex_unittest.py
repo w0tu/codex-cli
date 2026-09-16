@@ -46,7 +46,7 @@ from prompt_toolkit.document import Document
 
 class TestVersion(unittest.TestCase):
     def test_version_string(self):
-        self.assertEqual(__version__, "1.6.0")
+        self.assertEqual(__version__, "1.7.0")
 
 
 class TestUsageTracker(unittest.TestCase):
@@ -66,6 +66,8 @@ class TestUsageTracker(unittest.TestCase):
             stats = tracker.get_stats()
             self.assertEqual(stats["used_5h"], 5)
             self.assertEqual(stats["remaining_5h"], MAX_REQUESTS_5H - 5)
+            self.assertEqual(stats["used_day"], 5)
+            self.assertIn("reset_day", stats)
 
     def test_quota_enforcement(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -112,9 +114,41 @@ class TestSlashMenu(unittest.TestCase):
         doc = Document("/", 1)
         completions = list(completer.get_completions(doc, None))
         cmd_names = [c.text for c in completions]
-        expected = ["/help", "/clear", "/usage", "/memory", "/compact", "/doctor", "/cost", "/diff", "/export", "/init", "/git", "/github", "/tools", "/model", "/stats", "/reset", "/exit"]
+        expected = [
+            "/help", "/clear", "/usage", "/skills", "/memory", "/compact",
+            "/doctor", "/cost", "/diff", "/export", "/init", "/git",
+            "/github", "/tools", "/model", "/stats", "/reset", "/exit"
+        ]
         for exp in expected:
             self.assertIn(exp, cmd_names)
+
+
+class TestSkillsSystem(unittest.TestCase):
+    def test_skills_manager(self):
+        from codex.skills import SkillsManager
+        mgr = SkillsManager()
+        skills = mgr.list_skills()
+        self.assertGreater(len(skills), 0)
+        skill_names = [s["name"] for s in skills]
+        self.assertIn("code-reviewer", skill_names)
+        self.assertIn("git-workflow", skill_names)
+
+        ctx = mgr.get_skills_prompt_context()
+        self.assertIn("ACTIVE COMMUNITY & GITHUB SKILLS", ctx)
+
+
+class TestKeySaving(unittest.TestCase):
+    def test_save_api_key(self):
+        from codex.client import save_api_key, CONFIG_PATH
+        test_key = "gsk_test1234567890abcdef12345678"
+        orig_env = os.environ.get("GROQ_API_KEY")
+        try:
+            cfg = save_api_key(test_key)
+            self.assertTrue(cfg.exists())
+            self.assertEqual(os.environ.get("GROQ_API_KEY"), test_key)
+        finally:
+            if orig_env:
+                os.environ["GROQ_API_KEY"] = orig_env
 
 
 class TestTools(unittest.TestCase):
@@ -149,11 +183,18 @@ class TestTools(unittest.TestCase):
 
 class TestUI(unittest.TestCase):
     def test_ui_renders(self):
-        render_usage_tab({"used_5h": 12, "max_5h": 300, "remaining_5h": 288, "reset_5h": "in 4h 12m", "used_day": 12, "max_day": 300, "remaining_day": 288})
+        from codex.ui import render_skills_list, render_key_saved
+        render_usage_tab({
+            "used_5h": 12, "max_5h": 300, "remaining_5h": 288, "reset_5h": "in 4h 12m",
+            "used_day": 12, "max_day": 300, "remaining_day": 288, "reset_day": "in 23h 48m"
+        })
         render_doctor("qwen/qwen3.8-27b")
         render_memory_status(350, 24, 12, 5)
         render_help()
+        render_skills_list([{"name": "test-skill", "description": "Unit test skill", "source": "global"}])
+        render_key_saved("gsk_1234****5678", "/home/user/.codex/config.json")
 
 
 if __name__ == "__main__":
     unittest.main()
+

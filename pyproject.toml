@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "codex-cli"
-version = "1.6.0"
+version = "1.7.0"
 description = "The Codex Project — Autonomous AI terminal for Linux"
 requires-python = ">=3.9"
 dependencies = [

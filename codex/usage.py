@@ -91,6 +91,15 @@ class UsageTracker:
             hrs = mins // 60
             reset_5h_str = f"in {hrs}h {mins % 60}m" if hrs > 0 else f"in {mins}m"
 
+        # Reset time for 24-hour daily quota
+        reset_day_str = "None"
+        if recent_day:
+            oldest_day = min(recent_day)
+            wait_day = max(0.0, WINDOW_DAY_SECONDS - (now - oldest_day))
+            mins_day = int(wait_day // 60)
+            hrs_day = mins_day // 60
+            reset_day_str = f"in {hrs_day}h {mins_day % 60}m" if hrs_day > 0 else f"in {mins_day}m"
+
         return {
             "used_5h": len(recent_5h),
             "max_5h": MAX_REQUESTS_5H,
@@ -99,4 +108,6 @@ class UsageTracker:
             "used_day": len(recent_day),
             "max_day": MAX_REQUESTS_DAY,
             "remaining_day": max(0, MAX_REQUESTS_DAY - len(recent_day)),
+            "reset_day": reset_day_str,
         }
+

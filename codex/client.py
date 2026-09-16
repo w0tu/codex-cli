@@ -33,7 +33,7 @@ CORE OPERATIONAL PRINCIPLES:
 
 
 def get_system_prompt() -> str:
-    """Build system prompt, injecting CODEX.md or CLAUDE.md project context if present."""
+    """Build system prompt, injecting CODEX.md guidelines and active skills."""
     prompt = BASE_SYSTEM_PROMPT
     cwd = Path.cwd()
     for fname in ["CODEX.md", "CLAUDE.md", "AGENTS.md"]:
@@ -46,6 +46,16 @@ def get_system_prompt() -> str:
                     break
             except Exception:
                 pass
+
+    # Inject installed skills context
+    try:
+        from codex.skills import SkillsManager
+        skills_ctx = SkillsManager().get_skills_prompt_context()
+        if skills_ctx:
+            prompt += skills_ctx
+    except Exception:
+        pass
+
     return prompt
 
 
@@ -74,6 +84,21 @@ def _resolve_api_key() -> str:
     )
 
 
+def save_api_key(api_key: str) -> Path:
+    """Save API key permanently to ~/.codex/config.json and set in environment."""
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    data = {}
+    if CONFIG_PATH.exists():
+        try:
+            data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            data = {}
+    data["api_key"] = api_key.strip()
+    CONFIG_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    os.environ["GROQ_API_KEY"] = api_key.strip()
+    return CONFIG_PATH
+
+
 class GroqClient:
     """Wrapper around the official groq Python SDK."""
 
@@ -82,6 +107,13 @@ class GroqClient:
         self.api_key = api_key or _resolve_api_key()
         self.client = Groq(api_key=self.api_key)
         self.model = model
+
+    def set_api_key(self, api_key: str) -> None:
+        """Update active API key and reinitialize Groq SDK client."""
+        from groq import Groq
+        self.api_key = api_key.strip()
+        self.client = Groq(api_key=self.api_key)
+
 
     def chat_turn(
         self,

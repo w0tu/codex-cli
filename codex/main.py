@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import time
+import re
 import argparse
 import subprocess
 from pathlib import Path
@@ -17,9 +18,10 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.shortcuts import CompleteStyle
 
 from codex import __version__
-from codex.client import GroqClient, get_system_prompt, DEFAULT_MODEL
+from codex.client import GroqClient, get_system_prompt, DEFAULT_MODEL, save_api_key
 from codex.memory import MemoryManager
 from codex.usage import UsageTracker
+from codex.skills import SkillsManager
 from codex.tools import run_tool, execute_git_status, execute_github_connect
 from codex.ui import (
     console,
@@ -32,6 +34,8 @@ from codex.ui import (
     print_telemetry,
     render_help,
     render_tools_list,
+    render_skills_list,
+    render_key_saved,
     render_usage_tab,
     render_doctor,
     render_cost,
@@ -56,6 +60,7 @@ class SlashCommandCompleter(Completer):
         ("/help", "Show help reference and available commands"),
         ("/clear", "Clear screen and redraw header"),
         ("/usage", "Display 5-hour / 300-prompt usage & quota monitor"),
+        ("/skills", "Manage or install community developer skills from GitHub"),
         ("/memory", "Inspect 300+ message memory ledger & stats"),
         ("/compact", "Compact session context to preserve tokens"),
         ("/doctor", "Run diagnostic health check on environment"),
@@ -302,6 +307,26 @@ def run_repl(client: GroqClient) -> None:
         if not user_input:
             continue
 
+        # Automatic API key capture & global persistence
+        key_match = re.search(r"\b(gsk_[a-zA-Z0-9]{20,})\b", user_input)
+        if key_match:
+            captured_key = key_match.group(1)
+            cfg_path = save_api_key(captured_key)
+            client.set_api_key(captured_key)
+            masked = captured_key[:7] + "*" * (len(captured_key) - 11) + captured_key[-4:]
+            render_key_saved(masked, str(cfg_path))
+
+            # Strip the key from user input
+            cleaned_input = re.sub(r"\b" + re.escape(captured_key) + r"\b", "", user_input).strip()
+            # If the user only passed the key or key-setting text, don't execute as a prompt
+            norm = cleaned_input.lower()
+            if not cleaned_input or norm in [
+                "api key", "my key", "key", "groq key", "groq_api_key",
+                "here is my key", "here is the key", "api key:", "key:"
+            ] or all(w in ["my", "key", "api", "is", "here", "the", "groq", "set", ":", "="] for w in norm.split()):
+                continue
+            user_input = cleaned_input
+
         # Slash commands
         if user_input == "/clear":
             console.clear()
@@ -315,6 +340,28 @@ def run_repl(client: GroqClient) -> None:
 
         if user_input == "/usage":
             render_usage_tab(session.usage_tracker.get_stats())
+            continue
+
+        if user_input.startswith("/skills"):
+            parts = user_input.split(maxsplit=2)
+            if len(parts) >= 2 and parts[1].lower() == "install":
+                if len(parts) >= 3:
+                    repo_target = parts[2].strip()
+                    console.print(f"[dim]Installing skill from {repo_target}...[/]")
+                    res = SkillsManager().install_from_github(repo_target)
+                    console.print(f"[white]{res}[/]\n")
+                else:
+                    console.print("[dim]Usage: /skills install <owner/repo or github-url>[/]\n")
+            elif len(parts) >= 2 and parts[1].lower() == "remove":
+                if len(parts) >= 3:
+                    skill_target = parts[2].strip()
+                    res = SkillsManager().remove_skill(skill_target)
+                    console.print(f"[white]{res}[/]\n")
+                else:
+                    console.print("[dim]Usage: /skills remove <skill-name>[/]\n")
+            else:
+                skills = SkillsManager().list_skills()
+                render_skills_list(skills)
             continue
 
         if user_input.startswith("/memory"):

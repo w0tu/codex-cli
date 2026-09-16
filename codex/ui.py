@@ -47,7 +47,7 @@ def render_header(model_name: str = "qwen/qwen3.8-27b", cwd: str | None = None) 
 
     info = Text()
     info.append("CODEX", style="bold white")
-    info.append(" v1.6.0\n", style="dim")
+    info.append(" v1.7.0\n", style="dim")
     info.append("model:    ", style="dim")
     info.append(f"{model_name}\n", style="white")
     info.append("dir:      ", style="dim")
@@ -222,7 +222,7 @@ def print_telemetry(tokens: int, total_elapsed: float) -> None:
 
 
 def render_usage_tab(stats: dict) -> None:
-    """Display usage tab with 5-hour / 300-prompt limits."""
+    """Display usage tab with 5-hour / 300-prompt limits and 24-hour credit refresh."""
     t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Codex Usage & Quota Monitor[/]")
     t.add_column("Quota Window", style="bold white")
     t.add_column("Usage / Capacity", style="white")
@@ -237,10 +237,12 @@ def render_usage_tab(stats: dict) -> None:
     used_day = stats.get("used_day", 0)
     max_day = stats.get("max_day", 300)
     rem_day = stats.get("remaining_day", 300)
+    reset_day = stats.get("reset_day", "None")
     t.add_row("24-Hour Daily Quota", f"{used_day} / {max_day} requests", f"{rem_day} remaining today")
+    t.add_row("Credit Refresh Cycle", "Every 24 Hours", f"Daily credit refresh ({reset_day})")
 
-    t.add_row("Policy Enforcement", "Strict Rate Limiting", "300 requests per 5h / daily cap")
-    t.add_row("Inference Tier", "Groq LPU On-Demand", "Ultra-fast hardware acceleration")
+    t.add_row("Policy Enforcement", "Strict Rate Limiting", "300 requests per 5h / 24h cycle")
+    t.add_row("Inference Tier", "Groq LPU Hardware", "Ultra-fast accelerated inference")
 
     console.print(t)
     console.print()
@@ -280,6 +282,34 @@ def render_memory_status(total_msgs: int, active_window: int, knowledge_count: i
     console.print()
 
 
+def render_skills_list(skills: list[dict]) -> None:
+    """Display installed GitHub and community skills."""
+    t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Installed Codex Skills[/]")
+    t.add_column("Skill Name", style="bold white", no_wrap=True)
+    t.add_column("Description", style="white")
+    t.add_column("Scope", style="dim")
+
+    if not skills:
+        t.add_row("None", "No skills installed. Run /skills install <owner/repo>", "N/A")
+    else:
+        for s in skills:
+            t.add_row(s.get("name", ""), s.get("description", ""), s.get("source", "global"))
+
+    console.print(t)
+    console.print()
+
+
+def render_key_saved(key_masked: str, path: str) -> None:
+    """Display API key persistence card."""
+    t = Text()
+    t.append("╭─ [auth] ", style="dim")
+    t.append("API Key Saved & Activated Globally\n", style="bold white")
+    t.append(f"│ Stored permanently in: {path}\n", style="dim")
+    t.append(f"│ Active Key: {key_masked}\n", style="dim")
+    t.append("╰─ Groq client updated live. Available across all sessions & CLI invocations.\n", style="dim")
+    console.print(t)
+
+
 def render_help() -> None:
     """Display slash command reference table."""
     t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Slash Commands[/]")
@@ -288,6 +318,7 @@ def render_help() -> None:
     t.add_row("/help", "Show this reference guide")
     t.add_row("/clear", "Clear screen and redraw header")
     t.add_row("/usage", "Display 5-hour / 300-prompt usage & quota monitor")
+    t.add_row("/skills [install <repo>]", "List or install developer skills from GitHub")
     t.add_row("/memory", "Inspect 300+ message memory ledger & stats")
     t.add_row("/compact", "Compact conversation context to save tokens")
     t.add_row("/doctor", "Run diagnostic health check on environment")
@@ -320,6 +351,8 @@ def render_tools_list() -> None:
     t.add_row("find_files", "Locate files matching glob patterns (e.g. *.py)")
     t.add_row("git_status", "Inspect active branch, staged files, and git diff")
     t.add_row("github_connect", "Clone or connect any GitHub repository")
+    t.add_row("install_skill", "Install community developer skill from GitHub")
+    t.add_row("list_skills", "List all active community and workspace skills")
     t.add_row("recall_memory", "Recall discussions and facts from earlier in the session")
     console.print(t)
     console.print()

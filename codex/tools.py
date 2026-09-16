@@ -173,6 +173,35 @@ TOOLS_SCHEMA = [
     {
         "type": "function",
         "function": {
+            "name": "install_skill",
+            "description": "Install or update a developer skill from a GitHub repository (e.g. 'owner/repo' or full URL).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "repo": {
+                        "type": "string",
+                        "description": "GitHub repository shorthand (owner/repo) or clone URL."
+                    }
+                },
+                "required": ["repo"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_skills",
+            "description": "List all active installed developer skills.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "recall_memory",
             "description": "Search past messages, earlier topics, and decisions discussed in this session (even 100+ turns ago).",
             "parameters": {
@@ -408,6 +437,24 @@ def execute_recall_memory(query: str) -> str:
         return f"Error querying session memory: {e}"
 
 
+def execute_install_skill(repo: str) -> str:
+    """Install skill from GitHub."""
+    from codex.skills import SkillsManager
+    return SkillsManager().install_from_github(repo)
+
+
+def execute_list_skills() -> str:
+    """List all installed skills."""
+    from codex.skills import SkillsManager
+    skills = SkillsManager().list_skills()
+    if not skills:
+        return "No skills currently installed."
+    lines = ["Installed Developer Skills:"]
+    for s in skills:
+        lines.append(f"- {s['name']} ({s['source']}): {s['description']}")
+    return "\n".join(lines)
+
+
 def run_tool(name: str, args: dict[str, Any]) -> str:
     """Dispatch tool call by name."""
     if name == "bash":
@@ -438,5 +485,9 @@ def run_tool(name: str, args: dict[str, Any]) -> str:
         return execute_github_connect(args.get("repo", ""), args.get("dest_dir", ""))
     elif name == "recall_memory":
         return execute_recall_memory(args.get("query", ""))
+    elif name == "install_skill":
+        return execute_install_skill(args.get("repo", ""))
+    elif name == "list_skills":
+        return execute_list_skills()
     else:
         return f"Error: Unknown tool '{name}'"
