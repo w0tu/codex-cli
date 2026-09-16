@@ -1,4 +1,4 @@
-"""Terminal UI components for Codex — dynamic thinking, custom errors, monochrome aesthetic."""
+"""Terminal UI components for Codex — dynamic contextual thinking, usage tab, collapsible cards."""
 
 import os
 import sys
@@ -27,13 +27,6 @@ EMPTY = " "
 
 SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 THINKING_GLYPHS = ["◇", "◈", "◆", "◈"]
-COGNITIVE_PHASES = [
-    "Deconstructing query semantics",
-    "Inspecting project context & AST",
-    "Evaluating architectural constraints",
-    "Formulating optimal implementation",
-    "Synthesizing verified solution",
-]
 
 
 def render_mascot() -> Text:
@@ -54,7 +47,7 @@ def render_header(model_name: str = "qwen/qwen3.8-27b", cwd: str | None = None) 
 
     info = Text()
     info.append("CODEX", style="bold white")
-    info.append(" v1.5.0\n", style="dim")
+    info.append(" v1.6.0\n", style="dim")
     info.append("model:    ", style="dim")
     info.append(f"{model_name}\n", style="white")
     info.append("dir:      ", style="dim")
@@ -80,7 +73,7 @@ def calculate_thinking_duration(prompt: str) -> float:
         "refactor", "architect", "implement", "explain", "analyze",
         "compare", "debug", "create", "build", "design", "algorithm",
         "difference", "optimize", "kernel", "protocol", "rewrite",
-        "stack", "network", "system", "memory"
+        "stack", "network", "system", "memory", "quota"
     ]
     matches = sum(1 for kw in complex_keywords if kw in prompt_lower)
     complexity_bonus = matches * 0.45
@@ -97,12 +90,60 @@ def calculate_thinking_duration(prompt: str) -> float:
     return min(base + complexity_bonus, 5.0)
 
 
+def get_prompt_related_phases(prompt: str) -> list[str]:
+    """Generate dynamic cognitive phases directly relevant to the user prompt."""
+    p = prompt.lower()
+    if any(k in p for k in ["git", "branch", "commit", "diff", "repo", "status"]):
+        return [
+            "Checking git repository status & tree...",
+            "Inspecting branch commits & working diffs...",
+            "Evaluating version control state...",
+            "Synthesizing git operations...",
+        ]
+    elif any(k in p for k in ["python", "code", "func", "class", "bug", "fix", "test", "unittest", "script"]):
+        return [
+            "Analyzing code syntax & AST semantics...",
+            "Checking module dependencies & types...",
+            "Evaluating algorithmic complexity & edge cases...",
+            "Synthesizing verified implementation...",
+        ]
+    elif any(k in p for k in ["file", "dir", "read", "write", "edit", "path", "folder", "tree"]):
+        return [
+            "Scanning filesystem paths & directory tree...",
+            "Checking file permissions & line offsets...",
+            "Evaluating disk I/O operations...",
+            "Formatting structured file output...",
+        ]
+    elif any(k in p for k in ["find", "grep", "search", "locate", "where"]):
+        return [
+            "Indexing search patterns & query regex...",
+            "Scanning workspace directory hierarchy...",
+            "Filtering matching files & line numbers...",
+            "Summarizing matching results...",
+        ]
+    elif any(k in p for k in ["bash", "run", "cmd", "command", "exec", "terminal", "sh"]):
+        return [
+            "Formulating shell execution plan...",
+            "Checking process safety & environment...",
+            "Evaluating command parameters & pipes...",
+            "Preparing execution pipeline...",
+        ]
+    else:
+        return [
+            "Deconstructing query semantics...",
+            "Inspecting project context & memory ledger...",
+            "Evaluating technical constraints...",
+            "Synthesizing verified solution...",
+        ]
+
+
 def animate_thinking(prompt: str = "") -> float:
-    """Custom Claude-style thinking animation that scales duration with prompt complexity."""
+    """Prompt-related dynamic thinking animation with checking indicators."""
     if not sys.stdout.isatty():
         return 0.0
 
     duration = calculate_thinking_duration(prompt)
+    phases = get_prompt_related_phases(prompt)
     t0 = time.perf_counter()
     fps = 25
     steps = max(int(duration * fps), 15)
@@ -113,19 +154,18 @@ def animate_thinking(prompt: str = "") -> float:
             elapsed = time.perf_counter() - t0
             glyph = THINKING_GLYPHS[(i // 3) % len(THINKING_GLYPHS)]
             spin = SPINNER_FRAMES[i % len(SPINNER_FRAMES)]
-            phase_idx = min(int((i / steps) * len(COGNITIVE_PHASES)), len(COGNITIVE_PHASES) - 1)
-            phase = COGNITIVE_PHASES[phase_idx]
+            phase_idx = min(int((i / steps) * len(phases)), len(phases) - 1)
+            phase = phases[phase_idx]
 
             t = Text()
             t.append(f"{spin} ", style="bold white")
             t.append(f"[{glyph}] ", style="white")
             t.append(f"Thinking ({elapsed:.1f}s)", style="bold white")
-            t.append(f" ... {phase}", style="dim")
+            t.append(f" · {phase}", style="dim")
             live.update(t)
             time.sleep(delay)
 
     total_elapsed = time.perf_counter() - t0
-    # Claude 3.7 style settled thought marker
     console.print(f"[dim italic]Thought for {total_elapsed:.1f}s[/dim italic]\n")
     return total_elapsed
 
@@ -157,8 +197,8 @@ def render_tool_call(name: str, args_summary: str) -> None:
     console.print(t)
 
 
-def render_tool_result(result: str, max_lines: int = 15) -> None:
-    """Display output from an executed tool in monochrome."""
+def render_tool_result(result: str, max_lines: int = 8) -> None:
+    """Display output from an executed tool with clean collapsible formatting."""
     lines = result.strip().splitlines()
     if not lines:
         console.print("[dim]│[/] [dim](no output)[/]")
@@ -166,19 +206,44 @@ def render_tool_result(result: str, max_lines: int = 15) -> None:
         for line in lines[:max_lines]:
             console.print(f"[dim]│[/] {line}")
         omitted = len(lines) - max_lines
-        console.print(f"[dim]│[/] [dim italic]... ({omitted} more lines omitted)[/dim italic]")
+        console.print(f"[dim]│[/] [dim italic]... ({omitted} lines collapsed for clean display)[/dim italic]")
     else:
         for line in lines:
             console.print(f"[dim]│[/] {line}")
     console.print("[dim]╰─[/]\n")
 
 
-def print_telemetry(tokens: int, elapsed: float) -> None:
-    """Clean, single-line monochrome telemetry footer."""
-    tps = tokens / max(elapsed, 0.001)
+def print_telemetry(tokens: int, total_elapsed: float) -> None:
+    """Timer and telemetry from prompt entry to finished execution."""
+    tps = tokens / max(total_elapsed, 0.001)
     console.print(
-        f"[dim]> {tokens} tokens | {elapsed:.2f}s | {tps:.1f} tok/s | Groq[/]\n"
+        f"[dim]> {tokens} tokens | Done in {total_elapsed:.2f}s | {tps:.1f} tok/s | Groq[/]\n"
     )
+
+
+def render_usage_tab(stats: dict) -> None:
+    """Display usage tab with 5-hour / 300-prompt limits."""
+    t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Codex Usage & Quota Monitor[/]")
+    t.add_column("Quota Window", style="bold white")
+    t.add_column("Usage / Capacity", style="white")
+    t.add_column("Reset Schedule & Status", style="dim")
+
+    used_5h = stats.get("used_5h", 0)
+    max_5h = stats.get("max_5h", 300)
+    rem_5h = stats.get("remaining_5h", 300)
+    reset_5h = stats.get("reset_5h", "None")
+    t.add_row("5-Hour Rolling Window", f"{used_5h} / {max_5h} requests", f"{rem_5h} remaining ({reset_5h})")
+
+    used_day = stats.get("used_day", 0)
+    max_day = stats.get("max_day", 300)
+    rem_day = stats.get("remaining_day", 300)
+    t.add_row("24-Hour Daily Quota", f"{used_day} / {max_day} requests", f"{rem_day} remaining today")
+
+    t.add_row("Policy Enforcement", "Strict Rate Limiting", "300 requests per 5h / daily cap")
+    t.add_row("Inference Tier", "Groq LPU On-Demand", "Ultra-fast hardware acceleration")
+
+    console.print(t)
+    console.print()
 
 
 def render_diff(diff_output: str) -> None:
@@ -222,6 +287,7 @@ def render_help() -> None:
     t.add_column("Description", style="white")
     t.add_row("/help", "Show this reference guide")
     t.add_row("/clear", "Clear screen and redraw header")
+    t.add_row("/usage", "Display 5-hour / 300-prompt usage & quota monitor")
     t.add_row("/memory", "Inspect 300+ message memory ledger & stats")
     t.add_row("/compact", "Compact conversation context to save tokens")
     t.add_row("/doctor", "Run diagnostic health check on environment")

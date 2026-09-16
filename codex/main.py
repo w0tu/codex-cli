@@ -1,4 +1,4 @@
-"""CLI controller for Codex — animated REPL with 300+ message memory architecture."""
+"""CLI controller for Codex — animated REPL with 300+ message memory, usage tracking, and 5-hour limit."""
 
 import os
 import sys
@@ -19,6 +19,7 @@ from prompt_toolkit.shortcuts import CompleteStyle
 from codex import __version__
 from codex.client import GroqClient, get_system_prompt, DEFAULT_MODEL
 from codex.memory import MemoryManager
+from codex.usage import UsageTracker
 from codex.tools import run_tool, execute_git_status, execute_github_connect
 from codex.ui import (
     console,
@@ -31,6 +32,7 @@ from codex.ui import (
     print_telemetry,
     render_help,
     render_tools_list,
+    render_usage_tab,
     render_doctor,
     render_cost,
     render_diff,
@@ -53,6 +55,7 @@ class SlashCommandCompleter(Completer):
     COMMANDS = [
         ("/help", "Show help reference and available commands"),
         ("/clear", "Clear screen and redraw header"),
+        ("/usage", "Display 5-hour / 300-prompt usage & quota monitor"),
         ("/memory", "Inspect 300+ message memory ledger & stats"),
         ("/compact", "Compact session context to preserve tokens"),
         ("/doctor", "Run diagnostic health check on environment"),
@@ -97,6 +100,7 @@ MENU_STYLE = Style.from_dict({
 class Session:
     def __init__(self):
         self.memory = MemoryManager()
+        self.usage_tracker = UsageTracker()
         self.total_tokens = 0
         self.total_time = 0.0
         self.total_queries = 0
@@ -125,6 +129,7 @@ class Session:
         self.total_tokens += tokens
         self.total_time += elapsed
         self.total_queries += 1
+        self.usage_tracker.record_request()
 
     def compact(self) -> tuple[int, int]:
         """Compact conversation history by retaining system prompt and recent turns."""
@@ -154,10 +159,18 @@ class Session:
 
 # ── Autonomous Agent Execution Loop ─────────────────────────────────────
 def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", max_steps: int = 6) -> None:
-    """Run an agent turn with dynamic thinking animation, memory tracking, and PC tools."""
+    """Run an agent turn with quota check, dynamic prompt thinking, and total prompt-to-finish timing."""
+    # 1. Quota Check (300 requests / 5-hour rolling limit)
+    allowed, reason, wait_secs = session.usage_tracker.check_limit()
+    if not allowed:
+        render_error("Request Quota Limit Reached", reason, "Please wait until the 5-hour rolling window replenishes.")
+        return
+
+    prompt_start_time = time.perf_counter()
+
+    # 2. Dynamic prompt-related thinking animation
     animate_thinking(prompt=prompt_text)
 
-    t0 = time.perf_counter()
     turn_tokens = 0
 
     for _ in range(max_steps):
@@ -237,14 +250,19 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
             if "</think>" in content:
                 content = content.split("</think>", 1)[1]
             content = content.strip()
+            if content.endswith("</"):
+                content = content[:-2].strip()
+            elif content.endswith("</think"):
+                content = content[:-7].strip()
             if content:
                 console.print(Markdown(content))
                 session.add_assistant(content)
             break
 
-    elapsed = time.perf_counter() - t0
-    session.record(turn_tokens, elapsed)
-    print_telemetry(turn_tokens, elapsed)
+    # Total timer from entering prompt to finished
+    total_turn_elapsed = time.perf_counter() - prompt_start_time
+    session.record(turn_tokens, total_turn_elapsed)
+    print_telemetry(turn_tokens, total_turn_elapsed)
 
 
 # ── Direct mode ─────────────────────────────────────────────────────────
@@ -293,6 +311,10 @@ def run_repl(client: GroqClient) -> None:
 
         if user_input == "/help":
             render_help()
+            continue
+
+        if user_input == "/usage":
+            render_usage_tab(session.usage_tracker.get_stats())
             continue
 
         if user_input.startswith("/memory"):
@@ -403,7 +425,7 @@ def run_repl(client: GroqClient) -> None:
             console.print("[dim]Unknown command.[/] Press [bold white]/[/] to view available commands.\n")
             continue
 
-        # Execute autonomous agent turn with thinking animation and tools
+        # Execute autonomous agent turn
         session.add_user(user_input)
         try:
             execute_turn(session, client, prompt_text=user_input)
