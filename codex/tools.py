@@ -173,6 +173,23 @@ TOOLS_SCHEMA = [
     {
         "type": "function",
         "function": {
+            "name": "recall_memory",
+            "description": "Search past messages, earlier topics, and decisions discussed in this session (even 100+ turns ago).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Keyword or concept to search for in past session history."
+                    }
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "github_connect",
             "description": "Connect to a GitHub repository by URL or owner/repo (e.g. 'torvalds/linux'). Clones if not present.",
             "parameters": {
@@ -366,6 +383,31 @@ def execute_github_connect(repo: str, dest_dir: str = "") -> str:
         return f"Failed to connect GitHub repository:\n{proc.stderr}"
 
 
+def execute_recall_memory(query: str) -> str:
+    """Search earlier conversation memory."""
+    from codex.memory import SESSIONS_DIR
+    files = sorted(SESSIONS_DIR.glob("*.json"), key=lambda x: x.stat().st_mtime, reverse=True)
+    if not files:
+        return f"No session archives found on disk."
+    latest = files[0]
+    try:
+        data = json.loads(latest.read_text(encoding="utf-8"))
+        history = data.get("history", [])
+        q = query.lower().strip()
+        matches = []
+        for i, m in enumerate(history):
+            content = str(m.get("content", ""))
+            if q in content.lower():
+                matches.append(f"[Turn {i+1} - {m.get('role', '').upper()}]: {content[:200]}")
+                if len(matches) >= 5:
+                    break
+        if not matches:
+            return f"No mentions of '{query}' found in session memory ({len(history)} turns searched)."
+        return f"Found {len(matches)} mentions of '{query}' in session history:\n" + "\n\n".join(matches)
+    except Exception as e:
+        return f"Error querying session memory: {e}"
+
+
 def run_tool(name: str, args: dict[str, Any]) -> str:
     """Dispatch tool call by name."""
     if name == "bash":
@@ -394,5 +436,7 @@ def run_tool(name: str, args: dict[str, Any]) -> str:
         return execute_git_status()
     elif name == "github_connect":
         return execute_github_connect(args.get("repo", ""), args.get("dest_dir", ""))
+    elif name == "recall_memory":
+        return execute_recall_memory(args.get("query", ""))
     else:
         return f"Error: Unknown tool '{name}'"

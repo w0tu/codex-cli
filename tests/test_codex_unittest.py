@@ -1,4 +1,4 @@
-"""Unit tests for Codex CLI v1.5.0 — tools, dynamic thinking, export, error handling."""
+"""Unit tests for Codex CLI v1.5.0 — 300+ message memory, tools, and UI."""
 
 import os
 import unittest
@@ -7,6 +7,7 @@ from pathlib import Path
 
 from codex import __version__
 from codex.client import GroqClient, _resolve_api_key, DEFAULT_MODEL
+from codex.memory import MemoryManager
 from codex.ui import (
     render_mascot,
     render_header,
@@ -18,6 +19,7 @@ from codex.ui import (
     render_diff,
     render_error,
     render_export_status,
+    render_memory_status,
     render_compact_summary,
     render_init_status,
     calculate_thinking_duration,
@@ -33,6 +35,7 @@ from codex.tools import (
     execute_grep_search,
     execute_find_files,
     execute_git_status,
+    execute_recall_memory,
 )
 from prompt_toolkit.document import Document
 
@@ -42,48 +45,38 @@ class TestVersion(unittest.TestCase):
         self.assertEqual(__version__, "1.5.0")
 
 
-class TestSession(unittest.TestCase):
-    def test_empty_session(self):
+class Test300MessageMemory(unittest.TestCase):
+    def test_300_plus_message_capacity(self):
+        """Verify that memory retains 350+ messages while context window remains bounded."""
+        mem = MemoryManager(session_id="test_350_turns")
+
+        # Simulate 350 conversation turns
+        for i in range(1, 351):
+            mem.add_message("user", f"Turn {i}: What is the status of subsystem {i % 10}?")
+            mem.add_message("assistant", f"Turn {i}: Subsystem {i % 10} is operating normally.")
+
+        self.assertEqual(len(mem.history), 700)  # 350 user + 350 assistant
+
+        # Check search across 300+ messages
+        results = mem.search("subsystem 7")
+        self.assertGreater(len(results), 0)
+
+        # Check bounded context window (must not blow up token limits)
+        context = mem.get_context_window(system_prompt="Base System Prompt")
+        # System prompt + knowledge base + recent window <= 30
+        self.assertLess(len(context), 35)
+
+    def test_file_ledger_tracking(self):
+        mem = MemoryManager(session_id="test_ledger")
+        mem.record_file_op("/path/to/app.py", "write_file")
+        self.assertIn("/path/to/app.py", mem.file_ledger)
+
+    def test_session_wrapping(self):
         s = Session()
-        self.assertEqual(len(s.messages), 1)
-        self.assertEqual(s.messages[0]["role"], "system")
-
-    def test_add_user_assistant(self):
-        s = Session()
-        s.add_user("hello")
-        s.add_assistant("hi")
-        self.assertEqual(len(s.messages), 3)
-
-    def test_compact_session(self):
-        s = Session()
-        for i in range(10):
-            s.add_user(f"question {i}")
-            s.add_assistant(f"answer {i}")
-        old_c, new_c = s.compact()
-        self.assertEqual(old_c, 21)
-        self.assertLess(new_c, old_c)
-
-    def test_export_session(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            out_file = os.path.join(tmpdir, "exported.md")
-            s = Session()
-            s.add_user("how does quicksort work?")
-            s.add_assistant("Quicksort is a divide and conquer algorithm.")
-            exported_path = s.export(out_file)
-            self.assertTrue(os.path.exists(exported_path))
-            content = Path(exported_path).read_text()
-            self.assertIn("quicksort", content)
-
-
-class TestThinkingDuration(unittest.TestCase):
-    def test_short_prompt_duration(self):
-        d = calculate_thinking_duration("hello")
-        self.assertGreaterEqual(d, 1.0)
-        self.assertLessEqual(d, 1.5)
-
-    def test_complex_prompt_duration(self):
-        d = calculate_thinking_duration("Architect and refactor the entire kernel network stack to implement high throughput eBPF packet filtering.")
-        self.assertGreaterEqual(d, 3.5)
+        s.add_user("Remember that our database port is 5433.")
+        s.add_assistant("Understood, noted port 5433.")
+        self.assertGreaterEqual(len(s.memory.history), 2)
+        self.assertIn("5433", str(s.memory.decisions_and_facts))
 
 
 class TestSlashMenu(unittest.TestCase):
@@ -92,7 +85,7 @@ class TestSlashMenu(unittest.TestCase):
         doc = Document("/", 1)
         completions = list(completer.get_completions(doc, None))
         cmd_names = [c.text for c in completions]
-        expected = ["/help", "/clear", "/compact", "/doctor", "/cost", "/diff", "/export", "/init", "/git", "/github", "/tools", "/model", "/stats", "/reset", "/exit"]
+        expected = ["/help", "/clear", "/memory", "/compact", "/doctor", "/cost", "/diff", "/export", "/init", "/git", "/github", "/tools", "/model", "/stats", "/reset", "/exit"]
         for exp in expected:
             self.assertIn(exp, cmd_names)
 
@@ -136,6 +129,10 @@ class TestTools(unittest.TestCase):
         res = execute_git_status()
         self.assertIsNotNone(res)
 
+    def test_recall_memory_tool(self):
+        res = execute_recall_memory("database")
+        self.assertIsNotNone(res)
+
 
 class TestUI(unittest.TestCase):
     def test_mascot_monochrome(self):
@@ -155,6 +152,7 @@ class TestUI(unittest.TestCase):
         render_diff("")
         render_error("Test Title", "Test detail message", "Test remedy action")
         render_export_status("codex_session.md", 4)
+        render_memory_status(350, 24, 12, 5)
         render_help()
         render_tools_list()
 

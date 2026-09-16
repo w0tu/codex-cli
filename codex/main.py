@@ -1,4 +1,4 @@
-"""CLI controller for Codex — animated REPL with slash menu, Claude Code tools, and PC agent loop."""
+"""CLI controller for Codex — animated REPL with 300+ message memory architecture."""
 
 import os
 import sys
@@ -18,6 +18,7 @@ from prompt_toolkit.shortcuts import CompleteStyle
 
 from codex import __version__
 from codex.client import GroqClient, get_system_prompt, DEFAULT_MODEL
+from codex.memory import MemoryManager
 from codex.tools import run_tool, execute_git_status, execute_github_connect
 from codex.ui import (
     console,
@@ -34,6 +35,7 @@ from codex.ui import (
     render_cost,
     render_diff,
     render_export_status,
+    render_memory_status,
     render_compact_summary,
     render_init_status,
     render_stats,
@@ -51,6 +53,7 @@ class SlashCommandCompleter(Completer):
     COMMANDS = [
         ("/help", "Show help reference and available commands"),
         ("/clear", "Clear screen and redraw header"),
+        ("/memory", "Inspect 300+ message memory ledger & stats"),
         ("/compact", "Compact session context to preserve tokens"),
         ("/doctor", "Run diagnostic health check on environment"),
         ("/cost", "Show token spend and cost tracker"),
@@ -90,22 +93,33 @@ MENU_STYLE = Style.from_dict({
 })
 
 
-# ── Session state ───────────────────────────────────────────────────────
+# ── Session state with 300+ message memory manager ──────────────────────
 class Session:
     def __init__(self):
-        self.messages: list[dict[str, Any]] = [{"role": "system", "content": get_system_prompt()}]
+        self.memory = MemoryManager()
         self.total_tokens = 0
         self.total_time = 0.0
         self.total_queries = 0
 
-    def add_user(self, text: str):
-        self.messages.append({"role": "user", "content": text})
+    @property
+    def messages(self) -> list[dict[str, Any]]:
+        """Bounded context window compiled from 300+ message history and knowledge base."""
+        return self.memory.get_context_window(get_system_prompt())
 
-    def add_assistant(self, text: str):
-        self.messages.append({"role": "assistant", "content": text})
+    def add_user(self, text: str):
+        self.memory.add_message("user", text)
+
+    def add_assistant(self, text: str, tool_calls=None):
+        extra = {}
+        if tool_calls:
+            extra["tool_calls"] = tool_calls
+        self.memory.add_message("assistant", text, **extra)
+
+    def add_tool_result(self, tool_call_id: str, content: str):
+        self.memory.add_message("tool", content, tool_call_id=tool_call_id)
 
     def reset(self):
-        self.messages = [{"role": "system", "content": get_system_prompt()}]
+        self.memory.clear()
 
     def record(self, tokens: int, elapsed: float):
         self.total_tokens += tokens
@@ -114,39 +128,25 @@ class Session:
 
     def compact(self) -> tuple[int, int]:
         """Compact conversation history by retaining system prompt and recent turns."""
-        old_count = len(self.messages)
-        if len(self.messages) <= 4:
-            return old_count, old_count
-
-        system_msg = self.messages[0]
-        recent = self.messages[-2:]
-        middle = self.messages[1:-2]
-
-        summary_points = []
-        for m in middle:
-            role = m.get("role", "")
-            content = str(m.get("content", ""))[:120].strip()
-            if content:
-                summary_points.append(f"[{role}]: {content}")
-
-        compact_msg = {
-            "role": "system",
-            "content": f"Previous conversation summary:\n" + "\n".join(summary_points)
-        }
-
-        self.messages = [system_msg, compact_msg] + recent
-        return old_count, len(self.messages)
+        old_count = len(self.memory.history)
+        self.memory._consolidate_older_messages()
+        return old_count, len(self.memory.history)
 
     def export(self, filename: str = "") -> str:
-        """Export session messages to a markdown file."""
+        """Export all session messages across the entire history to a markdown file."""
         out_name = filename.strip() if filename.strip() else f"codex_session_{int(time.time())}.md"
         out_path = Path(out_name).resolve()
-        lines = ["# Codex AI Session Export\n", f"- Exported at: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n---\n"]
-        for msg in self.messages:
-            role = msg.get("role", "unknown").upper()
+        lines = [
+            "# Codex AI Session Export\n",
+            f"- Session ID: `{self.memory.session_id}`\n",
+            f"- Total Messages Archived: {len(self.memory.history)}\n",
+            f"- Exported at: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n---\n"
+        ]
+        for m in self.memory.history:
+            role = m.get("role", "unknown").upper()
             if role == "SYSTEM":
                 continue
-            content = msg.get("content", "")
+            content = m.get("content", "")
             lines.append(f"### {role}\n\n{content}\n\n---\n")
         out_path.write_text("\n".join(lines), encoding="utf-8")
         return str(out_path)
@@ -154,8 +154,7 @@ class Session:
 
 # ── Autonomous Agent Execution Loop ─────────────────────────────────────
 def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", max_steps: int = 6) -> None:
-    """Run an agent turn with dynamic thinking animation and custom error handling."""
-    # Play dynamic animated thinking scaled to prompt length/complexity
+    """Run an agent turn with dynamic thinking animation, memory tracking, and PC tools."""
     animate_thinking(prompt=prompt_text)
 
     t0 = time.perf_counter()
@@ -202,20 +201,18 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
         msg = choice.message
 
         if msg.tool_calls:
-            session.messages.append({
-                "role": "assistant",
-                "tool_calls": [
-                    {
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {
-                            "name": tc.function.name,
-                            "arguments": tc.function.arguments,
-                        }
+            tool_calls_dict = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
                     }
-                    for tc in msg.tool_calls
-                ]
-            })
+                }
+                for tc in msg.tool_calls
+            ]
+            session.add_assistant(msg.content or "", tool_calls=tool_calls_dict)
 
             for tc in msg.tool_calls:
                 tool_name = tc.function.name
@@ -224,17 +221,17 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                 except Exception:
                     args = {}
 
+                # Record file actions in memory ledger
+                if tool_name in ("write_file", "edit_file", "read_file") and "path" in args:
+                    session.memory.record_file_op(args["path"], tool_name)
+
                 summary = args.get("command") or args.get("path") or args.get("repo") or json.dumps(args)
                 render_tool_call(tool_name, summary)
 
                 result = run_tool(tool_name, args)
                 render_tool_result(result)
 
-                session.messages.append({
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": result,
-                })
+                session.add_tool_result(tc.id, result)
         else:
             content = msg.content or ""
             if "</think>" in content:
@@ -298,6 +295,27 @@ def run_repl(client: GroqClient) -> None:
             render_help()
             continue
 
+        if user_input.startswith("/memory"):
+            parts = user_input.split(maxsplit=2)
+            if len(parts) >= 3 and parts[1].lower() == "search":
+                q = parts[2].strip()
+                matches = session.memory.search(q)
+                if matches:
+                    console.print(f"[bold white]Memory Search Results for '{q}':[/]")
+                    for m in matches:
+                        console.print(f"[dim]Turn {m['turn']} ({m['role']}):[/] {m['content']}")
+                    console.print()
+                else:
+                    console.print(f"[dim]No occurrences of '{q}' in memory ({len(session.memory.history)} turns).[/]\n")
+            else:
+                render_memory_status(
+                    total_msgs=len(session.memory.history),
+                    active_window=session.memory.max_active_window,
+                    knowledge_count=len(session.memory.knowledge_summary) + len(session.memory.decisions_and_facts),
+                    files_count=len(session.memory.file_ledger),
+                )
+            continue
+
         if user_input == "/compact":
             old_c, new_c = session.compact()
             render_compact_summary(old_c, new_c)
@@ -320,7 +338,7 @@ def run_repl(client: GroqClient) -> None:
             parts = user_input.split(maxsplit=1)
             fname = parts[1].strip() if len(parts) > 1 else ""
             out_file = session.export(fname)
-            render_export_status(out_file, len(session.messages) - 1)
+            render_export_status(out_file, len(session.memory.history))
             continue
 
         if user_input == "/init":

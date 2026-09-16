@@ -80,7 +80,7 @@ def calculate_thinking_duration(prompt: str) -> float:
         "refactor", "architect", "implement", "explain", "analyze",
         "compare", "debug", "create", "build", "design", "algorithm",
         "difference", "optimize", "kernel", "protocol", "rewrite",
-        "stack", "network", "system"
+        "stack", "network", "system", "memory"
     ]
     matches = sum(1 for kw in complex_keywords if kw in prompt_lower)
     complexity_bonus = matches * 0.45
@@ -201,6 +201,20 @@ def render_export_status(path: str, message_count: int) -> None:
     console.print(t)
 
 
+def render_memory_status(total_msgs: int, active_window: int, knowledge_count: int, files_count: int) -> None:
+    """Display session memory ledger stats."""
+    t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Codex Memory Architecture[/]")
+    t.add_column("Memory Layer", style="bold white")
+    t.add_column("Capacity / Count", style="white")
+    t.add_column("Status", style="dim")
+    t.add_row("Total History Archive", f"{total_msgs} messages", "Preserved on disk (300+ message capacity)")
+    t.add_row("Active Sliding Window", f"{min(total_msgs, active_window)} messages", "Full-fidelity recent context")
+    t.add_row("Consolidated Knowledge Base", f"{knowledge_count} entries", "Distilled facts & past discussion points")
+    t.add_row("Session File Registry", f"{files_count} files", "Tracked file creations and edits")
+    console.print(t)
+    console.print()
+
+
 def render_help() -> None:
     """Display slash command reference table."""
     t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Slash Commands[/]")
@@ -208,6 +222,7 @@ def render_help() -> None:
     t.add_column("Description", style="white")
     t.add_row("/help", "Show this reference guide")
     t.add_row("/clear", "Clear screen and redraw header")
+    t.add_row("/memory", "Inspect 300+ message memory ledger & stats")
     t.add_row("/compact", "Compact conversation context to save tokens")
     t.add_row("/doctor", "Run diagnostic health check on environment")
     t.add_row("/cost", "Show token usage & cost statistics")
@@ -239,6 +254,7 @@ def render_tools_list() -> None:
     t.add_row("find_files", "Locate files matching glob patterns (e.g. *.py)")
     t.add_row("git_status", "Inspect active branch, staged files, and git diff")
     t.add_row("github_connect", "Clone or connect any GitHub repository")
+    t.add_row("recall_memory", "Recall discussions and facts from earlier in the session")
     console.print(t)
     console.print()
 
