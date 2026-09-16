@@ -236,8 +236,77 @@ TOOLS_SCHEMA = [
                 "required": ["repo"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": "Search the live web using free online APIs (Wikipedia, DuckDuckGo) for real-time information, documentation, news, facts, and code references.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The search query, e.g. 'Python 3.14 features', 'Rust tokio tutorial', 'FastAPI background tasks'"
+                    }
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "fetch_url",
+            "description": "Fetch and extract readable plain-text or documentation content from any public web URL (strips scripts and HTML tags).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "description": "The full HTTP or HTTPS URL to fetch."
+                    }
+                },
+                "required": ["url"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "online_info",
+            "description": "Retrieve comprehensive encyclopedic reference knowledge for any concept, tech stack, library, or entity.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {
+                        "type": "string",
+                        "description": "Name of the topic or concept to look up, e.g. 'Kubernetes', 'B-tree', 'Git'"
+                    }
+                },
+                "required": ["topic"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "github_search",
+            "description": "Search public GitHub repositories for open source projects, stars, descriptions, and URLs without requiring API tokens.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Search term for GitHub repositories."
+                    }
+                },
+                "required": ["query"]
+            }
+        }
     }
 ]
+
 
 
 def execute_bash(command: str) -> str:
@@ -455,6 +524,150 @@ def execute_list_skills() -> str:
     return "\n".join(lines)
 
 
+def execute_web_search(query: str) -> str:
+    """Free web search combining Wikipedia and DuckDuckGo Instant APIs."""
+    import urllib.request
+    import urllib.parse
+    import json
+    import html
+    import re
+
+    query_clean = query.strip()
+    results = []
+
+    # 1. DuckDuckGo Instant Answer API
+    try:
+        ddg_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query_clean)}&format=json&no_html=1&skip_disambig=1"
+        req = urllib.request.Request(ddg_url, headers={"User-Agent": "CodexCLI/1.7.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+            abstract = data.get("AbstractText", "").strip()
+            source_url = data.get("AbstractURL", "")
+            if abstract:
+                results.append(f"### DuckDuckGo Summary ({source_url}):\n{abstract}\n")
+            topics = data.get("RelatedTopics", [])
+            for t in topics[:3]:
+                if isinstance(t, dict) and "Text" in t:
+                    results.append(f"- {t['Text']}")
+    except Exception:
+        pass
+
+    # 2. Wikipedia Search API
+    try:
+        wiki_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(query_clean)}&format=json&srlimit=4"
+        req = urllib.request.Request(wiki_url, headers={"User-Agent": "CodexCLI/1.7.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+            search_items = data.get("query", {}).get("search", [])
+            if search_items:
+                results.append("### Relevant Wikipedia Articles:")
+                for item in search_items:
+                    title = item.get("title", "")
+                    snippet = html.unescape(re.sub(r"<[^>]+>", "", item.get("snippet", "")))
+                    page_url = f"https://en.wikipedia.org/wiki/{urllib.parse.quote(title.replace(' ', '_'))}"
+                    results.append(f"- **[{title}]({page_url})**: {snippet}")
+    except Exception:
+        pass
+
+    if not results:
+        return f"No online search results found for: '{query}'."
+    return "\n".join(results)
+
+
+def execute_fetch_url(url: str, max_chars: int = 4000) -> str:
+    """Fetch URL and extract clean text without HTML boilerplate."""
+    import urllib.request
+    import re
+    import html
+
+    url = url.strip()
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            raw = resp.read().decode("utf-8", errors="replace")
+
+        # Strip scripts, styles, comments
+        text = re.sub(r"<script[^>]*>.*?</script>", "", raw, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+        # Extract title
+        title_match = re.search(r"<title[^>]*>(.*?)</title>", raw, flags=re.IGNORECASE)
+        title = html.unescape(title_match.group(1)).strip() if title_match else url
+        # Replace tags with spaces or newlines
+        text = re.sub(r"<(p|br|div|li|h[1-6])[^>]*>", "\n", text, flags=re.IGNORECASE)
+        text = re.sub(r"<[^>]+>", " ", text)
+        text = html.unescape(text)
+        # Collapse whitespace
+        text = re.sub(r"[ \t]+", " ", text)
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        cleaned = "\n".join(lines)
+        if len(cleaned) > max_chars:
+            cleaned = cleaned[:max_chars] + f"\n... [truncated, {len(cleaned)} chars total]"
+
+        return f"### {title}\nURL: {url}\n\n{cleaned}"
+    except Exception as e:
+        return f"Error fetching URL '{url}': {e}"
+
+
+def execute_online_info(topic: str) -> str:
+    """Fetch encyclopedic summary for a topic from Wikipedia REST API."""
+    import urllib.request
+    import urllib.parse
+    import json
+
+    topic_clean = topic.strip().replace(" ", "_")
+    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(topic_clean)}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "CodexCLI/1.7.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+            extract = data.get("extract", "").strip()
+            title = data.get("title", topic)
+            page_url = data.get("content_urls", {}).get("desktop", {}).get("page", "")
+            if extract:
+                return f"### {title}\nSource: {page_url}\n\n{extract}"
+    except Exception:
+        pass
+    return execute_web_search(topic)
+
+
+def execute_github_search(query: str) -> str:
+    """Search public GitHub repositories for projects and stars."""
+    import urllib.request
+    import urllib.parse
+    import json
+
+    url = f"https://api.github.com/search/repositories?q={urllib.parse.quote(query)}&per_page=5"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "CodexCLI/1.7.0"})
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+            items = data.get("items", [])
+            if not items:
+                return f"No GitHub repositories found for query: '{query}'."
+
+            lines = [f"### Top GitHub Repositories for '{query}':"]
+            for repo in items:
+                name = repo.get("full_name", "")
+                desc = repo.get("description", "No description") or "No description"
+                stars = repo.get("stargazers_count", 0)
+                forks = repo.get("forks_count", 0)
+                html_url = repo.get("html_url", "")
+                lines.append(f"- **[{name}]({html_url})** (★ {stars:,} | ⑂ {forks:,})\n  {desc}")
+
+            return "\n".join(lines)
+    except Exception as e:
+        return f"Error searching GitHub: {e}"
+
+
 def run_tool(name: str, args: dict[str, Any]) -> str:
     """Dispatch tool call by name."""
     if name == "bash":
@@ -489,5 +702,14 @@ def run_tool(name: str, args: dict[str, Any]) -> str:
         return execute_install_skill(args.get("repo", ""))
     elif name == "list_skills":
         return execute_list_skills()
+    elif name == "web_search":
+        return execute_web_search(args.get("query", ""))
+    elif name == "fetch_url":
+        return execute_fetch_url(args.get("url", ""))
+    elif name == "online_info":
+        return execute_online_info(args.get("topic", ""))
+    elif name == "github_search":
+        return execute_github_search(args.get("query", ""))
     else:
         return f"Error: Unknown tool '{name}'"
+

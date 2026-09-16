@@ -25,8 +25,10 @@ from codex.skills import SkillsManager
 from codex.tools import run_tool, execute_git_status, execute_github_connect
 from codex.ui import (
     console,
+    clear_terminal,
     render_header,
     animate_thinking,
+    render_thinking_block,
     render_error,
     print_prompt,
     render_tool_call,
@@ -186,25 +188,25 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
             if "rate_limit" in err_str or "429" in err_str:
                 render_error(
                     "Rate Limit Exceeded (HTTP 429)",
-                    "Groq token rate limit reached for the active model tier.",
-                    "Wait 10-15 seconds before re-trying, or switch models with /model openai/gpt-oss-20b"
+                    "Token rate limit reached for the active model tier.",
+                    "Wait a few seconds before re-trying, or switch models with /model."
                 )
             elif "401" in err_str or "authentication" in err_str or "api_key" in err_str:
                 render_error(
                     "Authentication Failed (HTTP 401)",
-                    "Invalid, missing, or expired Groq API key.",
-                    "Run 'export GROQ_API_KEY=gsk_...' or update ~/.codex/config.json"
+                    "Invalid, missing, or expired API key.",
+                    "Paste your API key directly into the terminal or configure ~/.codex/config.json"
                 )
             elif "404" in err_str or "not_found" in err_str:
                 render_error(
                     "Model Unavailable (HTTP 404)",
-                    f"The requested model '{client.model}' is unavailable on your Groq tier.",
+                    f"The requested model '{client.model}' is currently unavailable.",
                     "Use /model to switch to an active model (e.g. /model qwen/qwen3.8-27b)"
                 )
             elif "connection" in err_str or "timeout" in err_str:
                 render_error(
                     "Network Connection Failure",
-                    "Unable to establish connection to api.groq.com.",
+                    "Unable to establish connection to inference endpoint.",
                     "Check network connectivity and DNS resolution."
                 )
             else:
@@ -219,6 +221,16 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
         msg = choice.message
 
         if msg.tool_calls:
+            if msg.content:
+                raw_c = msg.content.strip()
+                thought_text = ""
+                if "<think>" in raw_c and "</think>" in raw_c:
+                    thought_text = raw_c.split("</think>", 1)[0].replace("<think>", "").strip()
+                elif "<think>" in raw_c:
+                    thought_text = raw_c.replace("<think>", "").strip()
+                if thought_text:
+                    render_thinking_block(thought_text, elapsed=time.perf_counter() - prompt_start_time)
+
             tool_calls_dict = [
                 {
                     "id": tc.id,
@@ -243,7 +255,7 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                 if tool_name in ("write_file", "edit_file", "read_file") and "path" in args:
                     session.memory.record_file_op(args["path"], tool_name)
 
-                summary = args.get("command") or args.get("path") or args.get("repo") or json.dumps(args)
+                summary = args.get("command") or args.get("path") or args.get("repo") or args.get("query") or args.get("url") or args.get("topic") or json.dumps(args)
                 render_tool_call(tool_name, summary)
 
                 result = run_tool(tool_name, args)
@@ -252,8 +264,17 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                 session.add_tool_result(tc.id, result)
         else:
             content = msg.content or ""
-            if "</think>" in content:
-                content = content.split("</think>", 1)[1]
+            thought_text = ""
+            if "<think>" in content and "</think>" in content:
+                thought_part, content = content.split("</think>", 1)
+                thought_text = thought_part.replace("<think>", "").strip()
+            elif "</think>" in content:
+                thought_part, content = content.split("</think>", 1)
+                thought_text = thought_part.replace("<think>", "").strip()
+
+            if thought_text:
+                render_thinking_block(thought_text, elapsed=time.perf_counter() - prompt_start_time)
+
             content = content.strip()
             if content.endswith("</"):
                 content = content[:-2].strip()
@@ -292,7 +313,7 @@ def run_repl(client: GroqClient) -> None:
 
     session = Session()
 
-    console.clear()
+    clear_terminal()
     console.print(render_header(model_name=client.model))
     console.print()
 
@@ -329,7 +350,7 @@ def run_repl(client: GroqClient) -> None:
 
         # Slash commands
         if user_input == "/clear":
-            console.clear()
+            clear_terminal()
             console.print(render_header(model_name=client.model))
             console.print()
             continue
@@ -489,8 +510,8 @@ def main() -> None:
         description="The Codex Project — Autonomous AI terminal for Linux.",
     )
     parser.add_argument("prompt", nargs="*", help="Run a single prompt and exit.")
-    parser.add_argument("--model", type=str, default=None, help="Groq model ID.")
-    parser.add_argument("--key", type=str, default=None, help="Groq API key.")
+    parser.add_argument("--model", type=str, default=None, help="Inference model ID.")
+    parser.add_argument("--key", type=str, default=None, help="API key.")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
@@ -501,7 +522,7 @@ def main() -> None:
     try:
         client = GroqClient(model=model, api_key=args.key)
     except RuntimeError as e:
-        render_error("Configuration Error", str(e), "Configure ~/.codex/config.json with a valid Groq key.")
+        render_error("Configuration Error", str(e), "Configure ~/.codex/config.json with a valid API key.")
         sys.exit(1)
 
     if args.prompt:

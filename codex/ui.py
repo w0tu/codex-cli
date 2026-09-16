@@ -65,29 +65,26 @@ def render_header(model_name: str = "qwen/qwen3.8-27b", cwd: str | None = None) 
     return Panel(grid, box=box.ROUNDED, border_style="grey35", expand=False)
 
 
+def clear_terminal() -> None:
+    """Completely wipe the terminal screen, scrollback buffer, and reset cursor."""
+    sys.stdout.write("\x1b[3J\x1b[2J\x1b[H")
+    sys.stdout.flush()
+    try:
+        os.system("clear")
+    except Exception:
+        pass
+
+
 def calculate_thinking_duration(prompt: str) -> float:
-    """Calculate realistic thinking duration based on prompt length and complexity."""
+    """Snappy cognitive phase duration without artificial lag."""
     words = len(prompt.split())
-    prompt_lower = prompt.lower()
-    complex_keywords = [
-        "refactor", "architect", "implement", "explain", "analyze",
-        "compare", "debug", "create", "build", "design", "algorithm",
-        "difference", "optimize", "kernel", "protocol", "rewrite",
-        "stack", "network", "system", "memory", "quota"
-    ]
-    matches = sum(1 for kw in complex_keywords if kw in prompt_lower)
-    complexity_bonus = matches * 0.45
-
     if words < 6:
-        base = 1.0
+        return 0.18
     elif words < 15:
-        base = 1.8
+        return 0.28
     elif words < 40:
-        base = 2.8
-    else:
-        base = 3.8
-
-    return min(base + complexity_bonus, 5.0)
+        return 0.38
+    return 0.48
 
 
 def get_prompt_related_phases(prompt: str) -> list[str]:
@@ -138,21 +135,21 @@ def get_prompt_related_phases(prompt: str) -> list[str]:
 
 
 def animate_thinking(prompt: str = "") -> float:
-    """Prompt-related dynamic thinking animation with checking indicators."""
+    """Snappy prompt-related dynamic thinking indicator."""
     if not sys.stdout.isatty():
         return 0.0
 
     duration = calculate_thinking_duration(prompt)
     phases = get_prompt_related_phases(prompt)
     t0 = time.perf_counter()
-    fps = 25
-    steps = max(int(duration * fps), 15)
+    fps = 30
+    steps = max(int(duration * fps), 8)
     delay = duration / steps
 
     with Live(console=console, refresh_per_second=fps, transient=True) as live:
         for i in range(steps):
             elapsed = time.perf_counter() - t0
-            glyph = THINKING_GLYPHS[(i // 3) % len(THINKING_GLYPHS)]
+            glyph = THINKING_GLYPHS[(i // 2) % len(THINKING_GLYPHS)]
             spin = SPINNER_FRAMES[i % len(SPINNER_FRAMES)]
             phase_idx = min(int((i / steps) * len(phases)), len(phases) - 1)
             phase = phases[phase_idx]
@@ -166,8 +163,33 @@ def animate_thinking(prompt: str = "") -> float:
             time.sleep(delay)
 
     total_elapsed = time.perf_counter() - t0
-    console.print(f"[dim italic]Thought for {total_elapsed:.1f}s[/dim italic]\n")
+    console.print(f"[dim italic]Thought for {total_elapsed:.2f}s[/dim italic]\n")
     return total_elapsed
+
+
+def render_thinking_block(thought_text: str, elapsed: float | None = None) -> None:
+    """Render the model's actual thought process and reasoning in a clean collapsible card."""
+    cleaned = thought_text.strip()
+    if not cleaned:
+        return
+    t = Text()
+    t.append("╭─ [thought] ", style="dim")
+    if elapsed:
+        t.append(f"Reasoning Process ({elapsed:.2f}s)\n", style="bold white")
+    else:
+        t.append("Reasoning Process\n", style="bold white")
+
+    lines = cleaned.splitlines()
+    if len(lines) > 12:
+        for line in lines[:10]:
+            t.append(f"│ {line}\n", style="dim")
+        t.append(f"│ ... ({len(lines) - 10} lines collapsed for clean display)\n", style="dim")
+    else:
+        for line in lines:
+            t.append(f"│ {line}\n", style="dim")
+    t.append("╰─\n", style="dim")
+    console.print(t)
+
 
 
 def render_error(title: str, detail: str, remedy: str | None = None) -> None:
@@ -217,7 +239,7 @@ def print_telemetry(tokens: int, total_elapsed: float) -> None:
     """Timer and telemetry from prompt entry to finished execution."""
     tps = tokens / max(total_elapsed, 0.001)
     console.print(
-        f"[dim]> {tokens} tokens | Done in {total_elapsed:.2f}s | {tps:.1f} tok/s | Groq[/]\n"
+        f"[dim]> {tokens} tokens | Done in {total_elapsed:.2f}s | {tps:.1f} tok/s | Codex Native[/]\n"
     )
 
 
@@ -242,7 +264,7 @@ def render_usage_tab(stats: dict) -> None:
     t.add_row("Credit Refresh Cycle", "Every 24 Hours", f"Daily credit refresh ({reset_day})")
 
     t.add_row("Policy Enforcement", "Strict Rate Limiting", "300 requests per 5h / 24h cycle")
-    t.add_row("Inference Tier", "Groq LPU Hardware", "Ultra-fast accelerated inference")
+    t.add_row("Inference Tier", "Codex Engine", "Hardware-accelerated neural processing")
 
     console.print(t)
     console.print()
@@ -306,7 +328,7 @@ def render_key_saved(key_masked: str, path: str) -> None:
     t.append("API Key Saved & Activated Globally\n", style="bold white")
     t.append(f"│ Stored permanently in: {path}\n", style="dim")
     t.append(f"│ Active Key: {key_masked}\n", style="dim")
-    t.append("╰─ Groq client updated live. Available across all sessions & CLI invocations.\n", style="dim")
+    t.append("╰─ Active inference key updated live. Available across all sessions & CLI invocations.\n", style="dim")
     console.print(t)
 
 
@@ -329,7 +351,7 @@ def render_help() -> None:
     t.add_row("/git", "Show git status, active branch, and diffs")
     t.add_row("/github [repo]", "Connect, clone, or inspect GitHub repository")
     t.add_row("/tools", "List available PC agent tools")
-    t.add_row("/model [name]", "Switch or view active Groq model")
+    t.add_row("/model [name]", "Switch or view active model")
     t.add_row("/stats", "Display session token and latency stats")
     t.add_row("/reset", "Clear conversation history")
     t.add_row("/exit, /quit", "Exit Codex terminal (or Ctrl+D)")
@@ -353,6 +375,10 @@ def render_tools_list() -> None:
     t.add_row("github_connect", "Clone or connect any GitHub repository")
     t.add_row("install_skill", "Install community developer skill from GitHub")
     t.add_row("list_skills", "List all active community and workspace skills")
+    t.add_row("web_search", "Free live web search via Wikipedia and DuckDuckGo")
+    t.add_row("fetch_url", "Fetch and extract text from public web URLs")
+    t.add_row("online_info", "Encyclopedic concept lookup from Wikipedia REST API")
+    t.add_row("github_search", "Search public GitHub repositories for code and stars")
     t.add_row("recall_memory", "Recall discussions and facts from earlier in the session")
     console.print(t)
     console.print()
@@ -398,10 +424,11 @@ def render_cost(queries: int, total_tokens: int) -> None:
     t.add_column("Value", style="white")
     t.add_row("Total Session Turns", str(queries))
     t.add_row("Total Tokens Processed", f"{total_tokens:,}")
-    t.add_row("Provider Service Tier", "Groq LPU (On-Demand / Free)")
+    t.add_row("Provider Service Tier", "Codex Native Tier (Accelerated)")
     t.add_row("Estimated Cost", "$0.0000 USD")
     console.print(t)
     console.print()
+
 
 
 def render_compact_summary(old_messages: int, new_messages: int) -> None:

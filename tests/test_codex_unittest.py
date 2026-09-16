@@ -180,10 +180,21 @@ class TestTools(unittest.TestCase):
             res = execute_grep_search("TARGET_STRING", path=tmpdir)
             self.assertIn("TARGET_STRING", res)
 
+    def test_online_tools(self):
+        from codex.tools import execute_web_search, execute_fetch_url, execute_online_info, execute_github_search
+        search_res = execute_web_search("Python programming")
+        self.assertTrue("Python" in search_res or "results" in search_res)
+
+        info_res = execute_online_info("Linux")
+        self.assertTrue("Linux" in info_res or "results" in info_res)
+
+        github_res = execute_github_search("linux")
+        self.assertTrue("GitHub" in github_res or "linux" in github_res.lower())
+
 
 class TestUI(unittest.TestCase):
     def test_ui_renders(self):
-        from codex.ui import render_skills_list, render_key_saved
+        from codex.ui import render_skills_list, render_key_saved, render_thinking_block, clear_terminal
         render_usage_tab({
             "used_5h": 12, "max_5h": 300, "remaining_5h": 288, "reset_5h": "in 4h 12m",
             "used_day": 12, "max_day": 300, "remaining_day": 288, "reset_day": "in 23h 48m"
@@ -193,8 +204,11 @@ class TestUI(unittest.TestCase):
         render_help()
         render_skills_list([{"name": "test-skill", "description": "Unit test skill", "source": "global"}])
         render_key_saved("gsk_1234****5678", "/home/user/.codex/config.json")
+        render_thinking_block("1. Inspect system\n2. Run verified implementation", elapsed=0.25)
+        clear_terminal()
 
 
 if __name__ == "__main__":
     unittest.main()
+
 
