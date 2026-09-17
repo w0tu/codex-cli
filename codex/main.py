@@ -64,6 +64,9 @@ class SlashCommandCompleter(Completer):
         ("/usage", "Display 5-hour / 300-prompt usage & quota monitor"),
         ("/onboard", "Run interactive auth setup and API key verification"),
         ("/doctor", "Run diagnostic health check on environment"),
+        ("/verify", "Run automated test verification & anti-tamper lock"),
+        ("/checkpoint", "Create, list, or rollback shadow git checkpoints"),
+        ("/subagent", "Decompose prompt into autonomous Scout/Coder/Critic DAG"),
         ("/skills", "Manage or install community developer skills from GitHub"),
         ("/memory", "Inspect 300+ message memory ledger & stats"),
         ("/compact", "Compact session context to preserve tokens"),
@@ -183,7 +186,9 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
 
     for _ in range(max_steps):
         try:
-            resp = client.chat_turn(session.messages)
+            from codex.security import SecretScrubber
+            scrubbed_msgs = SecretScrubber.scrub_messages(session.messages)
+            resp = client.chat_turn(scrubbed_msgs)
         except Exception as e:
             err_str = str(e).lower()
             if "rate_limit" in err_str or "429" in err_str:
@@ -429,6 +434,87 @@ def run_repl(client: GroqClient) -> None:
         if user_input == "/diff":
             proc = subprocess.run("git diff", shell=True, capture_output=True, text=True)
             render_diff(proc.stdout)
+            if proc.stdout.strip():
+                try:
+                    from codex.diff_navigator import DiffNavigator
+                    ans = console.input("[dim]Inspect diff hunks interactively? [y/N]: [/]").strip().lower()
+                    if ans in ("y", "yes"):
+                        acc, tot = DiffNavigator.inspect_diff_interactive(proc.stdout)
+                        console.print(f"[white]Accepted {acc}/{tot} diff hunks.[/]\n")
+                except Exception:
+                    pass
+            continue
+
+        if user_input.startswith("/checkpoint"):
+            from codex.git_shadow import GitShadowManager
+            shadow_mgr = GitShadowManager()
+            parts = user_input.split(maxsplit=2)
+            subcmd = parts[1].lower() if len(parts) > 1 else "list"
+            if subcmd == "create":
+                msg = parts[2] if len(parts) > 2 else ""
+                cid = shadow_mgr.create_checkpoint(msg)
+                if cid:
+                    console.print(f"[bold green]Shadow Checkpoint Created:[/] [white]{cid[:8]}[/]\n")
+                else:
+                    console.print("[dim]Failed to create shadow checkpoint (ensure git repo with committed HEAD exists).[/]\n")
+            elif subcmd == "rollback":
+                if len(parts) > 2:
+                    target_cid = parts[2].strip()
+                    ok = shadow_mgr.rollback(target_cid)
+                    if ok:
+                        console.print(f"[bold green]Successfully rolled back to checkpoint:[/] {target_cid[:8]}\n")
+                    else:
+                        console.print(f"[bold red]Failed to rollback to:[/] {target_cid}\n")
+                else:
+                    console.print("[dim]Usage: /checkpoint rollback <commit_id>[/]\n")
+            else:
+                checkpoints = shadow_mgr.list_checkpoints()
+                if checkpoints:
+                    console.print("[bold white]Shadow Git Checkpoints (refs/codex/history):[/]")
+                    for cp in checkpoints:
+                        console.print(f"  [cyan]{cp['commit_id'][:8]}[/] - {cp['message']}")
+                    console.print()
+                else:
+                    console.print("[dim]No shadow checkpoints found. Use '/checkpoint create <message>' to snapshot.[/]\n")
+            continue
+
+        if user_input.startswith("/verify"):
+            from codex.anti_tamper import AntiTamperGuard
+            from codex.verifier import AutonomousVerifier
+            console.print("[bold white]Running Autonomous Verification & Tamper Audit...[/]")
+            guard = AntiTamperGuard()
+            tampered, mod_files = guard.audit_tampering()
+            if tampered:
+                console.print(f"[bold red]Anti-Test Tampering Alert![/] Test files were modified:")
+                for mf in mod_files:
+                    console.print(f"  - [red]{mf}[/]")
+                console.print("[dim]Constraint Enforced: Implement fixes in source code rather than modifying test assertions.[/]\n")
+            else:
+                console.print("[bold green]Anti-Tamper Lock:[/] Clean (all test signatures verified).")
+
+            verifier = AutonomousVerifier()
+            passed, test_out = verifier.run_tests()
+            status_tag = "[bold green]PASS[/]" if passed else "[bold red]FAIL[/]"
+            console.print(f"Test Suite Status: {status_tag}")
+            if test_out:
+                first_lines = "\n".join(test_out.splitlines()[-10:])
+                console.print(f"[dim]{first_lines}[/]\n")
+            continue
+
+        if user_input.startswith("/subagent"):
+            from codex.subagents import Orchestrator
+            parts = user_input.split(maxsplit=1)
+            if len(parts) > 1:
+                task_prompt = parts[1].strip()
+                console.print(f"[bold white]Decomposing task into multi-agent DAG...[/]")
+                orch = Orchestrator()
+                dag = orch.build_plan_for_prompt(task_prompt)
+                logs = orch.execute_dag(dag)
+                for log in logs:
+                    console.print(f"  [dim]{log}[/]")
+                console.print(f"[bold green]Sub-Agent DAG execution completed cleanly.[/]\n")
+            else:
+                console.print("[dim]Usage: /subagent <task description>[/]\n")
             continue
 
         if user_input.startswith("/export"):
@@ -519,6 +605,9 @@ def main() -> None:
     parser.add_argument("prompt", nargs="*", help="Run a single prompt and exit.")
     parser.add_argument("--model", type=str, default=None, help="Inference model ID.")
     parser.add_argument("--key", type=str, default=None, help="API key.")
+    parser.add_argument("--headless", action="store_true", help="Run non-interactively in headless CI mode.")
+    parser.add_argument("--ci", action="store_true", help="Alias for --headless.")
+    parser.add_argument("--max-cost", type=float, default=0.0, help="Spending cap in USD.")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
@@ -536,6 +625,18 @@ def main() -> None:
         except Exception as e:
             render_error("Configuration Error", str(e), "Configure ~/.codex/config.json with a valid API key.")
             sys.exit(1)
+
+    if args.headless or args.ci:
+        from codex.ci import HeadlessCIRunner
+        prompt_str = " ".join(args.prompt)
+        if not prompt_str and not sys.stdin.isatty():
+            prompt_str = sys.stdin.read().strip()
+        if not prompt_str:
+            prompt_str = "Perform codebase verification audit."
+        runner = HeadlessCIRunner(client, prompt_str, max_cost=args.max_cost)
+        report = runner.run()
+        runner.print_report(report, format_type="json")
+        sys.exit(report.get("exit_code", 0))
 
     if args.prompt:
         run_direct(" ".join(args.prompt), client)

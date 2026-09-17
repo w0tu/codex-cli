@@ -324,6 +324,209 @@ class TestUI(unittest.TestCase):
         clear_terminal()
 
 
+class TestPhase2ASTAndSecrets(unittest.TestCase):
+    def test_ast_outline_and_symbol(self):
+        from codex.ast_parser import SymbolExtractor
+        sample_code = """
+class Calculator:
+    \"\"\"Basic math class.\"\"\"
+    def add(self, a, b):
+        return a + b
+
+def multiply(x, y):
+    \"\"\"Multiply numbers.\"\"\"
+    return x * y
+"""
+        symbols = SymbolExtractor.outline_python(sample_code)
+        self.assertEqual(len(symbols), 2)
+        class_sym = symbols[0]
+        self.assertEqual(class_sym["name"], "Calculator")
+        self.assertEqual(len(class_sym["methods"]), 1)
+        self.assertEqual(class_sym["methods"][0]["name"], "add")
+
+        func_sym = symbols[1]
+        self.assertEqual(func_sym["name"], "multiply")
+        self.assertIn("x", func_sym["args"])
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = os.path.join(tmpdir, "sample.py")
+            Path(file_path).write_text(sample_code)
+
+            outline = SymbolExtractor.outline_file(file_path)
+            self.assertIn("CLASS Calculator", outline)
+            self.assertIn("FUNCTION multiply", outline)
+
+            extracted = SymbolExtractor.extract_symbol(file_path, "multiply")
+            self.assertIn("def multiply(x, y):", extracted)
+
+    def test_secret_scrubber(self):
+        from codex.security import SecretScrubber
+        text_with_secrets = "Here is my key: gsk_abcdef12345678901234567890123456789012345678 and sk-1234567890abcdef1234567890abcdef"
+        self.assertTrue(SecretScrubber.has_exposed_secret(text_with_secrets))
+
+        scrubbed = SecretScrubber.scrub_text(text_with_secrets)
+        self.assertNotIn("gsk_abcdef", scrubbed)
+        self.assertIn("[REDACTED_GROQ_KEY]", scrubbed)
+        self.assertIn("[REDACTED_OPENAI_KEY]", scrubbed)
+
+        msgs = [{"role": "user", "content": text_with_secrets}]
+        cleaned_msgs = SecretScrubber.scrub_messages(msgs)
+        self.assertNotIn("gsk_abcdef", cleaned_msgs[0]["content"])
+
+    def test_sandbox_safety(self):
+        from codex.sandbox import SandboxExecutor
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sandbox = SandboxExecutor(workspace_root=tmpdir)
+            self.assertTrue(sandbox.is_within_boundary(os.path.join(tmpdir, "safe.py")))
+            self.assertFalse(sandbox.is_within_boundary("/etc/passwd"))
+
+            is_danger, msg = sandbox.check_dangerous_command("rm -rf /")
+            self.assertTrue(is_danger)
+            self.assertIn("Blocked", msg)
+
+            proc = sandbox.execute("echo 'sandbox_test'")
+            self.assertEqual(proc.returncode, 0)
+            self.assertIn("sandbox_test", proc.stdout)
+
+
+class TestPhase2MCP(unittest.TestCase):
+    def test_mcp_manager(self):
+        from codex.mcp import MCPManager
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "mcp_servers.json"
+            mgr = MCPManager(config_path=cfg_path)
+            mgr.register_server("test_server", "echo", ["hello"])
+            servers = mgr.list_servers()
+            self.assertEqual(len(servers), 1)
+            self.assertEqual(servers[0]["name"], "test_server")
+
+            # Tool schema conversion
+            mcp_tools = [{
+                "name": "custom_search",
+                "description": "Custom internal search",
+                "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}}
+            }]
+            schemas = mgr.convert_to_tools_schema(mcp_tools)
+            self.assertEqual(len(schemas), 1)
+            self.assertEqual(schemas[0]["function"]["name"], "mcp_custom_search")
+
+
+class TestPhase2MemoryBudget(unittest.TestCase):
+    def test_context_budget_allocation(self):
+        from codex.memory import MemoryManager
+        mgr = MemoryManager()
+        budget = mgr.allocate_context_budget(total_tokens=10000)
+        self.assertEqual(budget["total"], 10000)
+        self.assertEqual(budget["system_prompt"], 2000)
+        self.assertEqual(budget["code_context"], 4000)
+        self.assertEqual(budget["history_window"], 4000)
+
+
+class TestPhase3SubAgents(unittest.TestCase):
+    def test_dag_planner_and_orchestrator(self):
+        from codex.subagents import Orchestrator, PlanDAG
+        orch = Orchestrator()
+        dag = orch.build_plan_for_prompt("Refactor authentication module")
+        self.assertEqual(len(dag.nodes), 3)
+
+        # First ready task must be scout (no dependencies)
+        ready = dag.get_ready_tasks()
+        self.assertEqual(len(ready), 1)
+        self.assertEqual(ready[0].agent_type, "scout")
+
+        logs = orch.execute_dag(dag)
+        self.assertEqual(len(logs), 3)
+        self.assertTrue(dag.is_complete())
+
+
+class TestPhase3DiffNavigator(unittest.TestCase):
+    def test_diff_parser_and_interactive(self):
+        from codex.diff_navigator import DiffNavigator
+        sample_diff = """--- a/codex/test.py
++++ b/codex/test.py
+@@ -1,3 +1,3 @@
+-old line
++new line
+ remaining
+"""
+        file_diffs = DiffNavigator.parse_unified_diff(sample_diff)
+        self.assertEqual(len(file_diffs), 1)
+        self.assertEqual(file_diffs[0].file_path, "codex/test.py")
+        self.assertEqual(len(file_diffs[0].hunks), 1)
+
+        # Test interactive simulation with 'y'
+        acc, tot = DiffNavigator.inspect_diff_interactive(sample_diff, input_fn=lambda _: "y")
+        self.assertEqual(acc, 1)
+        self.assertEqual(tot, 1)
+
+
+class TestPhase3GitShadowAndCI(unittest.TestCase):
+    def test_git_shadow_manager(self):
+        from codex.git_shadow import GitShadowManager
+        mgr = GitShadowManager()
+        self.assertTrue(mgr.is_git_repo())
+        # Test creating checkpoint
+        cid = mgr.create_checkpoint("Unit test checkpoint")
+        self.assertIsNotNone(cid)
+        cps = mgr.list_checkpoints(limit=5)
+        self.assertGreater(len(cps), 0)
+
+    def test_headless_ci_runner(self):
+        from codex.ci import HeadlessCIRunner
+        class MockClient:
+            def chat_turn(self, messages):
+                class Msg:
+                    content = "1. Code looks clean.\n2. Add test coverage."
+                class Choice:
+                    message = Msg()
+                class Resp:
+                    choices = [Choice()]
+                    usage = type("Usage", (), {"total_tokens": 150})()
+                return Resp()
+
+        runner = HeadlessCIRunner(MockClient(), "Review pull request changes")
+        report = runner.run()
+        self.assertEqual(report["status"], "success")
+        self.assertEqual(report["exit_code"], 0)
+        self.assertGreater(len(report["review_comments"]), 0)
+
+
+class TestPhase4AntiTamperAndVerifier(unittest.TestCase):
+    def test_anti_tamper_guard(self):
+        from codex.anti_tamper import AntiTamperGuard
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_dir = Path(tmpdir) / "tests"
+            test_dir.mkdir()
+            test_file = test_dir / "test_dummy.py"
+            test_file.write_text("def test_ok(): assert True\n")
+
+            guard = AntiTamperGuard(workspace_root=tmpdir)
+            tampered, _ = guard.audit_tampering()
+            self.assertFalse(tampered)
+
+            # Simulate agent tampering with test assertion
+            test_file.write_text("def test_ok(): assert 1 == 1 # tampered\n")
+            tampered, modified = guard.audit_tampering()
+            self.assertTrue(tampered)
+            self.assertIn("tests/test_dummy.py", modified)
+
+    def test_verifier_and_conventional_commit(self):
+        from codex.verifier import AutonomousVerifier
+        verifier = AutonomousVerifier()
+        # Loop breaker
+        self.assertFalse(verifier.is_looping())
+        verifier.record_failure("AssertionError: 1 != 2")
+        verifier.record_failure("AssertionError: 1 != 2")
+        self.assertFalse(verifier.is_looping(threshold=3))
+        verifier.record_failure("AssertionError: 1 != 2")
+        self.assertTrue(verifier.is_looping(threshold=3))
+
+        # Conventional commit message generation
+        sample_diff = "+++ b/codex/client.py\n@@ -1 +1 @@\n+fix error"
+        msg = verifier.generate_conventional_commit_msg(sample_diff)
+        self.assertTrue(msg.startswith("fix(client):"))
+
+
 if __name__ == "__main__":
     unittest.main()
 

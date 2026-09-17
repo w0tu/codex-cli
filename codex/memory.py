@@ -195,3 +195,22 @@ class MemoryManager:
         self.file_ledger.clear()
         self.decisions_and_facts.clear()
         self.save()
+
+    def allocate_context_budget(self, total_tokens: int = 8000) -> dict[str, int]:
+        """Dynamically allocate token budgets across system prompt, indexed code, and history.
+        
+        Partitions:
+        - 20% for System Instructions, Tools & MCP schemas
+        - 40% for Indexed code context & symbol graphs
+        - 40% for Conversational history and turns
+        """
+        system_budget = int(total_tokens * 0.20)
+        code_budget = int(total_tokens * 0.40)
+        history_budget = total_tokens - system_budget - code_budget
+        return {
+            "total": total_tokens,
+            "system_prompt": system_budget,
+            "code_context": code_budget,
+            "history_window": history_budget,
+        }
+

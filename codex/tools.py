@@ -5,6 +5,12 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from codex.ast_parser import SymbolExtractor
+from codex.security import SecretScrubber
+from codex.sandbox import SandboxExecutor
+
+_sandbox = SandboxExecutor()
+
 MAX_OUTPUT_CHARS = 4000
 
 TOOLS_SCHEMA = [
@@ -96,6 +102,44 @@ TOOLS_SCHEMA = [
                     }
                 },
                 "required": ["path", "old_str", "new_str"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "code_outline",
+            "description": "Extract structured symbols, classes, methods, and functions from a source code file using AST parsing without dumping the entire file.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Path to the source file to inspect."
+                    }
+                },
+                "required": ["path"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_symbol",
+            "description": "Extract the specific code definition of a function, method, or class by name from a file using AST parsing.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Path to the source file."
+                    },
+                    "symbol_name": {
+                        "type": "string",
+                        "description": "Exact name of the class, function, or method to retrieve."
+                    }
+                },
+                "required": ["path", "symbol_name"]
             }
         }
     },
@@ -310,16 +354,9 @@ TOOLS_SCHEMA = [
 
 
 def execute_bash(command: str) -> str:
-    """Run bash command safely and return output."""
+    """Run bash command safely inside sandbox, intercept dangerous operations, and scrub secrets."""
     try:
-        proc = subprocess.run(
-            command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            timeout=45,
-            cwd=os.getcwd()
-        )
+        proc = _sandbox.execute(command, timeout=45)
         out = proc.stdout
         err = proc.stderr
         combined = []
@@ -330,6 +367,8 @@ def execute_bash(command: str) -> str:
         result = "".join(combined).strip()
         if not result:
             result = f"(Command completed with exit code {proc.returncode}, no output)"
+        # Scrub credentials before exposing output
+        result = SecretScrubber.scrub_text(result)
         if len(result) > MAX_OUTPUT_CHARS:
             result = result[:MAX_OUTPUT_CHARS] + f"\n... [truncated, {len(result) - MAX_OUTPUT_CHARS} chars omitted]"
         return result
@@ -340,7 +379,7 @@ def execute_bash(command: str) -> str:
 
 
 def execute_read_file(path: str, offset: int = 1, limit: int = 100) -> str:
-    """Read file with line numbering."""
+    """Read file with line numbering and scrub secrets."""
     p = Path(path).expanduser().resolve()
     if not p.exists():
         return f"Error: File not found: {path}"
@@ -357,13 +396,25 @@ def execute_read_file(path: str, offset: int = 1, limit: int = 100) -> str:
             output.append(f"{i:4d} | {line}")
         total_info = f"Viewing lines {offset}-{end_idx} of {len(lines)} in {path}"
         body = "\n".join(output)
-        return f"{total_info}\n\n{body}"
+        return SecretScrubber.scrub_text(f"{total_info}\n\n{body}")
     except Exception as e:
         return f"Error reading file: {e}"
 
 
+def execute_code_outline(path: str) -> str:
+    """Extract structured symbol outline from file using AST."""
+    return SymbolExtractor.outline_file(path)
+
+
+def execute_get_symbol(path: str, symbol_name: str) -> str:
+    """Extract specific function or class definition from file using AST."""
+    return SymbolExtractor.extract_symbol(path, symbol_name)
+
+
 def execute_write_file(path: str, content: str) -> str:
-    """Write or overwrite file."""
+    """Write or overwrite file with boundary safety enforcement."""
+    if not _sandbox.is_within_boundary(path):
+        return f"Security Error: Cannot write to '{path}' outside workspace boundary."
     try:
         p = Path(path).expanduser().resolve()
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -374,7 +425,9 @@ def execute_write_file(path: str, content: str) -> str:
 
 
 def execute_edit_file(path: str, old_str: str, new_str: str) -> str:
-    """Replace exact text block in file."""
+    """Replace exact text block in file with boundary safety enforcement."""
+    if not _sandbox.is_within_boundary(path):
+        return f"Security Error: Cannot edit '{path}' outside workspace boundary."
     try:
         p = Path(path).expanduser().resolve()
         if not p.exists():
@@ -686,6 +739,10 @@ def run_tool(name: str, args: dict[str, Any]) -> str:
             args.get("old_str", ""),
             args.get("new_str", "")
         )
+    elif name == "code_outline":
+        return execute_code_outline(args.get("path", ""))
+    elif name == "get_symbol":
+        return execute_get_symbol(args.get("path", ""), args.get("symbol_name", ""))
     elif name == "list_dir":
         return execute_list_dir(args.get("path", "."))
     elif name == "grep_search":

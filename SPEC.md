@@ -7,34 +7,35 @@ Codex is an elite, autonomous terminal-native AI engineering assistant designed 
 
 ## Roadmap & Implementation Phases
 
-### Phase 1: Config, Auth Lifecycle & Doctor Diagnostics (CURRENT FOCUS)
-1. **Configuration Loader (`~/.codex/config.json`)**:
-   - Structured JSON schema supporting primary `api_key`, `backup_keys` list for zero-downtime failover, default `model`, `theme`, and permissions.
-   - Atomic reading and saving with directory bootstrapping.
-2. **First-Run Interactive Onboarding Wizard**:
-   - Intercepts missing/empty config on startup.
-   - Prompts for API keys with masked input (`••••`), validates keys via live ping, and saves validated configuration.
-3. **HTTP 401 & 429 Error Interceptors with Auto-Failover**:
-   - Catches 401 (Authentication) and 429 (Rate Limit) exceptions.
-   - Rotates automatically to secondary/backup API keys if configured.
-   - Presents actionable recovery remedies.
-4. **`codex doctor` Diagnostic Command**:
-   - Verifies system environment: Python version, Git tree status, terminal geometry/UTF-8 support, workspace access permissions, config integrity, and live API ping reachability & latency.
-5. **Phase 1 Verification**:
-   - 100% test coverage with automated unit tests for all Phase 1 components.
+### Phase 1: Config, Auth Lifecycle & Doctor Diagnostics (VERIFIED)
+- Configuration loader for `~/.codex/config.json`.
+- First-run interactive onboarding wizard (`/onboard`).
+- HTTP 401 & 429 error interceptors with auto-failover key rotation.
+- `codex doctor` diagnostic health inspection command.
+- Verified transparent shield logo and 4-row legless floating mascot with moving eyes.
 
 ---
 
-### Phase 2: Context Intelligence, AST Pruning & Sandboxing
-- Tree-sitter AST parsing and symbol graph navigation.
-- Dual-tier memory ledger (active sliding window + consolidated knowledge summary).
-- Model Context Protocol (MCP) server integration.
-- Linux namespaces / Bubblewrap execution isolation.
+### Phase 2: Context Intelligence, AST Pruning & Sandboxing (VERIFIED)
+- Tree-sitter & AST parsing (`codex/ast_parser.py`) for symbol extraction and outlines (`code_outline`, `get_symbol`).
+- Smart secret scrubber (`codex/security.py`) redacting API keys, PATs, AWS secrets, and `.env` credentials before transmission.
+- Execution sandboxing (`codex/sandbox.py`) using Bubblewrap (`bwrap`) with filesystem boundary locks and dangerous command interceptors.
+- Model Context Protocol (`codex/mcp.py`) client with dynamic JSON-RPC server registry and tool schema conversion.
+- Dual-tier memory ledger with token budget allocator (`codex/memory.py`).
 
 ---
 
-### Phase 3: Sub-Agent Orchestration, Interactive Diff Navigator & CI
-- Multi-agent planner/worker DAG hierarchy.
-- Interactive hunk-by-hunk diff inspector (`[y] accept`, `[n] skip`, `[e] edit`).
-- Headless CI/CD pipeline mode (`--headless`).
-- Git shadow checkpoint commits (`refs/codex/history`).
+### Phase 3: Sub-Agent Orchestration, Interactive Diff Navigator & CI (VERIFIED)
+- Multi-agent planner/worker DAG hierarchy (`codex/subagents.py`): Planner, Scout (read-only), Coder (implementation), and Critic (auditing).
+- Interactive hunk-by-hunk diff inspector (`codex/diff_navigator.py`) supporting `[y] accept`, `[n] skip`, `[a] all`, and `[q] quit`.
+- Headless CI/CD pipeline mode (`codex/ci.py`) with `--headless` and `--ci` flags and JSON/Markdown automated report generation.
+- Shadow Git checkpoint commits (`codex/git_shadow.py`) using custom plumbing ref `refs/codex/history` via `/checkpoint`.
+
+---
+
+### Phase 4: Autonomous Closed-Loop Verification & Tamper Protection (VERIFIED)
+- Anti-test tampering guard (`codex/anti_tamper.py`) computing cryptographic SHA-256 fingerprints to ensure implementation fixes rather than rewritten assertions.
+- Autonomous test suite and linter validation runner (`codex/verifier.py`).
+- 3-cycle repetitive loop breaker detection.
+- Automated conventional commit message generation from git diffs (`feat:`, `fix:`, `refactor:`, `test:`).
+
