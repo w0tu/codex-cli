@@ -70,6 +70,7 @@ class SlashCommandCompleter(Completer):
         ("/skills", "Manage or install community developer skills from GitHub"),
         ("/memory", "Inspect 300+ message memory ledger & stats"),
         ("/compact", "Compact session context to preserve tokens"),
+        ("/context", "Display 10x10 token visualizer & context window breakdown"),
         ("/cost", "Show token spend and cost tracker"),
         ("/diff", "View colored git diff of current changes"),
         ("/export", "Export session conversation to markdown file"),
@@ -441,6 +442,13 @@ def run_repl(client: GroqClient) -> None:
         if user_input == "/compact":
             old_c, new_c = session.compact()
             render_compact_summary(old_c, new_c)
+            continue
+
+        if user_input.strip() == "/context" or user_input.strip().startswith("/context "):
+            from codex.tools.context import render_context
+            mock_mode = "--mock" in user_input
+            fallback_mode = "--fallback" in user_input
+            render_context(session=session, client=client, use_mock=mock_mode, fallback_glyphs=fallback_mode)
             continue
 
         if user_input == "/doctor":

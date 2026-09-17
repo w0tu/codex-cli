@@ -1,0 +1,8 @@
+{
+  "name": "codex-cli",
+  "version": "1.0.0",
+  "description": "Terminal-native AI coding assistant for Linux",
+  "scripts": {
+    "test:context": "python3 -m codex.tools.context --mock"
+  }
+}

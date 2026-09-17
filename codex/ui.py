@@ -411,6 +411,7 @@ def render_help() -> None:
     t.add_row("/checkpoint [create|list|rollback]", "Create, inspect, or rollback shadow git commits")
     t.add_row("/subagent <task>", "Decompose task into autonomous Scout/Coder/Critic DAG")
     t.add_row("/skills [install <repo>]", "List or install developer skills from GitHub")
+    t.add_row("/context [--mock]", "Inspect 10x10 token visualizer & context window telemetry")
     t.add_row("/cost", "Show token usage & cost statistics")
     t.add_row("/diff", "View colored git diff of current changes")
     t.add_row("/export [file]", "Export session conversation to markdown")
