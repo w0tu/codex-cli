@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import subprocess
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -197,8 +198,41 @@ def render_error(title: str, detail: str, remedy: str | None = None) -> None:
     console.print(t)
 
 
+def format_prompt_string(cwd: str, theme_name: str | None = None) -> str:
+    """Format inline prompt string with directory, active git branch, and dirty status."""
+    from codex.themes import get_theme
+    t = get_theme(theme_name)
+    dirname = os.path.basename(cwd) or "~"
+
+    branch_info = ""
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=1,
+            cwd=cwd,
+        )
+        if proc.returncode == 0 and proc.stdout.strip():
+            branch = proc.stdout.strip()
+            # check dirty status
+            status_proc = subprocess.run(
+                ["git", "status", "--porcelain"],
+                capture_output=True,
+                text=True,
+                timeout=1,
+                cwd=cwd,
+            )
+            is_dirty = "*" if status_proc.stdout.strip() else ""
+            branch_info = f" {t['prompt_in']}({t['prompt_branch']}{branch}{is_dirty}{t['prompt_in']})"
+    except Exception:
+        pass
+
+    return f"{t['prompt_app']}codex{t['prompt_in']} in {t['prompt_dir']}{dirname}{branch_info} {t['prompt_char']}>\x1b[0m "
+
+
 def print_prompt(cwd: str) -> None:
-    """Print the clean monochrome prompt header."""
+    """Print the clean prompt header."""
     dirname = os.path.basename(cwd) or "~"
     console.print(f"[dim]╭─[/] [bold white]codex[/] [dim]in[/] [white]{dirname}[/]")
 
@@ -384,12 +418,48 @@ def render_help() -> None:
     t.add_row("/git", "Show git status, active branch, and diffs")
     t.add_row("/github [repo]", "Connect, clone, or inspect GitHub repository")
     t.add_row("/tools", "List available PC agent tools")
-    t.add_row("/model [name]", "Switch or view active model")
+    t.add_row("/theme [name]", "Switch or list UI color themes (monochrome, nord, dracula, matrix)")
+    t.add_row("/editor", "Open external $EDITOR (nano, vim) for multiline prompt drafting")
+    t.add_row("/notify [on|off]", "Toggle desktop notify-send alerts and terminal bell cues")
+    t.add_row("/model [name|list]", "Switch model or view live available model catalog")
     t.add_row("/stats", "Display session token and latency stats")
     t.add_row("/reset", "Clear conversation history")
     t.add_row("/exit, /quit", "Exit Codex terminal (or Ctrl+D)")
     console.print(t)
     console.print()
+
+
+def render_theme_list() -> None:
+    """Display available terminal color themes."""
+    from codex.themes import list_themes
+    t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Codex UI Color Themes[/]")
+    t.add_column("Theme ID", style="bold white", no_wrap=True)
+    t.add_column("Status", style="white")
+    t.add_column("Description", style="dim")
+
+    for th in list_themes():
+        status = "[bold green]ACTIVE[/]" if th["active"] else "[dim]Available[/]"
+        t.add_row(th["id"], status, th["description"])
+    console.print(t)
+    console.print("[dim]Use '/theme <theme-id>' to switch palettes live.[/]\n")
+
+
+def render_model_catalog(models: list[dict], active_model: str) -> None:
+    """Display live model catalog fetched from API."""
+    t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Available Inference Models[/]")
+    t.add_column("Model ID", style="bold white")
+    t.add_column("Status", style="white")
+    t.add_column("Context Window", style="dim")
+
+    for m in models:
+        m_id = m.get("id", "")
+        clean_id = format_clean_model_name(m_id)
+        is_active = (clean_id == active_model or m_id == active_model)
+        status = "[bold green]ACTIVE[/]" if is_active else "[dim]Available[/]"
+        ctx = str(m.get("context_window", "128k"))
+        t.add_row(m_id, status, ctx)
+    console.print(t)
+    console.print("[dim]Use '/model <model-id>' to switch active inference model.[/]\n")
 
 
 def render_tools_list() -> None:

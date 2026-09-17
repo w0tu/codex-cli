@@ -77,7 +77,10 @@ class SlashCommandCompleter(Completer):
         ("/git", "Show git repository branch and status"),
         ("/github", "Connect or clone a GitHub repository"),
         ("/tools", "List available PC agent tools"),
-        ("/model", "Switch active model (e.g. /model qwen/qwen3.8-27b)"),
+        ("/theme", "Switch or list UI color themes (monochrome, nord, dracula, matrix)"),
+        ("/editor", "Open external $EDITOR for multiline prompt authoring"),
+        ("/notify", "Toggle desktop notifications and terminal bell on/off"),
+        ("/model", "Switch active model or list live models (/model list)"),
         ("/stats", "Show session token usage and stats"),
         ("/reset", "Clear conversation history context"),
         ("/exit", "Exit Codex terminal"),
@@ -115,6 +118,7 @@ class Session:
         self.total_tokens = 0
         self.total_time = 0.0
         self.total_queries = 0
+        self.notifications_enabled = False
 
     @property
     def messages(self) -> list[dict[str, Any]]:
@@ -300,6 +304,18 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
     session.record(turn_tokens, total_turn_elapsed)
     print_telemetry(turn_tokens, total_turn_elapsed)
 
+    if getattr(session, "notifications_enabled", False):
+        try:
+            sys.stdout.write("\a")
+            sys.stdout.flush()
+            subprocess.run(
+                ["notify-send", "Codex AI", f"Agent turn completed in {total_turn_elapsed:.1f}s ({turn_tokens} tokens)"],
+                capture_output=True,
+                timeout=2,
+            )
+        except Exception:
+            pass
+
 
 # ── Direct mode ─────────────────────────────────────────────────────────
 def run_direct(prompt: str, client: GroqClient) -> None:
@@ -328,8 +344,8 @@ def run_repl(client: GroqClient) -> None:
 
     while True:
         try:
-            dirname = os.path.basename(os.getcwd()) or "~"
-            prompt_str = f"\x1b[1;37mcodex\x1b[0m \x1b[2min\x1b[0m \x1b[36m{dirname}\x1b[0m \x1b[1;37m>\x1b[0m "
+            from codex.ui import format_prompt_string
+            prompt_str = format_prompt_string(os.getcwd())
             user_input = pt.prompt(ANSI(prompt_str)).strip()
         except (KeyboardInterrupt, EOFError):
             console.print("[dim]Goodbye.[/]")
@@ -568,9 +584,70 @@ def run_repl(client: GroqClient) -> None:
             render_stats(session.total_queries, session.total_tokens, session.total_time)
             continue
 
-        if user_input.startswith("/model"):
+        if user_input.startswith("/theme"):
+            from codex.themes import set_active_theme, list_themes
+            from codex.ui import render_theme_list
             parts = user_input.split(maxsplit=1)
             if len(parts) > 1:
+                target_theme = parts[1].strip().lower()
+                ok = set_active_theme(target_theme)
+                if ok:
+                    console.print(f"[bold green]Switched theme to:[/] [bold white]{target_theme}[/]\n")
+                else:
+                    console.print(f"[bold red]Unknown theme '{target_theme}'.[/] Available themes: monochrome, nord, dracula, matrix\n")
+            else:
+                render_theme_list()
+            continue
+
+        if user_input == "/editor":
+            import tempfile
+            editor = os.environ.get("EDITOR", "nano")
+            with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as tf:
+                tmp_name = tf.name
+                tf.write(b"# Draft your complex multi-line prompt below. Save and exit when done.\n\n")
+            try:
+                subprocess.run([editor, tmp_name])
+                content = Path(tmp_name).read_text(encoding="utf-8")
+                clean_lines = [l for l in content.splitlines() if not l.startswith("# Draft your complex")]
+                draft_prompt = "\n".join(clean_lines).strip()
+                if draft_prompt:
+                    console.print(f"[bold white]Drafted prompt via editor ({len(draft_prompt)} chars). Executing...[/]\n")
+                    user_input = draft_prompt
+                    session.add_user(user_input)
+                    execute_turn(session, client, prompt_text=user_input)
+                else:
+                    console.print("[dim]Empty buffer. Prompt cancelled.[/]\n")
+            finally:
+                if os.path.exists(tmp_name):
+                    os.unlink(tmp_name)
+            continue
+
+        if user_input.startswith("/notify"):
+            parts = user_input.split(maxsplit=1)
+            if len(parts) > 1:
+                sub = parts[1].strip().lower()
+                if sub in ("on", "true", "enable", "1"):
+                    session.notifications_enabled = True
+                    console.print("[bold green]Desktop notifications & terminal bell ENABLED.[/]\n")
+                else:
+                    session.notifications_enabled = False
+                    console.print("[dim]Desktop notifications & terminal bell DISABLED.[/]\n")
+            else:
+                state = "ENABLED" if session.notifications_enabled else "DISABLED"
+                console.print(f"[dim]Notifications currently {state}. Use '/notify on' or '/notify off'.[/]\n")
+            continue
+
+        if user_input.startswith("/model"):
+            parts = user_input.split(maxsplit=1)
+            if len(parts) > 1 and parts[1].strip().lower() == "list":
+                try:
+                    from codex.ui import render_model_catalog
+                    models_resp = client.client.models.list()
+                    raw_models = [{"id": m.id, "context_window": getattr(m, "context_window", "128k")} for m in models_resp.data]
+                    render_model_catalog(raw_models, client.model)
+                except Exception as e:
+                    console.print(f"[dim]Unable to fetch live model catalog: {e}[/]\n")
+            elif len(parts) > 1:
                 client.set_model(parts[1].strip())
                 console.print(f"[white]Switched model to:[/] [bold white]{client.model}[/]\n")
             else:

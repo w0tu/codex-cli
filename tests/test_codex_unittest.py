@@ -563,6 +563,36 @@ class TestInlineStreamingTerminalUI(unittest.TestCase):
         run_demo(non_interactive=True)
 
 
+class TestCLIPolish(unittest.TestCase):
+    def test_themes_management(self):
+        from codex.themes import get_theme, set_active_theme, list_themes
+        th = get_theme("monochrome")
+        self.assertEqual(th["name"], "Monochrome")
+        self.assertTrue(set_active_theme("nord"))
+        nord_th = get_theme()
+        self.assertEqual(nord_th["name"], "Nord")
+        self.assertFalse(set_active_theme("non_existent_theme"))
+        # Reset back
+        set_active_theme("monochrome")
+        themes = list_themes()
+        self.assertEqual(len(themes), 4)
+
+    def test_format_prompt_with_git(self):
+        from codex.ui import format_prompt_string
+        prompt_output = format_prompt_string(os.getcwd())
+        self.assertIn("codex", prompt_output)
+        self.assertIn(">", prompt_output)
+
+    def test_theme_and_model_renders(self):
+        from codex.ui import render_theme_list, render_model_catalog
+        render_theme_list()
+        mock_models = [
+            {"id": "qwen/qwen3.8-27b", "context_window": "128k"},
+            {"id": "llama-3.3-70b-versatile", "context_window": "128k"}
+        ]
+        render_model_catalog(mock_models, "qwen/qwen3.8-27b")
+
+
 if __name__ == "__main__":
     unittest.main()
 
