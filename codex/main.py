@@ -262,10 +262,14 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                     session.memory.record_file_op(args["path"], tool_name)
 
                 summary = args.get("command") or args.get("path") or args.get("repo") or args.get("query") or args.get("url") or args.get("topic") or json.dumps(args)
-                render_tool_call(tool_name, summary)
+                tool_label = f"{tool_name} {summary}"
 
-                result = run_tool(tool_name, args)
-                render_tool_result(result)
+                from codex.terminal import InlineToolSpinner
+                with InlineToolSpinner(tool_label) as spinner:
+                    result = run_tool(tool_name, args)
+                    is_err = result.startswith("Error:") or result.startswith("Security Error:")
+                    stderr_preview = result if is_err else None
+                    spinner.finish(success=not is_err, summary=tool_label, stderr=stderr_preview)
 
                 session.add_tool_result(tc.id, result)
         else:
@@ -319,14 +323,14 @@ def run_repl(client: GroqClient) -> None:
 
     session = Session()
 
-    clear_terminal()
     console.print(render_header(model_name=client.model))
     console.print()
 
     while True:
         try:
-            print_prompt(os.getcwd())
-            user_input = pt.prompt(ANSI("\x1b[90m╰─>\x1b[0m ")).strip()
+            dirname = os.path.basename(os.getcwd()) or "~"
+            prompt_str = f"\x1b[1;37mcodex\x1b[0m \x1b[2min\x1b[0m \x1b[36m{dirname}\x1b[0m \x1b[1;37m>\x1b[0m "
+            user_input = pt.prompt(ANSI(prompt_str)).strip()
         except (KeyboardInterrupt, EOFError):
             console.print("[dim]Goodbye.[/]")
             break

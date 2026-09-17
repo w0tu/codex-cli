@@ -153,36 +153,11 @@ def get_prompt_related_phases(prompt: str) -> list[str]:
 
 
 def animate_thinking(prompt: str = "") -> float:
-    """Snappy prompt-related dynamic thinking indicator."""
-    if not sys.stdout.isatty():
-        return 0.0
-
+    """Snappy prompt-related dynamic in-place thinking indicator using standard ANSI cursor control."""
+    from codex.terminal import inline_thinking_timer
     duration = calculate_thinking_duration(prompt)
     phases = get_prompt_related_phases(prompt)
-    t0 = time.perf_counter()
-    fps = 30
-    steps = max(int(duration * fps), 8)
-    delay = duration / steps
-
-    with Live(console=console, refresh_per_second=fps, transient=True) as live:
-        for i in range(steps):
-            elapsed = time.perf_counter() - t0
-            glyph = THINKING_GLYPHS[(i // 2) % len(THINKING_GLYPHS)]
-            spin = SPINNER_FRAMES[i % len(SPINNER_FRAMES)]
-            phase_idx = min(int((i / steps) * len(phases)), len(phases) - 1)
-            phase = phases[phase_idx]
-
-            t = Text()
-            t.append(f"{spin} ", style="bold white")
-            t.append(f"[{glyph}] ", style="white")
-            t.append(f"Thinking ({elapsed:.1f}s)", style="bold white")
-            t.append(f" · {phase}", style="dim")
-            live.update(t)
-            time.sleep(delay)
-
-    total_elapsed = time.perf_counter() - t0
-    console.print(f"[dim italic]Thought for {total_elapsed:.2f}s[/dim italic]\n")
-    return total_elapsed
+    return inline_thinking_timer(prompt=prompt, duration=duration, phases=phases)
 
 
 def render_thinking_block(thought_text: str, elapsed: float | None = None) -> None:
@@ -293,9 +268,47 @@ def render_diff(diff_output: str) -> None:
     if not diff_output.strip():
         console.print("[dim]No uncommitted changes in working tree.[/]\n")
         return
-    syntax = Syntax(diff_output, "diff", theme="monokai", line_numbers=True)
-    console.print(Panel(syntax, title="[bold white]Git Diff[/]", box=box.ROUNDED, border_style="grey35"))
-    console.print()
+    render_inline_diff(diff_output)
+
+
+def render_inline_diff(diff_output: str) -> None:
+    """Print compact, colored inline unified diff directly to stdout without alternate screen buffers."""
+    if not diff_output.strip():
+        return
+    for line in diff_output.splitlines():
+        if line.startswith("+++") or line.startswith("---"):
+            sys.stdout.write(f"\x1b[1;37m{line}\x1b[0m\n")
+        elif line.startswith("+"):
+            sys.stdout.write(f"\x1b[32m{line}\x1b[0m\n")
+        elif line.startswith("-"):
+            sys.stdout.write(f"\x1b[31m{line}\x1b[0m\n")
+        elif line.startswith("@@"):
+            sys.stdout.write(f"\x1b[36m{line}\x1b[0m\n")
+        else:
+            sys.stdout.write(f"\x1b[2m{line}\x1b[0m\n")
+    sys.stdout.flush()
+
+
+def prompt_apply_changes(diff_text: Optional[str] = None) -> str:
+    """Interactive raw-mode keystroke prompt at the bottom of the current scroll position."""
+    from codex.terminal import read_key_inline
+    if diff_text:
+        render_inline_diff(diff_text)
+    prompt_str = (
+        "\x1b[1;37mApply these changes? \x1b[0m"
+        "[\x1b[1;32my\x1b[0m]es, "
+        "[\x1b[1;31mn\x1b[0m]o, "
+        "[\x1b[1;36md\x1b[0m]iff view, "
+        "[\x1b[1;33me\x1b[0m]dit: "
+    )
+    choice = read_key_inline(prompt_str, valid_keys=["y", "n", "d", "e"])
+    return choice
+
+
+def stream_assistant_chunk(chunk: str) -> None:
+    """Stream single assistant response chunk to stdout with immediate flush."""
+    sys.stdout.write(chunk)
+    sys.stdout.flush()
 
 
 def render_export_status(path: str, message_count: int) -> None:

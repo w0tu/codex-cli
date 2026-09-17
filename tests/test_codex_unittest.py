@@ -527,6 +527,42 @@ class TestPhase4AntiTamperAndVerifier(unittest.TestCase):
         self.assertTrue(msg.startswith("fix(client):"))
 
 
+class TestInlineStreamingTerminalUI(unittest.TestCase):
+    def test_strip_ansi(self):
+        from codex.terminal import strip_ansi
+        raw = "\x1b[1;32m✔ Success\x1b[0m \x1b[2m(14ms)\x1b[0m"
+        clean = strip_ansi(raw)
+        self.assertEqual(clean, "✔ Success (14ms)")
+
+    def test_terminal_primitives(self):
+        from codex.terminal import get_terminal_width, render_box, render_progress_bar
+        width = get_terminal_width()
+        self.assertGreater(width, 0)
+
+        # Ensure box rendering works cleanly
+        render_box("Test Title", ["Line 1", "Line 2"])
+        render_progress_bar(5, 10, label="Testing progress")
+
+    def test_inline_tool_spinner(self):
+        from codex.terminal import InlineToolSpinner
+        with InlineToolSpinner("Test read tool") as sp:
+            sp.finish(success=True, summary="Read test.py")
+
+        with InlineToolSpinner("Test failed tool") as sp:
+            sp.finish(success=False, summary="Run tests", stderr="AssertionError in line 10")
+
+    def test_inline_diff_rendering(self):
+        from codex.ui import render_inline_diff
+        sample_diff = "--- a/test.py\n+++ b/test.py\n@@ -1 +1 @@\n-old\n+new"
+        # Should execute cleanly without error
+        render_inline_diff(sample_diff)
+
+    def test_demo_runner_non_interactive(self):
+        from codex.demo import run_demo
+        # Run demo non-interactively
+        run_demo(non_interactive=True)
+
+
 if __name__ == "__main__":
     unittest.main()
 
