@@ -82,6 +82,7 @@ class SlashCommandCompleter(Completer):
         ("/editor", "Open external $EDITOR for multiline prompt authoring"),
         ("/notify", "Toggle desktop notifications and terminal bell on/off"),
         ("/model", "Switch active model or list live models (/model list)"),
+        ("/modal", "Open interactive Antigravity model selection modal"),
         ("/stats", "Show session token usage and stats"),
         ("/reset", "Clear conversation history context"),
         ("/exit", "Exit Codex terminal"),
@@ -645,7 +646,7 @@ def run_repl(client: GroqClient) -> None:
                 console.print(f"[dim]Notifications currently {state}. Use '/notify on' or '/notify off'.[/]\n")
             continue
 
-        if user_input.startswith("/model"):
+        if user_input.startswith("/model") or user_input == "/modal":
             parts = user_input.split(maxsplit=1)
             if len(parts) > 1 and parts[1].strip().lower() == "list":
                 try:
@@ -654,12 +655,19 @@ def run_repl(client: GroqClient) -> None:
                     raw_models = [{"id": m.id, "context_window": getattr(m, "context_window", "128k")} for m in models_resp.data]
                     render_model_catalog(raw_models, client.model)
                 except Exception as e:
-                    console.print(f"[dim]Unable to fetch live model catalog: {e}[/]\n")
-            elif len(parts) > 1:
+                    from codex.ui import render_model_catalog
+                    render_model_catalog([], client.model)
+            elif len(parts) > 1 and parts[1].strip().lower() not in ("modal", "dialog"):
                 client.set_model(parts[1].strip())
                 console.print(f"[white]Switched model to:[/] [bold white]{client.model}[/]\n")
             else:
-                render_model_info(client.model)
+                from codex.ui import prompt_model_modal
+                chosen = prompt_model_modal(client.model)
+                if chosen:
+                    client.set_model(chosen)
+                    console.print(f"[bold green]Switched model to:[/] [bold white]{client.model}[/]\n")
+                else:
+                    render_model_info(client.model)
             continue
 
         if user_input == "/reset":

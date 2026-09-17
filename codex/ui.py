@@ -445,22 +445,82 @@ def render_theme_list() -> None:
     console.print("[dim]Use '/theme <theme-id>' to switch palettes live.[/]\n")
 
 
+ANTIGRAVITY_MODELS_CATALOG = [
+    {"id": "gemini 3.8 flash", "context_window": "1000k", "tier": "Ultra-Fast Reasoning (Recommended)"},
+    {"id": "gemini 3.8 pro", "context_window": "2000k", "tier": "Deep Architecture & Logic"},
+    {"id": "gemini 2.5 flash", "context_window": "1000k", "tier": "Sub-second Responses"},
+    {"id": "gemini 2.5 pro", "context_window": "2000k", "tier": "Complex Refactoring"},
+]
+
+
 def render_model_catalog(models: list[dict], active_model: str) -> None:
-    """Display live model catalog fetched from API."""
+    """Display live model catalog fetched from API with Antigravity models prioritized first."""
     t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Available Inference Models[/]")
     t.add_column("Model ID", style="bold white")
     t.add_column("Status", style="white")
     t.add_column("Context Window", style="dim")
+    t.add_column("Architecture Tier", style="dim")
+
+    seen_ids = set()
+
+    # Prepend Antigravity models first
+    for am in ANTIGRAVITY_MODELS_CATALOG:
+        m_id = am["id"]
+        seen_ids.add(m_id)
+        is_active = (m_id == active_model or format_clean_model_name(m_id) == format_clean_model_name(active_model))
+        status = "[bold green]ACTIVE[/]" if is_active else "[dim]Available[/]"
+        t.add_row(m_id, status, am["context_window"], am["tier"])
 
     for m in models:
         m_id = m.get("id", "")
         clean_id = format_clean_model_name(m_id)
+        if clean_id in seen_ids or m_id in seen_ids:
+            continue
+        seen_ids.add(m_id)
         is_active = (clean_id == active_model or m_id == active_model)
         status = "[bold green]ACTIVE[/]" if is_active else "[dim]Available[/]"
         ctx = str(m.get("context_window", "128k"))
-        t.add_row(m_id, status, ctx)
+        t.add_row(clean_id, status, ctx, "Groq Hardware Engine")
+
     console.print(t)
-    console.print("[dim]Use '/model <model-id>' to switch active inference model.[/]\n")
+    console.print("[dim]Use '/model <model-id>' or '/model' to open the interactive selection modal.[/]\n")
+
+
+def prompt_model_modal(active_model: str) -> str | None:
+    """Render an interactive inline terminal modal for model selection."""
+    options = [
+        ("gemini 3.8 flash", "1000k context · Ultra-Fast Reasoning (Recommended)"),
+        ("gemini 3.8 pro", "2000k context · Deep Architecture & Logic"),
+        ("gemini 2.5 flash", "1000k context · Sub-second Response Latency"),
+        ("gemini 2.5 pro", "2000k context · Complex Refactoring & Systems"),
+        ("qwen/qwen3.8-27b", "32k context · Open Weights Coding Model"),
+        ("llama-3.3-70b-versatile", "128k context · Llama 3.3 Production Tier"),
+    ]
+
+    lines = []
+    lines.append("╭────────────────────────── Select Model ──────────────────────────╮")
+    for idx, (m_id, desc) in enumerate(options, 1):
+        clean_active = format_clean_model_name(active_model)
+        is_cur = (m_id == clean_active or m_id == active_model)
+        dot = "●" if is_cur else " "
+        cur_tag = " (Active)" if is_cur else ""
+        item_str = f"  [{idx}] {dot} {m_id:<22} {desc}{cur_tag}"
+        # Truncate to box width
+        lines.append(f"│ {item_str:<64} │")
+    lines.append("│                                                                  │")
+    lines.append("│ Enter choice [1-6] or press Enter to cancel:                     │")
+    lines.append("╰──────────────────────────────────────────────────────────────────╯")
+
+    console.print("\n".join(lines), style="bold white")
+    try:
+        choice = console.input("[bold cyan]> [/]").strip()
+        if choice.isdigit():
+            idx = int(choice) - 1
+            if 0 <= idx < len(options):
+                return options[idx][0]
+    except (EOFError, KeyboardInterrupt):
+        pass
+    return None
 
 
 def render_tools_list() -> None:

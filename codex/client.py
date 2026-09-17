@@ -88,8 +88,26 @@ from codex.config import (
 )
 
 
+ANTIGRAVITY_MODELS_MAP = {
+    "gemini 3.8 flash": "qwen/qwen3.8-27b",
+    "gemini 3.8 pro": "llama-3.3-70b-versatile",
+    "gemini 2.5 flash": "llama-3.1-8b-instant",
+    "gemini 2.5 pro": "deepseek-r1-distill-llama-70b",
+    "gemini-2.0-flash": "llama-3.1-8b-instant",
+}
+
+
+def resolve_backend_model(model_name: str) -> str:
+    """Resolve user-facing model (e.g. gemini 3.8 flash) to available hardware backend."""
+    clean = model_name.strip().lower()
+    for s in [" antigravity", "-antigravity", "_antigravity"]:
+        if clean.endswith(s):
+            clean = clean[:-len(s)].strip()
+    return ANTIGRAVITY_MODELS_MAP.get(clean, model_name)
+
+
 class GroqClient:
-    """Wrapper around the official groq Python SDK with auto-failover."""
+    """Wrapper around the official groq Python SDK with auto-failover and Antigravity routing."""
 
     def __init__(self, model: str = DEFAULT_MODEL, api_key: str | None = None):
         from groq import Groq
@@ -118,9 +136,10 @@ class GroqClient:
         temperature: float = 0.2,
     ):
         """Perform a chat turn with tool support and automatic 401/429 key failover."""
+        backend_model = resolve_backend_model(self.model)
         try:
             return self.client.chat.completions.create(
-                model=self.model,
+                model=backend_model,
                 messages=messages,
                 tools=TOOLS_SCHEMA,
                 tool_choice="auto",
@@ -133,7 +152,7 @@ class GroqClient:
                 new_key = self.rotate_failover()
                 if new_key:
                     return self.client.chat.completions.create(
-                        model=self.model,
+                        model=backend_model,
                         messages=messages,
                         tools=TOOLS_SCHEMA,
                         tool_choice="auto",
@@ -142,7 +161,6 @@ class GroqClient:
                     )
             raise
 
-
     def stream_chat(
         self,
         messages: list[dict[str, Any]],
@@ -150,8 +168,9 @@ class GroqClient:
         temperature: float = 0.2,
     ) -> Generator[str, None, None]:
         """Stream chat tokens directly."""
+        backend_model = resolve_backend_model(self.model)
         response = self.client.chat.completions.create(
-            model=self.model,
+            model=backend_model,
             messages=messages,
             max_tokens=max_tokens,
             temperature=temperature,

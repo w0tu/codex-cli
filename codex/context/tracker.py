@@ -61,6 +61,12 @@ class TokenCounter:
 
 
 MODEL_CONTEXT_LIMITS: dict[str, int] = {
+    # Antigravity / Gemini Models
+    "gemini 3.8 flash": 1048576,
+    "gemini 3.8 pro": 2097152,
+    "gemini 2.5 flash": 1048576,
+    "gemini 2.5 pro": 2097152,
+    "gemini-2.0-flash": 1048576,
     # Groq & Open Models
     "qwen/qwen3.8-27b": 32768,
     "qwen-2.5-coder-32b": 32768,

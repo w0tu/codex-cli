@@ -592,6 +592,24 @@ class TestCLIPolish(unittest.TestCase):
         ]
         render_model_catalog(mock_models, "qwen/qwen3.8-27b")
 
+    def test_antigravity_models_routing_and_catalog(self):
+        from codex.client import resolve_backend_model, ANTIGRAVITY_MODELS_MAP
+        from codex.ui import ANTIGRAVITY_MODELS_CATALOG, format_clean_model_name
+
+        # Check Antigravity models are defined and routed
+        self.assertIn("gemini 3.8 flash", ANTIGRAVITY_MODELS_MAP)
+        self.assertEqual(resolve_backend_model("gemini 3.8 flash"), "qwen/qwen3.8-27b")
+        self.assertEqual(resolve_backend_model("gemini 3.8 flash-antigravity"), "qwen/qwen3.8-27b")
+        self.assertEqual(resolve_backend_model("gemini 3.8 pro"), "llama-3.3-70b-versatile")
+
+        # Check catalog has clean names with no antigravity suffixes
+        first_model = ANTIGRAVITY_MODELS_CATALOG[0]
+        self.assertEqual(first_model["id"], "gemini 3.8 flash")
+        self.assertNotIn("antigravity", first_model["id"])
+
+        # Check clean formatter
+        self.assertEqual(format_clean_model_name("gemini 3.8 flash antigravity"), "gemini 3.8 flash")
+
 
 if __name__ == "__main__":
     unittest.main()
