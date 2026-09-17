@@ -17,11 +17,15 @@ console = Console()
 
 # Legless 4-row single-block monochrome pixel mascot with dynamic moving eyes
 EYE_PATTERNS = {
-    "center": [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
-    "left":   [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1],
-    "right":  [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-    "down":   [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
-    "blink":  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "center":  [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
+    "left":    [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+    "right":   [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+    "down":    [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
+    "up":      [0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0],
+    "blink":   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "wink":    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "wide":    [1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1],
+    "curious": [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1],
 }
 BLOCK = "█"
 EMPTY = " "
@@ -58,7 +62,7 @@ def render_mascot(eye_state: str = "center") -> Text:
     return t
 
 
-def render_header(model_name: str = "qwen/qwen3.8-27b", cwd: str | None = None, eye_state: str = "center") -> Panel:
+def render_header(model_name: str = "gemini 2.5 flash", cwd: str | None = None, eye_state: str = "center") -> Panel:
     """Same compact monochrome header matching Claude Code aesthetic."""
     mascot = render_mascot(eye_state=eye_state)
     workspace = cwd or os.getcwd()
@@ -82,6 +86,43 @@ def render_header(model_name: str = "qwen/qwen3.8-27b", cwd: str | None = None, 
     grid.add_row(mascot, info)
 
     return Panel(grid, box=box.ROUNDED, border_style="grey35", expand=False)
+
+
+def play_mascot_greeting(model_name: str = "gemini 2.5 flash", cwd: str | None = None) -> None:
+    """Play a smooth, live wake-up animation in the scrolling terminal stream."""
+    from rich.live import Live
+    sequence = ["blink", "left", "right", "curious", "wink", "center"]
+    try:
+        with Live(render_header(model_name=model_name, cwd=cwd, eye_state="blink"), console=console, refresh_per_second=20, transient=False) as live:
+            for state in sequence:
+                live.update(render_header(model_name=model_name, cwd=cwd, eye_state=state))
+                time.sleep(0.06)
+    except Exception:
+        console.print(render_header(model_name=model_name, cwd=cwd, eye_state="center"))
+
+
+def run_mascot_showcase() -> None:
+    """Run interactive showcase of all mascot eye animations."""
+    states = [
+        ("center", "Attentive / Neutral"),
+        ("left", "Scanning Left Files"),
+        ("right", "Inspecting Git Status"),
+        ("up", "Reading Context History"),
+        ("down", "Writing Code to Disk"),
+        ("curious", "Analyzing Logic"),
+        ("wink", "Execution Succeeded"),
+        ("wide", "Alert / Discovered Bug"),
+        ("blink", "Blinking"),
+    ]
+    t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Codex Mascot Animated Expressions[/]")
+    t.add_column("Mascot", justify="center")
+    t.add_column("State", style="bold white")
+    t.add_column("Behavior", style="dim")
+
+    for st, desc in states:
+        t.add_row(render_mascot(st), st, desc)
+    console.print(t)
+    console.print("[dim]The mascot automatically moves its eyes during autonomous agent execution.[/]\n")
 
 
 def clear_terminal() -> None:
@@ -423,6 +464,8 @@ def render_help() -> None:
     t.add_row("/editor", "Open external $EDITOR (nano, vim) for multiline prompt drafting")
     t.add_row("/notify [on|off]", "Toggle desktop notify-send alerts and terminal bell cues")
     t.add_row("/model [name|list]", "Switch model or view live available model catalog")
+    t.add_row("/modal", "Open interactive Antigravity model selection modal")
+    t.add_row("/mascot", "Display animated mascot showcase with moving eyes")
     t.add_row("/stats", "Display session token and latency stats")
     t.add_row("/reset", "Clear conversation history")
     t.add_row("/exit, /quit", "Exit Codex terminal (or Ctrl+D)")
@@ -446,9 +489,9 @@ def render_theme_list() -> None:
 
 
 ANTIGRAVITY_MODELS_CATALOG = [
-    {"id": "gemini 3.8 flash", "context_window": "1000k", "tier": "Ultra-Fast Reasoning (Recommended)"},
+    {"id": "gemini 2.5 flash", "context_window": "1000k", "tier": "Lowest Cost / Usage Limit (Default)"},
+    {"id": "gemini 3.8 flash", "context_window": "1000k", "tier": "Ultra-Fast Multimodal Reasoning"},
     {"id": "gemini 3.8 pro", "context_window": "2000k", "tier": "Deep Architecture & Logic"},
-    {"id": "gemini 2.5 flash", "context_window": "1000k", "tier": "Sub-second Responses"},
     {"id": "gemini 2.5 pro", "context_window": "2000k", "tier": "Complex Refactoring"},
 ]
 
@@ -489,10 +532,11 @@ def render_model_catalog(models: list[dict], active_model: str) -> None:
 def prompt_model_modal(active_model: str) -> str | None:
     """Render an interactive inline terminal modal for model selection."""
     options = [
-        ("gemini 3.8 flash", "1000k context · Ultra-Fast Reasoning (Recommended)"),
+        ("gemini 2.5 flash", "1000k context · Lowest Cost & Quota Footprint (Default)"),
+        ("gemini 3.8 flash", "1000k context · Ultra-Fast Multimodal Reasoning"),
         ("gemini 3.8 pro", "2000k context · Deep Architecture & Logic"),
-        ("gemini 2.5 flash", "1000k context · Sub-second Response Latency"),
         ("gemini 2.5 pro", "2000k context · Complex Refactoring & Systems"),
+        ("llama-3.1-8b-instant", "131k context · Lowest Cost Open Weights"),
         ("qwen/qwen3.8-27b", "32k context · Open Weights Coding Model"),
         ("llama-3.3-70b-versatile", "128k context · Llama 3.3 Production Tier"),
     ]

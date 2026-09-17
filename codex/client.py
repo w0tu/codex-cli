@@ -7,7 +7,7 @@ from typing import Generator, Any
 from codex.tools import TOOLS_SCHEMA
 
 CONFIG_PATH = Path.home() / ".codex" / "config.json"
-DEFAULT_MODEL = "qwen/qwen3.8-27b"
+DEFAULT_MODEL = "gemini 2.5 flash"
 BASE_SYSTEM_PROMPT = """You are Codex, an elite principal software engineer and terminal-native AI coding assistant designed for Linux.
 You have direct, hardware-accelerated access to the user's computer via tools.
 

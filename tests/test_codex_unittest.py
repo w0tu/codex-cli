@@ -205,7 +205,7 @@ class TestPhase1Config(unittest.TestCase):
             dummy_path = Path(tmpdir) / "nonexistent_config.json"
             from codex.config import load_config
             cfg = load_config(dummy_path)
-            self.assertEqual(cfg["model"], "qwen/qwen3.8-27b")
+            self.assertEqual(cfg["model"], "gemini 2.5 flash")
             self.assertEqual(cfg["backup_keys"], [])
 
     def test_config_save_and_reload(self):
@@ -602,13 +602,21 @@ class TestCLIPolish(unittest.TestCase):
         self.assertEqual(resolve_backend_model("gemini 3.8 flash-antigravity"), "qwen/qwen3.8-27b")
         self.assertEqual(resolve_backend_model("gemini 3.8 pro"), "llama-3.3-70b-versatile")
 
-        # Check catalog has clean names with no antigravity suffixes
+        # Check catalog has clean names with no antigravity suffixes and gemini 2.5 flash first
         first_model = ANTIGRAVITY_MODELS_CATALOG[0]
-        self.assertEqual(first_model["id"], "gemini 3.8 flash")
+        self.assertEqual(first_model["id"], "gemini 2.5 flash")
         self.assertNotIn("antigravity", first_model["id"])
 
         # Check clean formatter
         self.assertEqual(format_clean_model_name("gemini 3.8 flash antigravity"), "gemini 3.8 flash")
+
+    def test_mascot_eye_animations(self):
+        from codex.ui import render_mascot, EYE_PATTERNS, run_mascot_showcase
+        for state in ["center", "left", "right", "up", "down", "blink", "wink", "curious", "wide"]:
+            self.assertIn(state, EYE_PATTERNS)
+            mascot_text = render_mascot(eye_state=state)
+            self.assertIsNotNone(mascot_text)
+        run_mascot_showcase()
 
 
 if __name__ == "__main__":

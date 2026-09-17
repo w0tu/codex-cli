@@ -83,6 +83,7 @@ class SlashCommandCompleter(Completer):
         ("/notify", "Toggle desktop notifications and terminal bell on/off"),
         ("/model", "Switch active model or list live models (/model list)"),
         ("/modal", "Open interactive Antigravity model selection modal"),
+        ("/mascot", "Display animated mascot showcase with moving eyes"),
         ("/stats", "Show session token usage and stats"),
         ("/reset", "Clear conversation history context"),
         ("/exit", "Exit Codex terminal"),
@@ -341,7 +342,8 @@ def run_repl(client: GroqClient) -> None:
 
     session = Session()
 
-    console.print(render_header(model_name=client.model))
+    from codex.ui import play_mascot_greeting
+    play_mascot_greeting(model_name=client.model, cwd=os.getcwd())
     console.print()
 
     while True:
@@ -668,6 +670,11 @@ def run_repl(client: GroqClient) -> None:
                     console.print(f"[bold green]Switched model to:[/] [bold white]{client.model}[/]\n")
                 else:
                     render_model_info(client.model)
+            continue
+
+        if user_input == "/mascot":
+            from codex.ui import run_mascot_showcase
+            run_mascot_showcase()
             continue
 
         if user_input == "/reset":

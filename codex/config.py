@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_CONFIG_PATH = Path.home() / ".codex" / "config.json"
-DEFAULT_MODEL = "qwen/qwen3.8-27b"
+DEFAULT_MODEL = "gemini 2.5 flash"
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "api_key": "",
