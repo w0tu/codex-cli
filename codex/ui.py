@@ -14,14 +14,14 @@ from rich import box
 
 console = Console()
 
-# Same compact 5-row single-block monochrome pixel mascot
-MASCOT_GRID = [
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0],
-]
+# Legless 4-row single-block monochrome pixel mascot with dynamic moving eyes
+EYE_PATTERNS = {
+    "center": [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
+    "left":   [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+    "right":  [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+    "down":   [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
+    "blink":  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+}
 BLOCK = "█"
 EMPTY = " "
 
@@ -29,27 +29,45 @@ SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇",
 THINKING_GLYPHS = ["◇", "◈", "◆", "◈"]
 
 
-def render_mascot() -> Text:
-    """Render the compact monochrome mascot."""
+def format_clean_model_name(model_name: str) -> str:
+    """Format model name cleanly, hiding internal vendor strings like antigravity."""
+    clean = model_name.strip()
+    for s in [" antigravity", "-antigravity", "_antigravity"]:
+        if clean.lower().endswith(s):
+            clean = clean[:-len(s)].strip()
+    return clean
+
+
+def render_mascot(eye_state: str = "center") -> Text:
+    """Render the compact legless monochrome mascot with dynamic moving eyes."""
+    eye_row = EYE_PATTERNS.get(eye_state, EYE_PATTERNS["center"])
+    # 4 rows: floating rounded head, zero legs
+    grid = [
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        eye_row,
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    ]
     t = Text()
-    for i, row in enumerate(MASCOT_GRID):
+    for i, row in enumerate(grid):
         line = "".join(BLOCK if cell else EMPTY for cell in row)
         t.append(line, style="bold white")
-        if i < len(MASCOT_GRID) - 1:
+        if i < len(grid) - 1:
             t.append("\n")
     return t
 
 
-def render_header(model_name: str = "qwen/qwen3.8-27b", cwd: str | None = None) -> Panel:
+def render_header(model_name: str = "qwen/qwen3.8-27b", cwd: str | None = None, eye_state: str = "center") -> Panel:
     """Same compact monochrome header matching Claude Code aesthetic."""
-    mascot = render_mascot()
+    mascot = render_mascot(eye_state=eye_state)
     workspace = cwd or os.getcwd()
+    display_model = format_clean_model_name(model_name)
 
     info = Text()
     info.append("CODEX", style="bold white")
     info.append(" v1.7.0\n", style="dim")
     info.append("model:    ", style="dim")
-    info.append(f"{model_name}\n", style="white")
+    info.append(f"{display_model}\n", style="white")
     info.append("dir:      ", style="dim")
     info.append(f"{workspace}\n", style="white")
     info.append("commands: ", style="dim")
@@ -340,10 +358,9 @@ def render_help() -> None:
     t.add_row("/help", "Show this reference guide")
     t.add_row("/clear", "Clear screen and redraw header")
     t.add_row("/usage", "Display 5-hour / 300-prompt usage & quota monitor")
-    t.add_row("/skills [install <repo>]", "List or install developer skills from GitHub")
-    t.add_row("/memory", "Inspect 300+ message memory ledger & stats")
-    t.add_row("/compact", "Compact conversation context to save tokens")
+    t.add_row("/onboard", "Run interactive auth setup and API key verification")
     t.add_row("/doctor", "Run diagnostic health check on environment")
+    t.add_row("/skills [install <repo>]", "List or install developer skills from GitHub")
     t.add_row("/cost", "Show token usage & cost statistics")
     t.add_row("/diff", "View colored git diff of current changes")
     t.add_row("/export [file]", "Export session conversation to markdown")
@@ -384,37 +401,25 @@ def render_tools_list() -> None:
     console.print()
 
 
-def render_doctor(model: str) -> None:
-    """Run system diagnostics like Claude Code /doctor."""
-    import platform
-    import shutil
-    import subprocess
+def render_doctor(model: str = "qwen/qwen3.8-27b") -> None:
+    """Run full Phase 1 system diagnostics (codex doctor)."""
+    from codex.doctor import check_diagnostics
 
     t = Table(box=box.ROUNDED, border_style="grey35", title="[bold white]Codex Doctor Diagnostics[/]")
     t.add_column("Component", style="bold white")
     t.add_column("Status", style="white")
     t.add_column("Details", style="dim")
 
-    py_ver = platform.python_version()
-    t.add_row("Python", "OK", f"v{py_ver}")
-
-    os_info = f"{platform.system()} {platform.release()} ({platform.machine()})"
-    t.add_row("Operating System", "OK", os_info)
-
-    git_check = subprocess.run("git --version", shell=True, capture_output=True, text=True)
-    git_status = "OK" if git_check.returncode == 0 else "MISSING"
-    t.add_row("Git CLI", git_status, git_check.stdout.strip())
-
-    cols, rows = shutil.get_terminal_size()
-    t.add_row("Terminal Geometry", "OK", f"{cols} columns x {rows} rows")
-
-    writable = os.access(os.getcwd(), os.W_OK)
-    t.add_row("Workspace Access", "WRITABLE" if writable else "READ-ONLY", os.getcwd())
-
-    t.add_row("Inference Model", "READY", model)
+    clean_model = format_clean_model_name(model)
+    diag_results = check_diagnostics(clean_model)
+    for r in diag_results:
+        st = r["status"]
+        st_style = "bold white" if st in ("OK", "READY") else ("white" if st == "OPTIONAL" else "dim")
+        t.add_row(r["component"], f"[{st_style}]{st}[/]", r["details"])
 
     console.print(t)
     console.print()
+
 
 
 def render_cost(queries: int, total_tokens: int) -> None:

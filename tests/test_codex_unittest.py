@@ -142,13 +142,20 @@ class TestKeySaving(unittest.TestCase):
         from codex.client import save_api_key, CONFIG_PATH
         test_key = "gsk_test1234567890abcdef12345678"
         orig_env = os.environ.get("GROQ_API_KEY")
+        orig_cfg_bytes = CONFIG_PATH.read_bytes() if CONFIG_PATH.exists() else None
         try:
             cfg = save_api_key(test_key)
             self.assertTrue(cfg.exists())
             self.assertEqual(os.environ.get("GROQ_API_KEY"), test_key)
         finally:
-            if orig_env:
+            if orig_env is not None:
                 os.environ["GROQ_API_KEY"] = orig_env
+            elif "GROQ_API_KEY" in os.environ:
+                del os.environ["GROQ_API_KEY"]
+            if orig_cfg_bytes is not None:
+                CONFIG_PATH.write_bytes(orig_cfg_bytes)
+            elif CONFIG_PATH.exists():
+                CONFIG_PATH.unlink()
 
 
 class TestTools(unittest.TestCase):
@@ -192,6 +199,115 @@ class TestTools(unittest.TestCase):
         self.assertTrue("GitHub" in github_res or "linux" in github_res.lower())
 
 
+class TestPhase1Config(unittest.TestCase):
+    def test_config_load_defaults(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dummy_path = Path(tmpdir) / "nonexistent_config.json"
+            from codex.config import load_config
+            cfg = load_config(dummy_path)
+            self.assertEqual(cfg["model"], "qwen/qwen3.8-27b")
+            self.assertEqual(cfg["backup_keys"], [])
+
+    def test_config_save_and_reload(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "config.json"
+            from codex.config import save_config, load_config
+            save_config({"api_key": "gsk_primary", "backup_keys": ["gsk_backup1"]}, cfg_path)
+            loaded = load_config(cfg_path)
+            self.assertEqual(loaded["api_key"], "gsk_primary")
+            self.assertEqual(loaded["backup_keys"], ["gsk_backup1"])
+
+    def test_add_api_key_primary_and_backup(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "config.json"
+            from codex.config import add_api_key, load_config
+            add_api_key("gsk_key1", cfg_path)
+            cfg = load_config(cfg_path)
+            self.assertEqual(cfg["api_key"], "gsk_key1")
+
+            add_api_key("gsk_key2", cfg_path)
+            cfg2 = load_config(cfg_path)
+            self.assertEqual(cfg2["api_key"], "gsk_key1")
+            self.assertIn("gsk_key2", cfg2["backup_keys"])
+
+    def test_rotate_api_key(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "config.json"
+            from codex.config import save_config, rotate_api_key, load_config
+            save_config({"api_key": "gsk_first", "backup_keys": ["gsk_second", "gsk_third"]}, cfg_path)
+
+            new_key = rotate_api_key(cfg_path)
+            self.assertEqual(new_key, "gsk_second")
+            cfg = load_config(cfg_path)
+            self.assertEqual(cfg["api_key"], "gsk_second")
+            self.assertEqual(cfg["backup_keys"], ["gsk_third", "gsk_first"])
+
+    def test_get_api_key_env_and_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "config.json"
+            from codex.config import save_config, get_api_key
+            save_config({"api_key": "gsk_from_file"}, cfg_path)
+
+            # File key
+            orig_env = os.environ.pop("GROQ_API_KEY", None)
+            try:
+                self.assertEqual(get_api_key(cfg_path), "gsk_from_file")
+                # Env var takes precedence
+                os.environ["GROQ_API_KEY"] = "gsk_from_env"
+                self.assertEqual(get_api_key(cfg_path), "gsk_from_env")
+            finally:
+                if orig_env:
+                    os.environ["GROQ_API_KEY"] = orig_env
+                else:
+                    os.environ.pop("GROQ_API_KEY", None)
+
+
+class TestPhase1Doctor(unittest.TestCase):
+    def test_check_diagnostics(self):
+        from codex.doctor import check_diagnostics
+        results = check_diagnostics(model="qwen/qwen3.8-27b")
+        components = [r["component"] for r in results]
+        self.assertIn("Python Runtime", components)
+        self.assertIn("Operating System", components)
+        self.assertIn("Git Repository", components)
+        self.assertIn("Terminal Display", components)
+        self.assertIn("Workspace Path", components)
+        self.assertIn("Inference Model", components)
+
+
+class TestPhase1MascotAndModelNames(unittest.TestCase):
+    def test_legless_mascot_has_four_rows(self):
+        from codex.ui import render_mascot
+        for state in ["center", "left", "right", "down", "blink"]:
+            rendered = render_mascot(eye_state=state)
+            lines = rendered.plain.splitlines()
+            # Must be 4 rows (floating body without legs)
+            self.assertEqual(len(lines), 4)
+
+    def test_clean_model_name(self):
+        from codex.ui import format_clean_model_name
+        self.assertEqual(format_clean_model_name("gemini 3.8 flash antigravity"), "gemini 3.8 flash")
+        self.assertEqual(format_clean_model_name("qwen3.8-27b-antigravity"), "qwen3.8-27b")
+        self.assertEqual(format_clean_model_name("qwen/qwen3.8-27b"), "qwen/qwen3.8-27b")
+
+
+class TestPhase1AuthFailover(unittest.TestCase):
+    def test_client_rotate_failover(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "config.json"
+            from codex.config import save_config
+            save_config({
+                "api_key": "gsk_primary_test",
+                "backup_keys": ["gsk_backup_test"]
+            }, cfg_path)
+            from codex.client import GroqClient
+            client = GroqClient(api_key="gsk_primary_test")
+            # Rotate using custom config path
+            from codex.config import rotate_api_key
+            new_k = rotate_api_key(cfg_path)
+            self.assertEqual(new_k, "gsk_backup_test")
+
+
 class TestUI(unittest.TestCase):
     def test_ui_renders(self):
         from codex.ui import render_skills_list, render_key_saved, render_thinking_block, clear_terminal
@@ -210,5 +326,6 @@ class TestUI(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 

@@ -78,39 +78,18 @@ def _resolve_api_key() -> str:
     if key:
         return key
 
-    if CONFIG_PATH.exists():
-        try:
-            data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-            key = data.get("api_key")
-            if key:
-                return key
-        except Exception:
-            pass
-
-    raise RuntimeError(
-        "No Groq API key found.\n"
-        "Set GROQ_API_KEY environment variable or create ~/.codex/config.json:\n"
-        '  {"api_key": "gsk_..."}'
-    )
-
-
-def save_api_key(api_key: str) -> Path:
-    """Save API key permanently to ~/.codex/config.json and set in environment."""
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    data = {}
-    if CONFIG_PATH.exists():
-        try:
-            data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-        except Exception:
-            data = {}
-    data["api_key"] = api_key.strip()
-    CONFIG_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    os.environ["GROQ_API_KEY"] = api_key.strip()
-    return CONFIG_PATH
+from codex.config import (
+    DEFAULT_CONFIG_PATH as CONFIG_PATH,
+    DEFAULT_MODEL,
+    get_api_key as _resolve_api_key,
+    save_api_key,
+    rotate_api_key,
+    load_config,
+)
 
 
 class GroqClient:
-    """Wrapper around the official groq Python SDK."""
+    """Wrapper around the official groq Python SDK with auto-failover."""
 
     def __init__(self, model: str = DEFAULT_MODEL, api_key: str | None = None):
         from groq import Groq
@@ -124,6 +103,13 @@ class GroqClient:
         self.api_key = api_key.strip()
         self.client = Groq(api_key=self.api_key)
 
+    def rotate_failover(self) -> str | None:
+        """Rotate to next available backup API key on 429 or 401."""
+        new_key = rotate_api_key()
+        if new_key:
+            self.set_api_key(new_key)
+            return new_key
+        return None
 
     def chat_turn(
         self,
@@ -131,15 +117,31 @@ class GroqClient:
         max_tokens: int = 600,
         temperature: float = 0.2,
     ):
-        """Perform a chat turn with tool support."""
-        return self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            tools=TOOLS_SCHEMA,
-            tool_choice="auto",
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
+        """Perform a chat turn with tool support and automatic 401/429 key failover."""
+        try:
+            return self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tools=TOOLS_SCHEMA,
+                tool_choice="auto",
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+        except Exception as e:
+            err_msg = str(e)
+            if "401" in err_msg or "429" in err_msg or "rate_limit" in err_msg.lower():
+                new_key = self.rotate_failover()
+                if new_key:
+                    return self.client.chat.completions.create(
+                        model=self.model,
+                        messages=messages,
+                        tools=TOOLS_SCHEMA,
+                        tool_choice="auto",
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                    )
+            raise
+
 
     def stream_chat(
         self,

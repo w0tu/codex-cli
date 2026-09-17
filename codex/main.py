@@ -62,10 +62,11 @@ class SlashCommandCompleter(Completer):
         ("/help", "Show help reference and available commands"),
         ("/clear", "Clear screen and redraw header"),
         ("/usage", "Display 5-hour / 300-prompt usage & quota monitor"),
+        ("/onboard", "Run interactive auth setup and API key verification"),
+        ("/doctor", "Run diagnostic health check on environment"),
         ("/skills", "Manage or install community developer skills from GitHub"),
         ("/memory", "Inspect 300+ message memory ledger & stats"),
         ("/compact", "Compact session context to preserve tokens"),
-        ("/doctor", "Run diagnostic health check on environment"),
         ("/cost", "Show token spend and cost tracker"),
         ("/diff", "View colored git diff of current changes"),
         ("/export", "Export session conversation to markdown file"),
@@ -363,6 +364,12 @@ def run_repl(client: GroqClient) -> None:
             render_usage_tab(session.usage_tracker.get_stats())
             continue
 
+        if user_input == "/onboard":
+            from codex.config import run_onboarding_wizard
+            new_key = run_onboarding_wizard()
+            client.set_api_key(new_key)
+            continue
+
         if user_input.startswith("/skills"):
             parts = user_input.split(maxsplit=2)
             if len(parts) >= 2 and parts[1].lower() == "install":
@@ -521,9 +528,14 @@ def main() -> None:
     model = args.model or DEFAULT_MODEL
     try:
         client = GroqClient(model=model, api_key=args.key)
-    except RuntimeError as e:
-        render_error("Configuration Error", str(e), "Configure ~/.codex/config.json with a valid API key.")
-        sys.exit(1)
+    except RuntimeError:
+        try:
+            from codex.config import run_onboarding_wizard
+            key = run_onboarding_wizard()
+            client = GroqClient(model=model, api_key=key)
+        except Exception as e:
+            render_error("Configuration Error", str(e), "Configure ~/.codex/config.json with a valid API key.")
+            sys.exit(1)
 
     if args.prompt:
         run_direct(" ".join(args.prompt), client)
