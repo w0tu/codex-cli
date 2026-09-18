@@ -18,10 +18,11 @@ from prompt_toolkit.styles import Style
 from prompt_toolkit.shortcuts import CompleteStyle
 
 from codex import __version__
-from codex.client import GroqClient, get_system_prompt, DEFAULT_MODEL, save_api_key
+from codex.client import GroqClient, OllamaClient, AntigravityClient, get_system_prompt, DEFAULT_MODEL, save_api_key
 from codex.memory import MemoryManager
 from codex.usage import UsageTracker
 from codex.skills import SkillsManager
+from codex.agents import AgentRegistry
 from codex.tools import run_tool, execute_git_status, execute_github_connect
 from codex.ui import (
     console,
@@ -85,6 +86,12 @@ class SlashCommandCompleter(Completer):
         ("/modal", "Open interactive Antigravity model selection modal"),
         ("/mascot", "Display animated mascot showcase with moving eyes"),
         ("/stats", "Show session token usage and stats"),
+        ("/agents", "Search and list 220+ specialized domain engineering agents"),
+        ("/agent", "Activate a specialized agent persona (/agent <name>)"),
+        ("/offline", "Switch to 100% offline local Ollama agent mode"),
+        ("/antigravity", "Forward tasks and prompts to Google Antigravity CLI"),
+        ("/agy", "Shortcut to forward tasks to Google Antigravity CLI"),
+        ("/online", "Switch back to online cloud inference"),
         ("/reset", "Clear conversation history context"),
         ("/exit", "Exit Codex terminal"),
     ]
@@ -421,6 +428,53 @@ def run_repl(client: GroqClient) -> None:
                 render_skills_list(skills)
             continue
 
+        if user_input.startswith("/agents"):
+            parts = user_input.split(maxsplit=1)
+            registry = AgentRegistry()
+            query = parts[1].strip() if len(parts) > 1 else None
+            matches = registry.list_agents(query=query)
+            console.print(f"\n[bold white]✦ 220+ Specialized Agent Library ({len(matches)} matching)[/]:")
+            for a in matches[:25]:
+                console.print(f"  [bold cyan]{a['name']:<28}[/] [dim]({a['category']})[/] - {a['description'][:75]}...")
+            if len(matches) > 25:
+                console.print(f"\n[dim]...and {len(matches)-25} more agents. Filter with /agents <query> or activate with /agent <name>[/]\n")
+            else:
+                console.print("\n[dim]Activate any agent with: /agent <name>[/]\n")
+            continue
+
+        if user_input.startswith("/agent"):
+            parts = user_input.split(maxsplit=1)
+            if len(parts) > 1:
+                target = parts[1].strip()
+                registry = AgentRegistry()
+                found = registry.get_agent(target)
+                if found:
+                    session.add_user(f"[Directive: Adopt persona and guidelines of {found['name']}: {found['system_prompt']}]")
+                    console.print(f"\n[bold white]✦ Activated Agent Persona:[/] [bold cyan]{found['role']}[/]")
+                    console.print(f"[dim]{found['description']}[/]\n")
+                else:
+                    console.print(f"[dim]Agent '{target}' not found. Type /agents to view all available agents.[/]\n")
+            else:
+                console.print("[dim]Usage: /agent <name> (e.g. /agent react-architect, /agent postgres-optimizer)[/]\n")
+            continue
+
+        if user_input.startswith("/offline"):
+            parts = user_input.split(maxsplit=1)
+            off_model = parts[1] if len(parts) > 1 else "qwen2.5-coder:1.5b"
+            client = OllamaClient(model=off_model)
+            console.print(f"\n[bold white]✦ Switched to 100% Offline Mode[/] via local Ollama ([cyan]{off_model}[/])\n")
+            continue
+
+        if user_input in ("/antigravity", "/agy"):
+            client = AntigravityClient()
+            console.print("\n[bold white]✦ Connected to Google Antigravity CLI[/] (prompts will bridge to agy)\n")
+            continue
+
+        if user_input.startswith("/online"):
+            client = GroqClient()
+            console.print("\n[bold white]✦ Switched to Online Cloud Mode[/]\n")
+            continue
+
         if user_input.startswith("/memory"):
             parts = user_input.split(maxsplit=2)
             if len(parts) >= 3 and parts[1].lower() == "search":
@@ -711,6 +765,8 @@ def main() -> None:
     parser.add_argument("--key", type=str, default=None, help="API key.")
     parser.add_argument("--headless", action="store_true", help="Run non-interactively in headless CI mode.")
     parser.add_argument("--ci", action="store_true", help="Alias for --headless.")
+    parser.add_argument("--offline", action="store_true", help="Run in fully offline mode using local Ollama model.")
+    parser.add_argument("--antigravity", "--agy", action="store_true", help="Forward prompts to Google Antigravity CLI.")
     parser.add_argument("--max-cost", type=float, default=0.0, help="Spending cap in USD.")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
@@ -719,16 +775,23 @@ def main() -> None:
         os.environ["GROQ_API_KEY"] = args.key
 
     model = args.model or DEFAULT_MODEL
-    try:
-        client = GroqClient(model=model, api_key=args.key)
-    except RuntimeError:
+
+    if args.offline:
+        off_model = args.model or "qwen2.5-coder:1.5b"
+        client = OllamaClient(model=off_model)
+    elif args.antigravity:
+        client = AntigravityClient(model=args.model or "gemini 3.8 flash")
+    else:
         try:
-            from codex.config import run_onboarding_wizard
-            key = run_onboarding_wizard()
-            client = GroqClient(model=model, api_key=key)
-        except Exception as e:
-            render_error("Configuration Error", str(e), "Configure ~/.codex/config.json with a valid API key.")
-            sys.exit(1)
+            client = GroqClient(model=model, api_key=args.key)
+        except RuntimeError:
+            try:
+                from codex.config import run_onboarding_wizard
+                key = run_onboarding_wizard()
+                client = GroqClient(model=model, api_key=key)
+            except Exception as e:
+                render_error("Configuration Error", str(e), "Configure ~/.codex/config.json with a valid API key.")
+                sys.exit(1)
 
     if args.headless or args.ci:
         from codex.ci import HeadlessCIRunner
