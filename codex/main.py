@@ -88,6 +88,7 @@ class SlashCommandCompleter(Completer):
         ("/stats", "Show session token usage and stats"),
         ("/agents", "Search and list 220+ specialized domain engineering agents"),
         ("/agent", "Activate a specialized agent persona (/agent <name>)"),
+        ("/reach", "Access 16+ platforms via Agent Reach router (/reach doctor|search|url|...)"),
         ("/offline", "Switch to 100% offline local Ollama agent mode"),
         ("/antigravity", "Forward tasks and prompts to Google Antigravity CLI"),
         ("/agy", "Shortcut to forward tasks to Google Antigravity CLI"),
@@ -473,6 +474,40 @@ def run_repl(client: GroqClient) -> None:
         if user_input.startswith("/online"):
             client = GroqClient()
             console.print("\n[bold white]✦ Switched to Online Cloud Mode[/]\n")
+            continue
+
+        if user_input.startswith("/reach"):
+            parts = user_input.split(maxsplit=2)
+            from codex.tools import execute_agent_reach
+            if len(parts) == 1 or (len(parts) > 1 and parts[1].lower() == "doctor"):
+                console.print("\n[bold white]✦ Running Agent Reach Diagnostics (Doctor)...[/]")
+                res = execute_agent_reach(action="doctor")
+                console.print(res)
+            elif len(parts) >= 2 and parts[1].lower() == "url":
+                target_url = parts[2].strip() if len(parts) > 2 else ""
+                console.print(f"\n[bold white]✦ Fetching Web Content via Jina Reader:[/] [cyan]{target_url}[/]")
+                res = execute_agent_reach(action="read", url=target_url)
+                console.print(res)
+            elif len(parts) >= 2 and parts[1].lower() == "search":
+                query_str = parts[2].strip() if len(parts) > 2 else ""
+                console.print(f"\n[bold white]✦ Searching Web via Agent Reach (Exa):[/] [cyan]{query_str}[/]")
+                res = execute_agent_reach(action="search", query=query_str)
+                console.print(res)
+            elif len(parts) >= 2 and parts[1].lower() in ("bilibili", "bili"):
+                query_str = parts[2].strip() if len(parts) > 2 else ""
+                console.print(f"\n[bold white]✦ Bilibili Search via Agent Reach:[/] [cyan]{query_str}[/]")
+                res = execute_agent_reach(action="bilibili", query=query_str)
+                console.print(res)
+            elif len(parts) >= 2 and parts[1].lower() in ("v2ex", "hot"):
+                console.print("\n[bold white]✦ Fetching V2EX Hot Topics via Agent Reach...[/]")
+                res = execute_agent_reach(action="v2ex")
+                console.print(res)
+            else:
+                q = user_input[6:].strip()
+                console.print(f"\n[bold white]✦ Agent Reach Query:[/] [cyan]{q}[/]")
+                res = execute_agent_reach(action="search", query=q)
+                console.print(res)
+            console.print()
             continue
 
         if user_input.startswith("/memory"):

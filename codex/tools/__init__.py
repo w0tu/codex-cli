@@ -348,6 +348,37 @@ TOOLS_SCHEMA = [
                 "required": ["query"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "agent_reach",
+            "description": (
+                "Agent Reach router for multi-platform internet retrieval. "
+                "Search and read from 16+ internet platforms without official API keys: "
+                "Web search (Exa), general URLs (Jina Reader), GitHub, Bilibili, YouTube transcripts, "
+                "Reddit, V2EX, Twitter/X, and social discussions."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["search", "read", "doctor", "bilibili", "github", "v2ex", "youtube"],
+                        "description": "The action or platform to target. Default 'search' for queries, 'read' for URLs."
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "The search query or keyword."
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "Web URL to read, parse, or transcribe (optional)."
+                    }
+                },
+                "required": ["action"]
+            }
+        }
     }
 ]
 
@@ -721,6 +752,65 @@ def execute_github_search(query: str) -> str:
         return f"Error searching GitHub: {e}"
 
 
+def execute_agent_reach(action: str = "search", query: str = "", url: str = "") -> str:
+    """Execute multi-platform internet retrieval via Agent Reach router."""
+    env = os.environ.copy()
+    npm_bin = f"{Path.home()}/.npm-global/bin"
+    local_bin = f"{Path.home()}/.local/bin"
+    env["PATH"] = f"{npm_bin}:{local_bin}:" + env.get("PATH", "")
+
+    action = (action or "search").lower().strip()
+    query = (query or "").strip()
+    url = (url or "").strip()
+
+    if action == "doctor":
+        proc = subprocess.run("agent-reach doctor", shell=True, env=env, capture_output=True, text=True, timeout=30)
+        return (proc.stdout or proc.stderr)[:MAX_OUTPUT_CHARS]
+
+    if action in ("read", "url") or url:
+        target = url or query
+        if not target.startswith("http"):
+            target = "https://" + target
+        cmd = f'curl -s -L --max-time 20 "https://r.jina.ai/{target}"'
+        proc = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True, timeout=25)
+        if proc.returncode == 0 and proc.stdout.strip():
+            return proc.stdout[:MAX_OUTPUT_CHARS]
+        return f"Failed to retrieve content from {target} via Jina Reader."
+
+    if action == "v2ex":
+        cmd = 'curl -s -L --max-time 15 "https://www.v2ex.com/api/topics/hot.json" -H "User-Agent: agent-reach/1.0"'
+        proc = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True, timeout=20)
+        return (proc.stdout or proc.stderr)[:MAX_OUTPUT_CHARS]
+
+    if action in ("bilibili", "bili"):
+        cmd = f'bili search "{query}" --type video -n 5'
+        proc = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True, timeout=25)
+        if proc.returncode == 0 and proc.stdout.strip():
+            return proc.stdout[:MAX_OUTPUT_CHARS]
+        return f"bili search output: {(proc.stdout or proc.stderr)[:MAX_OUTPUT_CHARS]}"
+
+    if action in ("github", "gh"):
+        cmd = f'gh search repos "{query}" --sort stars --limit 5'
+        proc = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True, timeout=20)
+        return (proc.stdout or proc.stderr)[:MAX_OUTPUT_CHARS]
+
+    if action in ("youtube", "yt"):
+        target = url or query
+        cmd = f'yt-dlp --dump-json "{target}"'
+        proc = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True, timeout=25)
+        return (proc.stdout or proc.stderr)[:MAX_OUTPUT_CHARS]
+
+    # General Search: Try mcporter Exa, fallback to execute_web_search
+    if action == "search" or query:
+        cmd = f'mcporter call exa.web_search_exa query="{query}" numResults=5'
+        proc = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True, timeout=25)
+        if proc.returncode == 0 and proc.stdout.strip():
+            return proc.stdout[:MAX_OUTPUT_CHARS]
+        return execute_web_search(query)
+
+    return f"Unsupported agent-reach action '{action}'"
+
+
 def run_tool(name: str, args: dict[str, Any]) -> str:
     """Dispatch tool call by name."""
     if name == "bash":
@@ -767,6 +857,12 @@ def run_tool(name: str, args: dict[str, Any]) -> str:
         return execute_online_info(args.get("topic", ""))
     elif name == "github_search":
         return execute_github_search(args.get("query", ""))
+    elif name == "agent_reach":
+        return execute_agent_reach(
+            action=args.get("action", "search"),
+            query=args.get("query", ""),
+            url=args.get("url", "")
+        )
     else:
         return f"Error: Unknown tool '{name}'"
 

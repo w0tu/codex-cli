@@ -66,11 +66,30 @@ class SkillsManager:
                     readme = item / "README.md"
                     desc = "Custom community skill"
                     if skill_file.exists():
-                        first_line = skill_file.read_text(encoding="utf-8", errors="replace").splitlines()
-                        for line in first_line[:5]:
-                            if line.strip() and not line.startswith("#"):
-                                desc = line.strip()[:80]
-                                break
+                        lines = skill_file.read_text(encoding="utf-8", errors="replace").splitlines()
+                        desc_found = False
+                        in_frontmatter = False
+                        for i, line in enumerate(lines[:20]):
+                            s = line.strip()
+                            if s == "---":
+                                in_frontmatter = not in_frontmatter
+                                continue
+                            if in_frontmatter and s.startswith("description:"):
+                                val = s.replace("description:", "").strip().lstrip(">").strip()
+                                if val:
+                                    desc = val[:100]
+                                    desc_found = True
+                                    break
+                                elif i + 1 < len(lines):
+                                    desc = lines[i + 1].strip()[:100]
+                                    desc_found = True
+                                    break
+                        if not desc_found:
+                            for line in lines[:10]:
+                                s = line.strip()
+                                if s and not s.startswith("#") and s != "---":
+                                    desc = s[:100]
+                                    break
                     elif readme.exists():
                         desc = "GitHub skill package"
 
