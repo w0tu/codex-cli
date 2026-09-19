@@ -99,3 +99,22 @@ def list_themes() -> list[dict[str, Any]]:
         }
         for tid, t in THEMES.items()
     ]
+
+
+def render_isolated_code_block(code: str, language: str = "python") -> Any:
+    """Render syntax-highlighted code block honoring isolated code theme rule.
+    
+    The code theme is strictly isolated from the CLI frame, banner, and mascot.
+    """
+    from rich.syntax import Syntax
+    from codex.profiler import get_active_code_theme_style
+
+    theme_style = get_active_code_theme_style()
+    return Syntax(
+        code,
+        language,
+        theme=theme_style,
+        line_numbers=True,
+        word_wrap=True,
+        background_color="default",
+    )

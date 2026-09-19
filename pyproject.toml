@@ -15,6 +15,7 @@ dependencies = [
 
 [project.scripts]
 cdx = "codex.main:main"
+codex = "codex.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

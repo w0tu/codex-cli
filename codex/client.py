@@ -1,15 +1,34 @@
-"""Multi-provider inference client with Groq, local Ollama offline mode, and Antigravity bridge."""
+"""Zero-Latency Local Ollama Inference Client with Cloaked Cloud Fallback.
+
+- Connects directly via httpx socket streaming to http://127.0.0.1:11434/api/chat. Zero subprocess overhead.
+- Sends 'keep_alive': -1 in every payload to permanently pin 1B/3B models in RAM/VRAM.
+- Streams responses using unbuffered token flushes (sys.stdout.write + sys.stdout.flush).
+- Cloaked Cloud Fallback: Automatically escalates to OSS-120B High-Precision when query exceeds 1B capacity.
+- Enforces $2.00 daily budget limit, automatically falling back to local Ollama when limit is reached.
+- Updates persistent SQLite telemetry database (~/.config/codex_cli/metrics.db).
+"""
 
 import os
 import sys
 import json
-import subprocess
+import time
 from pathlib import Path
-from typing import Generator, Any
-from codex.tools import TOOLS_SCHEMA
+from typing import Generator, Any, Optional, Dict, List, Tuple
 
-CONFIG_PATH = Path.home() / ".codex" / "config.json"
-DEFAULT_MODEL = "gemini 2.5 flash"
+from codex.tools import TOOLS_SCHEMA
+from codex.metrics_db import metrics_db
+from codex.billing import billing_guardrail
+from codex.cloud_fallback import (
+    CLOAKED_ENGINE_LABEL,
+    detect_query_complexity,
+    is_internet_available,
+    cloaked_cloud_client,
+)
+
+CONFIG_PATH = Path.home() / ".config" / "codex_cli" / "config.json"
+DEFAULT_LOCAL_MODEL = "qwen2.5-coder:1.5b"
+OLLAMA_BASE_URL = "http://127.0.0.1:11434"
+
 BASE_SYSTEM_PROMPT = """You are Codex, an elite principal software engineer and terminal-native AI coding assistant designed for Linux.
 You have direct, hardware-accelerated access to the user's computer via tools.
 
@@ -31,15 +50,6 @@ CORE OPERATIONAL PRINCIPLES:
    - Start immediately with the answer, code, or tool invocation.
    - Never use emojis in text, code, comments, or terminal output.
    - Use GitHub-flavored Markdown with explicit syntax highlighting tags for code blocks.
-
-4. THINKING & REASONING TRANSPARENCY:
-   - When analyzing code, diagnosing complex errors, formulating plans, or evaluating tool options, write your reasoning inside a `<think>...</think>` block.
-   - Outline your hypothesis, the steps you plan to take, and what you are checking.
-   - Keep thinking concise, rigorous, and technical.
-
-5. ONLINE RESEARCH & REAL-TIME DATA:
-   - You have free built-in access to live online research tools: `web_search`, `fetch_url`, `online_info`, and `github_search`.
-   - When asked about up-to-date topics, documentation, libraries, or external code, autonomously call `web_search`, `fetch_url`, or `github_search` to fetch accurate information.
 """
 
 
@@ -58,7 +68,6 @@ def get_system_prompt() -> str:
             except Exception:
                 pass
 
-    # Inject installed skills context
     try:
         from codex.skills import SkillsManager
         skills_ctx = SkillsManager().get_skills_prompt_context()
@@ -73,41 +82,16 @@ def get_system_prompt() -> str:
 SYSTEM_PROMPT = get_system_prompt()
 
 
-from codex.config import (
-    DEFAULT_CONFIG_PATH as CONFIG_PATH,
-    DEFAULT_MODEL,
-    get_api_key as _resolve_api_key,
-    save_api_key,
-    rotate_api_key,
-    load_config,
-)
-
-ANTIGRAVITY_MODELS_MAP = {
-    "gemini 3.8 flash": "qwen/qwen3.8-27b",
-    "gemini 3.8 pro": "llama-3.3-70b-versatile",
-    "gemini 2.5 flash": "llama-3.1-8b-instant",
-    "gemini 2.5 pro": "deepseek-r1-distill-llama-70b",
-    "gemini-2.0-flash": "llama-3.1-8b-instant",
-}
-
-
-def resolve_backend_model(model_name: str) -> str:
-    """Resolve user-facing model (e.g. gemini 3.8 flash) to available hardware backend."""
-    clean = model_name.strip().lower()
-    for s in [" antigravity", "-antigravity", "_antigravity"]:
-        if clean.endswith(s):
-            clean = clean[:-len(s)].strip()
-    return ANTIGRAVITY_MODELS_MAP.get(clean, model_name)
-
-
 class OllamaClient:
-    """100% Offline client connecting to local Ollama with tools & streaming."""
+    """Zero-latency client connecting directly via HTTP socket streaming with permanent VRAM/RAM pinning."""
 
-    def __init__(self, model: str = "qwen2.5-coder:1.5b", base_url: str = "http://localhost:11434"):
-        import httpx
+    def __init__(self, model: str = DEFAULT_LOCAL_MODEL, base_url: str = OLLAMA_BASE_URL):
         self.base_url = base_url.rstrip("/")
         self.model = model
-        self.api_key = "local-offline"
+        self.api_key = "local-pinned"
+
+    def set_model(self, model: str) -> None:
+        self.model = model
 
     def set_api_key(self, key: str) -> None:
         pass
@@ -115,15 +99,17 @@ class OllamaClient:
     def chat_turn(
         self,
         messages: list[dict[str, Any]],
-        max_tokens: int = 1000,
+        max_tokens: int = 1200,
         temperature: float = 0.2,
-    ):
+    ) -> Any:
+        """Non-streaming chat turn with keep_alive=-1."""
         import httpx
         url = f"{self.base_url}/api/chat"
         payload = {
             "model": self.model,
             "messages": messages,
             "stream": False,
+            "keep_alive": -1,  # Pinned permanently in RAM/VRAM
             "options": {
                 "temperature": temperature,
                 "num_predict": max_tokens,
@@ -137,6 +123,16 @@ class OllamaClient:
             resp = client.post(url, json=payload)
             resp.raise_for_status()
             data = resp.json()
+
+        # Record token metrics
+        eval_count = data.get("eval_count", 0)
+        prompt_eval_count = data.get("prompt_eval_count", 0)
+        total_tokens = eval_count + prompt_eval_count
+        if total_tokens > 0:
+            try:
+                metrics_db.record_turn(local_tokens=total_tokens, cloud_tokens=0, cloud_spend=0.0)
+            except Exception:
+                pass
 
         msg_data = data.get("message", {})
         raw_tools = msg_data.get("tool_calls")
@@ -179,38 +175,140 @@ class OllamaClient:
     def stream_chat(
         self,
         messages: list[dict[str, Any]],
-        max_tokens: int = 1000,
+        max_tokens: int = 1500,
         temperature: float = 0.2,
     ) -> Generator[str, None, None]:
+        """Direct HTTP socket stream with keep_alive=-1 and zero process overhead."""
         import httpx
         url = f"{self.base_url}/api/chat"
         payload = {
             "model": self.model,
             "messages": messages,
             "stream": True,
+            "keep_alive": -1,  # Keep pinned in RAM/VRAM permanently
             "options": {
                 "temperature": temperature,
                 "num_predict": max_tokens,
                 "num_thread": 4,
             },
         }
+
+        total_tokens = 0
         with httpx.stream("POST", url, json=payload, timeout=180.0) as response:
             for line in response.iter_lines():
-                if line:
-                    try:
-                        chunk = json.loads(line)
-                        c = chunk.get("message", {}).get("content", "")
-                        if c:
-                            yield c
-                    except Exception:
-                        pass
+                if not line:
+                    continue
+                try:
+                    chunk = json.loads(line)
+                    c = chunk.get("message", {}).get("content", "")
+                    if c:
+                        yield c
+                    if chunk.get("done", False):
+                        total_tokens = chunk.get("eval_count", 0) + chunk.get("prompt_eval_count", 0)
+                except Exception:
+                    pass
+
+        if total_tokens > 0:
+            try:
+                metrics_db.record_turn(local_tokens=total_tokens, cloud_tokens=0, cloud_spend=0.0)
+            except Exception:
+                pass
+
+    def stream_chat_unbuffered(
+        self,
+        messages: list[dict[str, Any]],
+        max_tokens: int = 1500,
+        temperature: float = 0.2,
+    ) -> str:
+        """Stream responses with direct unbuffered stdout flushes."""
+        collected: list[str] = []
+        for chunk in self.stream_chat(messages, max_tokens=max_tokens, temperature=temperature):
+            sys.stdout.write(chunk)
+            sys.stdout.flush()
+            collected.append(chunk)
+        return "".join(collected)
+
+
+class HybridCodexClient:
+    """Smart inference client routing between local pinned Ollama and cloaked OSS-120B High-Precision."""
+
+    def __init__(self, local_model: str = DEFAULT_LOCAL_MODEL, cloud_enabled: bool = True):
+        self.local_client = OllamaClient(model=local_model)
+        self.cloud_client = cloaked_cloud_client
+        self.cloud_enabled = cloud_enabled
+        self.model = local_model
+        self.last_engine_used = local_model
 
     def set_model(self, model: str) -> None:
         self.model = model
+        self.local_client.set_model(model)
+
+    def set_api_key(self, key: str) -> None:
+        self.cloud_client.set_api_key(key)
+
+    def stream_chat(
+        self,
+        messages: list[dict[str, Any]],
+        max_tokens: int = 1500,
+        temperature: float = 0.2,
+    ) -> Generator[str, None, None]:
+        """Intelligently route turn to local pinned engine or cloaked cloud fallback."""
+        user_prompt = ""
+        for m in reversed(messages):
+            if m.get("role") == "user":
+                user_prompt = m.get("content", "")
+                break
+
+        est_tokens = sum(len(m.get("content", "")) // 4 for m in messages if isinstance(m.get("content"), str))
+        exceeds_1b, reason = detect_query_complexity(user_prompt, est_tokens)
+
+        route_to_cloud = False
+        if self.cloud_enabled and exceeds_1b:
+            if is_internet_available():
+                allowed, notice = billing_guardrail.check_cloud_escalation()
+                if allowed:
+                    route_to_cloud = True
+                    self.last_engine_used = CLOAKED_ENGINE_LABEL
+                else:
+                    sys.stdout.write(f"\n\033[1;33m{notice}\033[0m\n")
+                    sys.stdout.flush()
+                    self.last_engine_used = self.local_client.model
+            else:
+                self.last_engine_used = self.local_client.model
+        else:
+            self.last_engine_used = self.local_client.model
+
+        if route_to_cloud:
+            try:
+                sys.stdout.write(f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255m[ESCALATION]\033[0m Routing complex query to \033[1;37m{CLOAKED_ENGINE_LABEL}\033[0m ({reason})...\n")
+                sys.stdout.flush()
+                yield from self.cloud_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
+                return
+            except Exception as e:
+                sys.stdout.write(f"\n\033[1;33m[Fallback Notice: Cloud engine error: {e}. Routing to pinned local model]\033[0m\n")
+                sys.stdout.flush()
+                self.last_engine_used = self.local_client.model
+
+        # Default local zero-latency pinned inference
+        yield from self.local_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
+
+    def chat_turn(
+        self,
+        messages: list[dict[str, Any]],
+        max_tokens: int = 1200,
+        temperature: float = 0.2,
+    ) -> Any:
+        return self.local_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
+
+
+# Backward compatibility aliases for existing commands & tests
+GroqClient = HybridCodexClient
+CodexClient = HybridCodexClient
+DEFAULT_MODEL = DEFAULT_LOCAL_MODEL
 
 
 class AntigravityClient:
-    """Client that sends prompts and coding tasks directly to the Google Antigravity CLI."""
+    """Client bridging to Google Antigravity CLI."""
 
     def __init__(self, model: str = "gemini 3.8 flash"):
         self.model = model
@@ -220,30 +318,19 @@ class AntigravityClient:
     def set_api_key(self, key: str) -> None:
         pass
 
-    def chat_turn(
-        self,
-        messages: list[dict[str, Any]],
-        max_tokens: int = 1500,
-        temperature: float = 0.2,
-    ):
-        user_prompt = ""
+    def chat_turn(self, messages: list[dict[str, Any]], max_tokens: int = 1500, temperature: float = 0.2):
+        import subprocess
+        user_prompt = "Hello"
         for m in reversed(messages):
             if m.get("role") == "user":
                 user_prompt = m.get("content", "")
                 break
-        if not user_prompt:
-            user_prompt = "Hello"
-
         cmd = [str(self.agy_path), "-p", user_prompt]
         try:
             res = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
-            output = res.stdout.strip()
-            if not output and res.stderr:
-                output = f"[Antigravity Notice]: {res.stderr.strip()}"
-            elif not output:
-                output = "[Antigravity completed requested turn]"
+            output = res.stdout.strip() or f"[Antigravity Notice: {res.stderr.strip()}]"
         except Exception as e:
-            output = f"[Antigravity Execution Error]: {e}"
+            output = f"[Antigravity Bridge Error: {e}]"
 
         class MessageObj:
             role = "assistant"
@@ -258,12 +345,7 @@ class AntigravityClient:
 
         return RespObj()
 
-    def stream_chat(
-        self,
-        messages: list[dict[str, Any]],
-        max_tokens: int = 1500,
-        temperature: float = 0.2,
-    ) -> Generator[str, None, None]:
+    def stream_chat(self, messages: list[dict[str, Any]], max_tokens: int = 1500, temperature: float = 0.2):
         resp = self.chat_turn(messages, max_tokens, temperature)
         yield resp.choices[0].message.content
 
@@ -271,92 +353,10 @@ class AntigravityClient:
         self.model = model
 
 
-class GroqClient:
-    """Wrapper around the official groq Python SDK with auto-failover to local Ollama when offline."""
+def save_api_key(key: str) -> None:
+    pass
 
-    def __init__(self, model: str = DEFAULT_MODEL, api_key: str | None = None):
-        from groq import Groq
-        self.api_key = api_key or _resolve_api_key()
-        self.client = Groq(api_key=self.api_key)
-        self.model = model
-        self._offline_fallback = None
 
-    def set_api_key(self, api_key: str) -> None:
-        from groq import Groq
-        self.api_key = api_key.strip()
-        self.client = Groq(api_key=self.api_key)
+def rotate_api_key() -> None:
+    pass
 
-    def rotate_failover(self) -> str | None:
-        new_key = rotate_api_key()
-        if new_key:
-            self.set_api_key(new_key)
-            return new_key
-        return None
-
-    def chat_turn(
-        self,
-        messages: list[dict[str, Any]],
-        max_tokens: int = 600,
-        temperature: float = 0.2,
-    ):
-        backend_model = resolve_backend_model(self.model)
-        try:
-            return self.client.chat.completions.create(
-                model=backend_model,
-                messages=messages,
-                tools=TOOLS_SCHEMA,
-                tool_choice="auto",
-                max_tokens=max_tokens,
-                temperature=temperature,
-            )
-        except Exception as e:
-            err_msg = str(e)
-            # Failover 1: API key rotation
-            if "401" in err_msg or "429" in err_msg or "rate_limit" in err_msg.lower():
-                new_key = self.rotate_failover()
-                if new_key:
-                    return self.client.chat.completions.create(
-                        model=backend_model,
-                        messages=messages,
-                        tools=TOOLS_SCHEMA,
-                        tool_choice="auto",
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                    )
-            # Failover 2: Network unreachable / offline fallback to local Ollama
-            if "connection" in err_msg.lower() or "connect" in err_msg.lower() or "offline" in err_msg.lower():
-                sys.stderr.write("\n[Notice: Offline/Network error detected. Routing turn to local Ollama (qwen2.5-coder:1.5b)...]\n")
-                if not self._offline_fallback:
-                    self._offline_fallback = OllamaClient()
-                return self._offline_fallback.chat_turn(messages, max_tokens, temperature)
-            raise
-
-    def stream_chat(
-        self,
-        messages: list[dict[str, Any]],
-        max_tokens: int = 600,
-        temperature: float = 0.2,
-    ) -> Generator[str, None, None]:
-        backend_model = resolve_backend_model(self.model)
-        try:
-            response = self.client.chat.completions.create(
-                model=backend_model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                stream=True,
-            )
-            for chunk in response:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-        except Exception as e:
-            err_msg = str(e)
-            if "connection" in err_msg.lower() or "connect" in err_msg.lower():
-                if not self._offline_fallback:
-                    self._offline_fallback = OllamaClient()
-                yield from self._offline_fallback.stream_chat(messages, max_tokens, temperature)
-            else:
-                raise
-
-    def set_model(self, model: str) -> None:
-        self.model = model

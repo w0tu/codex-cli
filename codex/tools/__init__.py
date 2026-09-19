@@ -812,7 +812,12 @@ def execute_agent_reach(action: str = "search", query: str = "", url: str = "") 
 
 
 def run_tool(name: str, args: dict[str, Any]) -> str:
-    """Dispatch tool call by name."""
+    """Dispatch tool call by name, enforcing Directory Gatekeeper permissions."""
+    from codex.gatekeeper import gatekeeper
+
+    if gatekeeper.read_only_mode and name in ("bash", "write_file", "edit_file", "install_skill"):
+        return "Security Error: Workspace is in safe read-only advisory mode. File modifications and terminal tool execution are disabled."
+
     if name == "bash":
         return execute_bash(args.get("command", ""))
     elif name == "read_file":

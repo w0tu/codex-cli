@@ -338,7 +338,23 @@ def run_direct(prompt: str, client: GroqClient) -> None:
 
 
 # ── Interactive REPL ────────────────────────────────────────────────────
-def run_repl(client: GroqClient) -> None:
+def run_repl(client: Any) -> None:
+    # 1. Onboarding & First-Boot Profiling
+    from codex.profiler import run_first_boot_profiling
+    profile = run_first_boot_profiling(interactive=True)
+    if hasattr(client, "set_model") and profile.get("recommended_model"):
+        if not getattr(client, "_explicit_model_flag", False):
+            client.set_model(profile["recommended_model"])
+
+    # 2. Directory Trust Gatekeeper
+    from codex.gatekeeper import gatekeeper
+    gatekeeper.check_and_prompt(os.getcwd(), interactive=True)
+
+    # 3. 24-bit Truecolor Image-to-ANSI Voxel Banner & Borderless Block Layout
+    from codex.banner_renderer import display_welcome_banner
+    status_text = "ONLINE | ZERO-LATENCY PINNED"
+    display_welcome_banner(model_label=client.model, status_text=status_text, cwd=os.getcwd())
+
     HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
     pt = PTSession(
         history=FileHistory(str(HISTORY_PATH)),
@@ -349,10 +365,6 @@ def run_repl(client: GroqClient) -> None:
     )
 
     session = Session()
-
-    from codex.ui import play_mascot_greeting
-    play_mascot_greeting(model_name=client.model, cwd=os.getcwd())
-    console.print()
 
     while True:
         try:
@@ -377,7 +389,6 @@ def run_repl(client: GroqClient) -> None:
 
             # Strip the key from user input
             cleaned_input = re.sub(r"\b" + re.escape(captured_key) + r"\b", "", user_input).strip()
-            # If the user only passed the key or key-setting text, don't execute as a prompt
             norm = cleaned_input.lower()
             if not cleaned_input or norm in [
                 "api key", "my key", "key", "groq key", "groq_api_key",
@@ -389,8 +400,8 @@ def run_repl(client: GroqClient) -> None:
         # Slash commands
         if user_input == "/clear":
             clear_terminal()
-            console.print(render_header(model_name=client.model))
-            console.print()
+            from codex.banner_renderer import display_welcome_banner
+            display_welcome_banner(model_label=client.model, status_text="ONLINE | ZERO-LATENCY PINNED", cwd=os.getcwd())
             continue
 
         if user_input == "/help":
@@ -398,13 +409,16 @@ def run_repl(client: GroqClient) -> None:
             continue
 
         if user_input == "/usage":
-            render_usage_tab(session.usage_tracker.get_stats())
+            from codex.metrics_db import metrics_db
+            sys.stdout.write("\n" + metrics_db.render_block_telemetry_card() + "\n\n")
+            sys.stdout.flush()
             continue
 
         if user_input == "/onboard":
-            from codex.config import run_onboarding_wizard
-            new_key = run_onboarding_wizard()
-            client.set_api_key(new_key)
+            from codex.profiler import run_first_boot_profiling
+            profile = run_first_boot_profiling(interactive=True, force=True)
+            if hasattr(client, "set_model") and profile.get("recommended_model"):
+                client.set_model(profile["recommended_model"])
             continue
 
         if user_input.startswith("/skills"):
@@ -622,17 +636,19 @@ def run_repl(client: GroqClient) -> None:
             continue
 
         if user_input.startswith("/subagent"):
-            from codex.subagents import Orchestrator
+            from codex.subagents import MultiAgentStateMachine
             parts = user_input.split(maxsplit=1)
             if len(parts) > 1:
                 task_prompt = parts[1].strip()
-                console.print(f"[bold white]Decomposing task into multi-agent DAG...[/]")
-                orch = Orchestrator()
-                dag = orch.build_plan_for_prompt(task_prompt)
-                logs = orch.execute_dag(dag)
-                for log in logs:
-                    console.print(f"  [dim]{log}[/]")
-                console.print(f"[bold green]Sub-Agent DAG execution completed cleanly.[/]\n")
+                console.print(f"\n[bold white]✦ Launching Multi-Agent State Machine (Planner ➔ Coder ➔ Auditor ➔ Executor)...[/]\n")
+                sm = MultiAgentStateMachine()
+                def code_gen(step):
+                    prompt = f"Write implementation for: {step.description}\nTarget: {step.target_path}"
+                    chunks = []
+                    for c in client.stream_chat([{"role": "user", "content": prompt}]):
+                        chunks.append(c)
+                    return "".join(chunks)
+                sm.run_workflow(task_prompt, code_generator=code_gen, logger=lambda m: console.print(m))
             else:
                 console.print("[dim]Usage: /subagent <task description>[/]\n")
             continue
@@ -817,16 +833,12 @@ def main() -> None:
     elif args.antigravity:
         client = AntigravityClient(model=args.model or "gemini 3.8 flash")
     else:
-        try:
-            client = GroqClient(model=model, api_key=args.key)
-        except RuntimeError:
-            try:
-                from codex.config import run_onboarding_wizard
-                key = run_onboarding_wizard()
-                client = GroqClient(model=model, api_key=key)
-            except Exception as e:
-                render_error("Configuration Error", str(e), "Configure ~/.codex/config.json with a valid API key.")
-                sys.exit(1)
+        # Default: Zero-Latency Local Ollama engine with Cloaked OSS-120B Fallback and $2 budget guardrail
+        from codex.client import HybridCodexClient
+        client = HybridCodexClient(local_model=model)
+
+    if args.model:
+        client._explicit_model_flag = True
 
     if args.headless or args.ci:
         from codex.ci import HeadlessCIRunner
