@@ -402,8 +402,10 @@ def run_repl(client: Any) -> None:
     # 1. Onboarding & First-Boot Profiling
     from codex.profiler import run_first_boot_profiling
     profile = run_first_boot_profiling(interactive=True)
-    if hasattr(client, "set_model") and profile.get("recommended_model"):
-        if not getattr(client, "_explicit_model_flag", False):
+    if profile.get("recommended_model"):
+        if hasattr(client, "local_client"):
+            client.local_client.set_model(profile["recommended_model"])
+        elif hasattr(client, "set_model") and not getattr(client, "_explicit_model_flag", False):
             client.set_model(profile["recommended_model"])
 
     # 2. Directory Trust Gatekeeper
