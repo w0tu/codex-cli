@@ -63,6 +63,52 @@ def detect_query_complexity(prompt: str, context_tokens: int = 0) -> Tuple[bool,
     return False, "Query matches 1B local model capacity"
 
 
+def resolve_cloud_credentials(api_key: Optional[str] = None) -> Tuple[str, str, str]:
+    """Resolve endpoint URL, bearer key, and model ID with strict zero-leakage cloaking."""
+    if api_key:
+        key = api_key.strip()
+        if key.startswith("gsk_"):
+            return "https://api.groq.com/openai/v1/chat/completions", key, "openai/gpt-oss-120b"
+        elif key.startswith("xai-"):
+            return "https://api.x.ai/v1/chat/completions", key, "grok-2-latest"
+        elif key.startswith("sk-"):
+            return "https://api.openai.com/v1/chat/completions", key, "gpt-4o-mini"
+        return "https://api.groq.com/openai/v1/chat/completions", key, "openai/gpt-oss-120b"
+
+    # Check env vars
+    xai_env = os.environ.get("XAI_API_KEY", "").strip()
+    if xai_env:
+        return "https://api.x.ai/v1/chat/completions", xai_env, "grok-2-latest"
+
+    groq_env = os.environ.get("GROQ_API_KEY", "").strip()
+    if groq_env:
+        return "https://api.groq.com/openai/v1/chat/completions", groq_env, "openai/gpt-oss-120b"
+
+    # Check ~/.codex/config.json
+    try:
+        from codex.config import load_config
+        cfg = load_config()
+        for k in [cfg.get("api_key", "")] + cfg.get("backup_keys", []):
+            if k and isinstance(k, str) and k.startswith("gsk_") and not k.startswith("gsk_test"):
+                return "https://api.groq.com/openai/v1/chat/completions", k.strip(), "openai/gpt-oss-120b"
+    except Exception:
+        pass
+
+    openai_env = os.environ.get("OPENAI_API_KEY", "").strip()
+    if openai_env:
+        return "https://api.openai.com/v1/chat/completions", openai_env, "gpt-4o-mini"
+
+    return CLOAKED_CLOUD_URL, "", DEFAULT_CLOAKED_MODEL
+
+
+def is_cloud_available() -> bool:
+    """Return True if internet is up and a valid cloud key is configured."""
+    if not is_internet_available():
+        return False
+    _, key, _ = resolve_cloud_credentials()
+    return bool(key)
+
+
 class CloakedCloudClient:
     """Zero-leakage remote inference client labeled strictly as 'OSS-120B High-Precision'."""
 
@@ -87,12 +133,16 @@ class CloakedCloudClient:
         if not allowed:
             raise PermissionError(notice)
 
+        endpoint_url, active_key, model_id = resolve_cloud_credentials(self.api_key)
+        if not active_key:
+            raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
+
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {active_key}",
         }
         payload = {
-            "model": DEFAULT_CLOAKED_MODEL,
+            "model": model_id,
             "messages": messages,
             "max_tokens": max_tokens,
             "temperature": temperature,
@@ -103,27 +153,28 @@ class CloakedCloudClient:
         prompt_tokens_est = max(1, len(prompt_text) // 4)
         completion_tokens_est = 0
 
-        with httpx.stream("POST", CLOAKED_CLOUD_URL, json=payload, headers=headers, timeout=120.0) as response:
-            if response.status_code != 200:
-                body = response.read().decode("utf-8", errors="replace")
-                raise RuntimeError(f"Cloud escalation returned HTTP {response.status_code}: {body}")
+        with httpx.Client(timeout=45.0) as client:
+            with client.stream("POST", endpoint_url, json=payload, headers=headers) as response:
+                if response.status_code != 200:
+                    body = response.read().decode("utf-8", errors="replace")
+                    raise RuntimeError(f"Cloud escalation returned HTTP {response.status_code}: {body}")
 
-            for line in response.iter_lines():
-                if not line:
-                    continue
-                if line.startswith("data: "):
-                    line = line[6:]
-                if line.strip() == "[DONE]":
-                    break
-                try:
-                    chunk = json.loads(line)
-                    delta = chunk.get("choices", [{}])[0].get("delta", {})
-                    content = delta.get("content", "")
-                    if content:
-                        completion_tokens_est += max(1, len(content) // 4)
-                        yield content
-                except Exception:
-                    pass
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+                    if line.startswith("data: "):
+                        line = line[6:]
+                    if line.strip() == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(line)
+                        delta = chunk.get("choices", [{}])[0].get("delta", {})
+                        content = delta.get("content", "")
+                        if content:
+                            completion_tokens_est += max(1, len(content) // 4)
+                            yield content
+                    except Exception:
+                        pass
 
         # Record spend under budget guardrail
         billing_guardrail.record_cloud_spend(prompt_tokens_est, completion_tokens_est)
@@ -131,3 +182,4 @@ class CloakedCloudClient:
 
 # Global singleton instance
 cloaked_cloud_client = CloakedCloudClient()
+

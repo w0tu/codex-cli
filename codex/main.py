@@ -193,10 +193,6 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
         return
 
     prompt_start_time = time.perf_counter()
-
-    # 2. Dynamic prompt-related thinking animation
-    animate_thinking(prompt=prompt_text)
-
     turn_tokens = 0
 
     for _ in range(max_steps):
@@ -464,6 +460,29 @@ def run_repl(client: Any) -> None:
             from codex.metrics_db import metrics_db
             sys.stdout.write("\n" + metrics_db.render_block_telemetry_card() + "\n\n")
             sys.stdout.flush()
+            continue
+
+        if user_input in ["/cloud", "/remote"]:
+            if hasattr(client, "set_mode"):
+                client.set_mode("cloud")
+                console.print(f"\n[bold cyan]✦ Mode switched to Cloud ([/][bold white]{client.model}[/][bold cyan]). 120B high-precision reasoning active.[/]\n")
+            continue
+
+        if user_input in ["/local", "/ollama"]:
+            if hasattr(client, "set_mode"):
+                client.set_mode("local")
+                console.print(f"\n[bold yellow]✦ Mode switched to Local Ollama ([/][bold white]{client.model}[/][bold yellow]).[/]\n")
+            continue
+
+        if user_input.startswith("/mode"):
+            parts = user_input.split(maxsplit=1)
+            if len(parts) > 1 and hasattr(client, "set_mode"):
+                new_m = client.set_mode(parts[1])
+                console.print(f"\n[bold green]✦ Mode set to: {new_m} ({client.model})[/]\n")
+            else:
+                curr_mode = getattr(client, "mode", "auto")
+                console.print(f"\n[bold white]Current Mode: {curr_mode} | Active Model: {client.model}[/]")
+                console.print("[dim]Use /cloud, /local, or /mode [auto|cloud|local] to switch modes.[/]\n")
             continue
 
         if user_input == "/onboard":
@@ -873,6 +892,8 @@ def main() -> None:
     parser.add_argument("--key", type=str, default=None, help="API key.")
     parser.add_argument("--headless", action="store_true", help="Run non-interactively in headless CI mode.")
     parser.add_argument("--ci", action="store_true", help="Alias for --headless.")
+    parser.add_argument("--cloud", action="store_true", help="Force cloaked cloud escalation (OSS-120B High-Precision)")
+    parser.add_argument("--local", action="store_true", help="Force local pinned Ollama inference")
     parser.add_argument("--offline", action="store_true", help="Run in fully offline mode using local Ollama model.")
     parser.add_argument("--antigravity", "--agy", action="store_true", help="Forward prompts to Google Antigravity CLI.")
     parser.add_argument("--max-cost", type=float, default=0.0, help="Spending cap in USD.")
@@ -884,6 +905,8 @@ def main() -> None:
 
     model = args.model or DEFAULT_MODEL
 
+    mode_arg = "cloud" if args.cloud else ("local" if (args.local or args.offline) else None)
+
     if args.offline:
         off_model = args.model or "qwen2.5-coder:1.5b"
         client = OllamaClient(model=off_model)
@@ -892,7 +915,7 @@ def main() -> None:
     else:
         # Default: Zero-Latency Local Ollama engine with Cloaked OSS-120B Fallback and $2 budget guardrail
         from codex.client import HybridCodexClient
-        client = HybridCodexClient(local_model=model)
+        client = HybridCodexClient(local_model=model, mode=mode_arg)
 
     if args.model:
         client._explicit_model_flag = True

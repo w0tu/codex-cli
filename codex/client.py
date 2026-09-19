@@ -54,8 +54,13 @@ CORE OPERATIONAL PRINCIPLES:
 
 
 def get_system_prompt(lean: bool = True) -> str:
-    """Build lean, zero-latency system prompt for fast local inference."""
-    prompt = "You are Codex, an elite principal software engineer and terminal-native AI coding assistant for Linux. Write concise, clean, complete solutions."
+    """Build lean, zero-latency system prompt for fast, elite inference."""
+    prompt = (
+        "You are Codex, an elite principal software engineer and terminal-native AI assistant for Linux. "
+        "Be direct, concise, and technically rigorous. Never use robotic corporate boilerplate (e.g. 'How can I assist you today?'). "
+        "When greeted casually (e.g. 'hi bro'), greet back briefly as a fellow hacker and engineer. "
+        "When asked for code or system solutions, deliver clean, working, complete implementations immediately."
+    )
     if not lean:
         prompt += "\n" + BASE_SYSTEM_PROMPT
         cwd = Path.cwd()
@@ -248,15 +253,51 @@ class HybridCodexClient:
         local_model: Optional[str] = None,
         cloud_enabled: bool = True,
         api_key: Optional[str] = None,
+        mode: Optional[str] = None,
     ):
+        # Resolve preferred local model from config if not explicitly set
+        if not model and not local_model:
+            try:
+                cfg_path = Path.home() / ".config" / "codex_cli" / "config.json"
+                if cfg_path.exists():
+                    cfg_data = json.loads(cfg_path.read_text(encoding="utf-8"))
+                    local_model = cfg_data.get("local_model")
+            except Exception:
+                pass
+
         chosen_model = model or local_model or DEFAULT_LOCAL_MODEL
         self.local_client = OllamaClient(model=chosen_model)
         self.cloud_client = cloaked_cloud_client
         if api_key:
             self.cloud_client.set_api_key(api_key)
         self.cloud_enabled = cloud_enabled
-        self.model = chosen_model
-        self.last_engine_used = chosen_model
+
+        # Set execution mode: 'cloud', 'local', or 'auto'
+        from codex.cloud_fallback import is_cloud_available
+        if mode:
+            self.mode = mode.lower()
+        elif is_cloud_available() and self.cloud_enabled:
+            # Cloud-first for high performance and sub-second 120B quality
+            self.mode = "cloud"
+        else:
+            self.mode = "auto"
+
+        self.model = CLOAKED_ENGINE_LABEL if self.mode == "cloud" else chosen_model
+        self.last_engine_used = self.model
+
+    def set_mode(self, mode: str) -> str:
+        """Switch routing mode between 'cloud', 'local', and 'auto'."""
+        mode_clean = mode.lower().strip()
+        if mode_clean in ["cloud", "remote", "oss-120b"]:
+            self.mode = "cloud"
+            self.model = CLOAKED_ENGINE_LABEL
+        elif mode_clean in ["local", "ollama", "offline"]:
+            self.mode = "local"
+            self.model = self.local_client.model
+        else:
+            self.mode = "auto"
+            self.model = self.local_client.model
+        return self.mode
 
     def rotate_failover(self) -> Optional[str]:
         from codex.config import rotate_api_key
@@ -267,8 +308,14 @@ class HybridCodexClient:
         return None
 
     def set_model(self, model: str) -> None:
-        self.model = model
-        self.local_client.set_model(model)
+        if model == CLOAKED_ENGINE_LABEL or "120b" in model.lower():
+            self.mode = "cloud"
+            self.model = CLOAKED_ENGINE_LABEL
+        else:
+            self.model = model
+            self.local_client.set_model(model)
+            if self.mode == "cloud":
+                self.mode = "auto"
 
     def set_api_key(self, key: str) -> None:
         self.cloud_client.set_api_key(key)
@@ -290,12 +337,13 @@ class HybridCodexClient:
         exceeds_1b, reason = detect_query_complexity(user_prompt, est_tokens)
 
         route_to_cloud = False
-        if self.cloud_enabled and exceeds_1b:
+        if self.cloud_enabled and self.mode != "local":
             if is_internet_available():
                 allowed, notice = billing_guardrail.check_cloud_escalation()
                 if allowed:
-                    route_to_cloud = True
-                    self.last_engine_used = CLOAKED_ENGINE_LABEL
+                    if self.mode == "cloud" or exceeds_1b:
+                        route_to_cloud = True
+                        self.last_engine_used = CLOAKED_ENGINE_LABEL
                 else:
                     sys.stdout.write(f"\n\033[1;33m{notice}\033[0m\n")
                     sys.stdout.flush()
@@ -307,8 +355,10 @@ class HybridCodexClient:
 
         if route_to_cloud:
             try:
-                sys.stdout.write(f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255m[ESCALATION]\033[0m Routing complex query to \033[1;37m{CLOAKED_ENGINE_LABEL}\033[0m ({reason})...\n")
-                sys.stdout.flush()
+                # If auto-escalated on complexity in auto mode, display subtle notice
+                if self.mode == "auto" and exceeds_1b:
+                    sys.stdout.write(f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255m[ESCALATION]\033[0m Routing complex query to \033[1;37m{CLOAKED_ENGINE_LABEL}\033[0m ({reason})...\n")
+                    sys.stdout.flush()
                 yield from self.cloud_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
                 return
             except Exception as e:
