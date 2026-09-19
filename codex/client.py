@@ -53,33 +53,33 @@ CORE OPERATIONAL PRINCIPLES:
 """
 
 
-def get_system_prompt() -> str:
-    """Build system prompt, injecting CODEX.md guidelines and active skills."""
-    prompt = BASE_SYSTEM_PROMPT
-    cwd = Path.cwd()
-    for fname in ["CODEX.md", "CLAUDE.md", "AGENTS.md"]:
-        guidelines_path = cwd / fname
-        if guidelines_path.exists() and guidelines_path.is_file():
-            try:
-                content = guidelines_path.read_text(encoding="utf-8", errors="replace").strip()
-                if content:
-                    prompt += f"\n\nPROJECT GUIDELINES ({fname}):\n{content}\n"
-                    break
-            except Exception:
-                pass
-
-    try:
-        from codex.skills import SkillsManager
-        skills_ctx = SkillsManager().get_skills_prompt_context()
-        if skills_ctx:
-            prompt += skills_ctx
-    except Exception:
-        pass
-
+def get_system_prompt(lean: bool = True) -> str:
+    """Build lean, zero-latency system prompt for fast local inference."""
+    prompt = "You are Codex, an elite principal software engineer and terminal-native AI coding assistant for Linux. Write concise, clean, complete solutions."
+    if not lean:
+        prompt += "\n" + BASE_SYSTEM_PROMPT
+        cwd = Path.cwd()
+        for fname in ["CODEX.md", "CLAUDE.md", "AGENTS.md"]:
+            guidelines_path = cwd / fname
+            if guidelines_path.exists() and guidelines_path.is_file():
+                try:
+                    content = guidelines_path.read_text(encoding="utf-8", errors="replace").strip()
+                    if content:
+                        prompt += f"\n\nPROJECT GUIDELINES ({fname}):\n{content}\n"
+                        break
+                except Exception:
+                    pass
+        try:
+            from codex.skills import SkillsManager
+            skills_ctx = SkillsManager().get_skills_prompt_context()
+            if skills_ctx:
+                prompt += skills_ctx
+        except Exception:
+            pass
     return prompt
 
 
-SYSTEM_PROMPT = get_system_prompt()
+SYSTEM_PROMPT = get_system_prompt(lean=True)
 
 
 class OllamaClient:
@@ -116,7 +116,17 @@ class OllamaClient:
                 "num_thread": 4,
             },
         }
-        if TOOLS_SCHEMA:
+        should_include_tools = False
+        user_text = ""
+        for m in reversed(messages):
+            if m.get("role") == "user":
+                user_text = m.get("content", "").lower()
+                break
+        tool_keywords = ["run", "execute", "check", "file", "list", "grep", "find", "search", "read", "write", "edit", "git", "status", "terminal", "bash", "ls", "test"]
+        if any(k in user_text for k in tool_keywords) or any(m.get("role") == "tool" for m in messages):
+            should_include_tools = True
+
+        if TOOLS_SCHEMA and should_include_tools:
             payload["tools"] = TOOLS_SCHEMA
 
         with httpx.Client(timeout=180.0) as client:

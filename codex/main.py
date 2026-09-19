@@ -203,6 +203,29 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
         try:
             from codex.security import SecretScrubber
             scrubbed_msgs = SecretScrubber.scrub_messages(session.messages)
+
+            # Direct Zero-Latency token stream if tools are not required
+            user_text = ""
+            for m in reversed(scrubbed_msgs):
+                if m.get("role") == "user":
+                    user_text = m.get("content", "").lower()
+                    break
+            tool_keywords = ["run", "execute", "check", "file", "list", "grep", "find", "search", "read", "write", "edit", "git", "status", "terminal", "bash", "ls", "test", "audit"]
+            needs_tools = any(k in user_text for k in tool_keywords) or any(m.get("role") == "tool" for m in scrubbed_msgs)
+
+            if not needs_tools and hasattr(client, "stream_chat"):
+                chunks = []
+                for chunk in client.stream_chat(scrubbed_msgs):
+                    sys.stdout.write(chunk)
+                    sys.stdout.flush()
+                    chunks.append(chunk)
+                sys.stdout.write("\n\n")
+                sys.stdout.flush()
+                full_resp = "".join(chunks)
+                session.add_assistant(full_resp)
+                turn_tokens = max(1, len(full_resp) // 4)
+                break
+
             resp = client.chat_turn(scrubbed_msgs)
         except Exception as e:
             err_str = str(e).lower()
@@ -329,12 +352,41 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
 
 
 # ── Direct mode ─────────────────────────────────────────────────────────
-def run_direct(prompt: str, client: GroqClient) -> None:
+def run_direct(prompt: str, client: Any) -> None:
+    clean_prompt = prompt.strip()
+    if clean_prompt == "/usage":
+        from codex.metrics_db import metrics_db
+        sys.stdout.write("\n" + metrics_db.render_block_telemetry_card() + "\n\n")
+        sys.stdout.flush()
+        return
+
+    if clean_prompt.startswith("/subagent"):
+        from codex.subagents import MultiAgentStateMachine
+        parts = clean_prompt.split(maxsplit=1)
+        task_prompt = parts[1].strip() if len(parts) > 1 else "Perform codebase verification audit"
+        console.print(f"\n[bold white]✦ Launching Multi-Agent State Machine (Planner ➔ Coder ➔ Auditor ➔ Executor)...[/]\n")
+        sm = MultiAgentStateMachine()
+        def code_gen(step):
+            p = f"Write python code for: {step.description}\nTarget file: {step.target_path}\nOutput valid raw python code."
+            chunks = []
+            for c in client.stream_chat([{"role": "user", "content": p}], max_tokens=300):
+                chunks.append(c)
+            raw = "".join(chunks).strip()
+            if "```python" in raw:
+                raw = raw.split("```python", 1)[1].split("```", 1)[0].strip()
+            elif "```" in raw:
+                raw = raw.split("```", 1)[1].split("```", 1)[0].strip()
+            return raw
+        sm.run_workflow(task_prompt, code_generator=code_gen, logger=lambda m: console.print(m))
+        return
+
     session = Session()
     session.add_user(prompt)
-    console.print(render_header(model_name=client.model))
-    console.print()
+    from codex.banner_renderer import display_welcome_banner
+    display_welcome_banner(model_label=client.model, status_text="ONLINE | ZERO-LATENCY PINNED", cwd=os.getcwd())
     execute_turn(session, client, prompt_text=prompt)
+
+
 
 
 # ── Interactive REPL ────────────────────────────────────────────────────
@@ -643,11 +695,16 @@ def run_repl(client: Any) -> None:
                 console.print(f"\n[bold white]✦ Launching Multi-Agent State Machine (Planner ➔ Coder ➔ Auditor ➔ Executor)...[/]\n")
                 sm = MultiAgentStateMachine()
                 def code_gen(step):
-                    prompt = f"Write implementation for: {step.description}\nTarget: {step.target_path}"
+                    prompt = f"Write python code for: {step.description}\nTarget: {step.target_path}\nOutput valid raw python code."
                     chunks = []
-                    for c in client.stream_chat([{"role": "user", "content": prompt}]):
+                    for c in client.stream_chat([{"role": "user", "content": prompt}], max_tokens=300):
                         chunks.append(c)
-                    return "".join(chunks)
+                    raw = "".join(chunks).strip()
+                    if "```python" in raw:
+                        raw = raw.split("```python", 1)[1].split("```", 1)[0].strip()
+                    elif "```" in raw:
+                        raw = raw.split("```", 1)[1].split("```", 1)[0].strip()
+                    return raw
                 sm.run_workflow(task_prompt, code_generator=code_gen, logger=lambda m: console.print(m))
             else:
                 console.print("[dim]Usage: /subagent <task description>[/]\n")
