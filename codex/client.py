@@ -375,6 +375,15 @@ class HybridCodexClient:
         max_tokens: int = 1200,
         temperature: float = 0.2,
     ) -> Any:
+        if self.cloud_enabled and self.mode != "local" and is_internet_available():
+            allowed, _ = billing_guardrail.check_cloud_escalation()
+            if allowed:
+                try:
+                    self.last_engine_used = CLOAKED_ENGINE_LABEL
+                    return self.cloud_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
+                except Exception:
+                    pass
+        self.last_engine_used = self.local_client.model
         return self.local_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
 
 

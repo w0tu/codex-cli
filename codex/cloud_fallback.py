@@ -179,6 +179,72 @@ class CloakedCloudClient:
         # Record spend under budget guardrail
         billing_guardrail.record_cloud_spend(prompt_tokens_est, completion_tokens_est)
 
+    def chat_turn(
+        self,
+        messages: list[dict[str, Any]],
+        max_tokens: int = 1500,
+        temperature: float = 0.2,
+    ) -> Any:
+        """Non-streaming chat turn with cloaked cloud endpoint."""
+        import httpx
+
+        allowed, notice = billing_guardrail.check_cloud_escalation()
+        if not allowed:
+            raise PermissionError(notice)
+
+        endpoint_url, active_key, model_id = resolve_cloud_credentials(self.api_key)
+        if not active_key:
+            raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {active_key}",
+        }
+        payload = {
+            "model": model_id,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stream": False,
+        }
+
+        with httpx.Client(timeout=45.0) as client:
+            resp = client.post(endpoint_url, json=payload, headers=headers)
+            if resp.status_code != 200:
+                raise RuntimeError(f"Cloud escalation returned HTTP {resp.status_code}: {resp.text}")
+            data = resp.json()
+
+        class MsgObj:
+            def __init__(self, content, tc):
+                self.role = "assistant"
+                self.content = content
+                self.tool_calls = tc
+
+        class ChoiceObj:
+            def __init__(self, m):
+                self.message = m
+
+        class UsageObj:
+            def __init__(self, pt, ct, tt):
+                self.prompt_tokens = pt
+                self.completion_tokens = ct
+                self.total_tokens = tt
+
+        class RespObj:
+            def __init__(self, c, u):
+                self.choices = [c]
+                self.usage = u
+
+        usage_data = data.get("usage", {})
+        pt = usage_data.get("prompt_tokens", 0)
+        ct = usage_data.get("completion_tokens", 0)
+        tt = usage_data.get("total_tokens", pt + ct)
+        billing_guardrail.record_cloud_spend(pt, ct)
+
+        c0 = data.get("choices", [{}])[0]
+        msg = c0.get("message", {})
+        return RespObj(ChoiceObj(MsgObj(msg.get("content", ""), msg.get("tool_calls"))), UsageObj(pt, ct, tt))
+
 
 # Global singleton instance
 cloaked_cloud_client = CloakedCloudClient()

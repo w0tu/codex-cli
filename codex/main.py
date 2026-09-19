@@ -206,8 +206,20 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                 if m.get("role") == "user":
                     user_text = m.get("content", "").lower()
                     break
-            tool_keywords = ["run", "execute", "check", "file", "list", "grep", "find", "search", "read", "write", "edit", "git", "status", "terminal", "bash", "ls", "test", "audit"]
-            needs_tools = any(k in user_text for k in tool_keywords) or any(m.get("role") == "tool" for m in scrubbed_msgs)
+            explicit_tool_directives = [
+                "run command", "run bash", "run in terminal", "execute command",
+                "create file", "write to file", "edit file", "save to file",
+                "read file", "inspect file", "search files", "git commit",
+                "git diff", "git status", "run tests", "run pytest", "run linter",
+                "search codebase", "grep for"
+            ]
+            needs_tools = (
+                any(d in user_text for d in explicit_tool_directives)
+                or any(m.get("role") == "tool" for m in scrubbed_msgs)
+                or user_text.startswith("!")
+                or user_text.startswith("bash ")
+                or user_text.startswith("run ")
+            )
 
             if not needs_tools and hasattr(client, "stream_chat"):
                 chunks = []
