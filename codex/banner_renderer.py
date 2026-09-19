@@ -108,39 +108,51 @@ def get_cached_banner(
     t0 = time.perf_counter()
     img_path = Path(image_path) if image_path else DEFAULT_IMAGE_PATH
     
-    # Target terminal width (clamped between 80 and 120)
     term_width = width or shutil.get_terminal_size((100, 24)).columns
     target_width = max(80, min(120, term_width - 4))
-    
-    cache_meta_file = CONFIG_DIR / "banner.meta"
+
+    cache_file = CONFIG_DIR / f"banner_{target_width}.ansi"
+    cache_meta_file = CONFIG_DIR / f"banner_{target_width}.meta"
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
     cache_valid = False
-    if not force_rebuild and CACHE_FILE.exists() and cache_meta_file.exists():
+    if not force_rebuild and cache_file.exists() and cache_meta_file.exists():
         try:
-            meta = cache_meta_file.read_text(encoding="utf-8").strip().split(":")
-            cached_width = int(meta[0])
-            cached_mtime = float(meta[1])
+            cached_mtime = float(cache_meta_file.read_text(encoding="utf-8").strip())
             img_mtime = img_path.stat().st_mtime if img_path.exists() else 0.0
-            if cached_width == target_width and abs(cached_mtime - img_mtime) < 0.01:
+            if abs(cached_mtime - img_mtime) < 0.01:
                 cache_valid = True
         except Exception:
             cache_valid = False
 
     if cache_valid:
         try:
-            content = CACHE_FILE.read_text(encoding="utf-8")
+            content = cache_file.read_text(encoding="utf-8")
             elapsed_ms = (time.perf_counter() - t0) * 1000.0
             return content, elapsed_ms
         except Exception:
             pass
 
+    # Check nearby cached widths before rebuilding
+    if not force_rebuild:
+        for nearby in [target_width, 80, 90, 100, 110, 120]:
+            nearby_file = CONFIG_DIR / f"banner_{nearby}.ansi"
+            if nearby_file.exists() and abs(nearby - target_width) <= 10:
+                try:
+                    content = nearby_file.read_text(encoding="utf-8")
+                    elapsed_ms = (time.perf_counter() - t0) * 1000.0
+                    return content, elapsed_ms
+                except Exception:
+                    pass
+
     # Build cache
     try:
         ansi_output = convert_image_to_ansi(img_path, target_width=target_width)
+        cache_file.write_text(ansi_output, encoding="utf-8")
+        # Also maintain default CACHE_FILE
         CACHE_FILE.write_text(ansi_output, encoding="utf-8")
         img_mtime = img_path.stat().st_mtime if img_path.exists() else time.time()
-        cache_meta_file.write_text(f"{target_width}:{img_mtime}", encoding="utf-8")
+        cache_meta_file.write_text(f"{img_mtime}", encoding="utf-8")
     except Exception as e:
         ansi_output = f"[Banner Renderer Warning: {e}]"
 

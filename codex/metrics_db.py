@@ -17,6 +17,9 @@ CONFIG_DIR = Path.home() / ".config" / "codex_cli"
 DB_PATH = CONFIG_DIR / "metrics.db"
 
 
+from contextlib import contextmanager
+
+
 class MetricsDB:
     """Persistent SQLite telemetry store for Codex-CLI."""
 
@@ -25,13 +28,18 @@ class MetricsDB:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
-    def _get_conn(self) -> sqlite3.Connection:
+    @contextmanager
+    def _conn(self):
         conn = sqlite3.connect(str(self.db_path), timeout=10.0)
         conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            yield conn
+            conn.commit()
+        finally:
+            conn.close()
 
     def _init_db(self) -> None:
-        with self._get_conn() as conn:
+        with self._conn() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS config_kv (
@@ -59,7 +67,7 @@ class MetricsDB:
         self._seed_default("peak_day_tokens", "0")
 
     def _seed_default(self, key: str, default_val: str) -> None:
-        with self._get_conn() as conn:
+        with self._conn() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT value FROM config_kv WHERE key = ?", (key,))
             if cursor.fetchone() is None:
@@ -67,14 +75,14 @@ class MetricsDB:
                 conn.commit()
 
     def _get_kv(self, key: str, default: str = "") -> str:
-        with self._get_conn() as conn:
+        with self._conn() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT value FROM config_kv WHERE key = ?", (key,))
             row = cursor.fetchone()
             return row["value"] if row else default
 
     def _set_kv(self, key: str, value: str) -> None:
-        with self._get_conn() as conn:
+        with self._conn() as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT OR REPLACE INTO config_kv (key, value) VALUES (?, ?)", (key, value))
             conn.commit()
@@ -84,7 +92,7 @@ class MetricsDB:
         today_str = date.today().isoformat()
         total_turn_tokens = local_tokens + cloud_tokens
 
-        with self._get_conn() as conn:
+        with self._conn() as conn:
             cursor = conn.cursor()
             # Update or insert daily row
             cursor.execute("""
@@ -133,7 +141,7 @@ class MetricsDB:
         self._set_kv("lifetime_tokens", str(lifetime))
 
         # Check peak day
-        with self._get_conn() as conn:
+        with self._conn() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT total_tokens FROM daily_usage WHERE date = ?", (today_str,))
             today_row = cursor.fetchone()
@@ -152,7 +160,7 @@ class MetricsDB:
         peak_day_date = self._get_kv("peak_day_date", today_str)
         peak_day_tokens = int(self._get_kv("peak_day_tokens", "0"))
 
-        with self._get_conn() as conn:
+        with self._conn() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM daily_usage WHERE date = ?", (today_str,))
             row = cursor.fetchone()

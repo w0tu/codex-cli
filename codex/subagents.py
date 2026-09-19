@@ -351,3 +351,64 @@ class MultiAgentStateMachine:
         self.current_state = AgentState.COMPLETED
         log(f"\033[38;2;120;120;130m▌\033[0m \033[1;32m[STATE: COMPLETED]\033[0m Multi-agent state machine finished all steps.\n")
         return True
+
+
+class DAGNode:
+    """DAG node for backward compatibility."""
+    def __init__(self, task_id: str, description: str, agent_type: str, dependencies: Optional[List[str]] = None):
+        self.task_id = task_id
+        self.description = description
+        self.agent_type = agent_type
+        self.dependencies = dependencies or []
+        self.status = "pending"
+        self.result = ""
+
+
+class PlanDAG:
+    """DAG representation for backward compatibility."""
+    def __init__(self):
+        self.nodes: Dict[str, DAGNode] = {}
+
+    def add_task(self, task_id: str, description: str, agent_type: str, dependencies: Optional[List[str]] = None) -> DAGNode:
+        node = DAGNode(task_id, description, agent_type, dependencies)
+        self.nodes[task_id] = node
+        return node
+
+    def get_ready_tasks(self) -> List[DAGNode]:
+        ready = []
+        for node in self.nodes.values():
+            if node.status != "pending":
+                continue
+            deps_done = all(self.nodes[d].status == "completed" for d in node.dependencies if d in self.nodes)
+            if deps_done:
+                ready.append(node)
+        return ready
+
+    def is_complete(self) -> bool:
+        return all(node.status == "completed" for node in self.nodes.values())
+
+
+class Orchestrator:
+    """Orchestrator interface for backward compatibility."""
+    def __init__(self):
+        pass
+
+    def build_plan_for_prompt(self, user_prompt: str) -> PlanDAG:
+        dag = PlanDAG()
+        dag.add_task("task_1_scout", f"Research codebase: {user_prompt[:50]}", "scout")
+        dag.add_task("task_2_code", f"Implement: {user_prompt[:50]}", "coder", dependencies=["task_1_scout"])
+        dag.add_task("task_3_critic", f"Audit: {user_prompt[:50]}", "critic", dependencies=["task_2_code"])
+        return dag
+
+    def execute_dag(self, dag: PlanDAG) -> List[str]:
+        logs = []
+        while not dag.is_complete():
+            ready = dag.get_ready_tasks()
+            if not ready:
+                break
+            for task in ready:
+                task.status = "completed"
+                task.result = f"Finished {task.task_id}"
+                logs.append(f"Completed {task.task_id} ({task.agent_type}): {task.result}")
+        return logs
+

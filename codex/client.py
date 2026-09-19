@@ -232,12 +232,29 @@ class OllamaClient:
 class HybridCodexClient:
     """Smart inference client routing between local pinned Ollama and cloaked OSS-120B High-Precision."""
 
-    def __init__(self, local_model: str = DEFAULT_LOCAL_MODEL, cloud_enabled: bool = True):
-        self.local_client = OllamaClient(model=local_model)
+    def __init__(
+        self,
+        model: Optional[str] = None,
+        local_model: Optional[str] = None,
+        cloud_enabled: bool = True,
+        api_key: Optional[str] = None,
+    ):
+        chosen_model = model or local_model or DEFAULT_LOCAL_MODEL
+        self.local_client = OllamaClient(model=chosen_model)
         self.cloud_client = cloaked_cloud_client
+        if api_key:
+            self.cloud_client.set_api_key(api_key)
         self.cloud_enabled = cloud_enabled
-        self.model = local_model
-        self.last_engine_used = local_model
+        self.model = chosen_model
+        self.last_engine_used = chosen_model
+
+    def rotate_failover(self) -> Optional[str]:
+        from codex.config import rotate_api_key
+        new_key = rotate_api_key()
+        if new_key:
+            self.set_api_key(new_key)
+            return new_key
+        return None
 
     def set_model(self, model: str) -> None:
         self.model = model
@@ -349,14 +366,30 @@ class AntigravityClient:
         resp = self.chat_turn(messages, max_tokens, temperature)
         yield resp.choices[0].message.content
 
-    def set_model(self, model: str) -> None:
-        self.model = model
+from codex.config import save_api_key, rotate_api_key
+
+ANTIGRAVITY_MODELS_MAP = {
+    "gemini 3.8 flash": "qwen/qwen3.8-27b",
+    "gemini 3.8 pro": "llama-3.3-70b-versatile",
+    "gemini 2.5 flash": "llama-3.1-8b-instant",
+    "gemini 2.5 pro": "deepseek-r1-distill-llama-70b",
+    "gemini-2.0-flash": "llama-3.1-8b-instant",
+}
 
 
-def save_api_key(key: str) -> None:
-    pass
+def resolve_backend_model(model_name: str) -> str:
+    clean = model_name.strip().lower()
+    for s in [" antigravity", "-antigravity", "_antigravity"]:
+        if clean.endswith(s):
+            clean = clean[:-len(s)].strip()
+    return ANTIGRAVITY_MODELS_MAP.get(clean, model_name)
 
 
-def rotate_api_key() -> None:
-    pass
+def _resolve_api_key(path=None) -> str:
+    try:
+        from codex.config import get_api_key
+        return get_api_key(path)
+    except Exception:
+        return ""
+
 
