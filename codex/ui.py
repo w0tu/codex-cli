@@ -553,7 +553,7 @@ def prompt_model_modal(active_model: str) -> str | None:
         # Truncate to box width
         lines.append(f"│ {item_str:<64} │")
     lines.append("│                                                                  │")
-    lines.append("│ Enter choice [1-6] or press Enter to cancel:                     │")
+    lines.append("│ Enter choice [1-7] or press Enter to cancel:                     │")
     lines.append("╰──────────────────────────────────────────────────────────────────╯")
 
     console.print("\n".join(lines), style="bold white")

@@ -394,17 +394,30 @@ DEFAULT_MODEL = DEFAULT_LOCAL_MODEL
 
 
 class AntigravityClient:
-    """Client bridging to Google Antigravity CLI."""
+    """Client bridging to Google Antigravity CLI with instant model switching."""
 
     def __init__(self, model: str = "gemini 3.8 flash"):
         self.model = model
         self.agy_path = Path.home() / ".local" / "bin" / "agy"
         self.api_key = "antigravity-bridge"
+        from codex.cloud_fallback import cloaked_cloud_client
+        self.cloud_client = cloaked_cloud_client
 
     def set_api_key(self, key: str) -> None:
-        pass
+        self.cloud_client.set_api_key(key)
+
+    def set_model(self, model: str) -> None:
+        """Dynamically update active model on AntigravityClient."""
+        self.model = model
+        if hasattr(self.cloud_client, "set_model"):
+            self.cloud_client.set_model(model)
 
     def chat_turn(self, messages: list[dict[str, Any]], max_tokens: int = 1500, temperature: float = 0.2):
+        # Route to fast Groq LPU if qwen, llama, or groq model selected
+        clean_m = self.model.lower()
+        if any(k in clean_m for k in ("qwen", "llama", "groq", "oss")):
+            return self.cloud_client.chat_turn(messages, max_tokens, temperature)
+
         import subprocess
         user_prompt = "Hello"
         for m in reversed(messages):
@@ -432,6 +445,11 @@ class AntigravityClient:
         return RespObj()
 
     def stream_chat(self, messages: list[dict[str, Any]], max_tokens: int = 1500, temperature: float = 0.2):
+        clean_m = self.model.lower()
+        if any(k in clean_m for k in ("qwen", "llama", "groq", "oss")):
+            yield from self.cloud_client.stream_chat(messages, max_tokens, temperature)
+            return
+
         resp = self.chat_turn(messages, max_tokens, temperature)
         yield resp.choices[0].message.content
 
