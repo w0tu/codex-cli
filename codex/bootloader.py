@@ -47,7 +47,7 @@ def play_coding_screen_loader(duration_seconds: float = 0.8):
 
 
 def run_boot_selector(interactive: bool = True) -> str:
-    """Display interactive Cyberpunk Boot Mode Selector.
+    """Display interactive Cyberpunk Boot Mode Selector with prompt_toolkit.
     
     Returns: 'swarm', 'repl', 'marketing', or 'legal'
     """
@@ -57,7 +57,7 @@ def run_boot_selector(interactive: bool = True) -> str:
         "  [bold green][2][/] [bold white]CODEX-CLI AUTONOMOUS CODING REPL[/]    [dim](Sub-second Groq LPU, 222 Personas, Local Mode)[/]\n"
         "  [bold green][3][/] [bold white]INSTAGRAM & GOOGLE FLOW VIDEO STUDIO[/] [dim](Reels generation, Flow prompts, viral hooks)[/]\n"
         "  [bold green][4][/] [bold white]AUTONOMOUS LEGAL COUNSEL & AUDIT[/]    [dim](Contract auditor, IP copyright scan, TOS shield)[/]\n\n"
-        "[dim]Press [1-4] or hit ENTER for default [2]:[/] "
+        "[dim]Press [1-4] or hit ENTER for default [2 CODEX-CLI]:[/]"
     )
 
     console.print(Panel(selector_text, title="[bold green]✦ SYSTEM BOOTLOADER 2.0[/]", border_style="cyan", box=box.ROUNDED))
@@ -66,14 +66,29 @@ def run_boot_selector(interactive: bool = True) -> str:
         return "repl"
 
     try:
-        choice = input("BOOT> ").strip()
-        if choice == "1":
+        from prompt_toolkit import prompt as pt_prompt
+        from prompt_toolkit.formatted_text import ANSI
+        from prompt_toolkit.completion import WordCompleter
+        
+        completer = WordCompleter(["1", "2", "3", "4", "swarm", "repl", "marketing", "legal"], ignore_case=True)
+        choice = pt_prompt(ANSI("\033[1;32mBOOT\033[0m\033[38;2;0;243;255m://SELECT>\033[0m "), completer=completer).strip().lower()
+        if choice in ("1", "swarm"):
             return "swarm"
-        elif choice == "3":
+        elif choice in ("3", "marketing", "insta"):
             return "marketing"
-        elif choice == "4":
+        elif choice in ("4", "legal", "lawyer"):
             return "legal"
         else:
             return "repl"
-    except (KeyboardInterrupt, EOFError):
-        return "repl"
+    except Exception:
+        try:
+            choice = input("BOOT> ").strip().lower()
+            if choice in ("1", "swarm"):
+                return "swarm"
+            elif choice in ("3", "marketing"):
+                return "marketing"
+            elif choice in ("4", "legal"):
+                return "legal"
+            return "repl"
+        except (KeyboardInterrupt, EOFError):
+            return "repl"

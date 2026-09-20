@@ -15,9 +15,9 @@ from typing import Any, Generator, Optional, Tuple
 
 from codex.billing import billing_guardrail
 
-CLOAKED_ENGINE_LABEL = "OSS-120B High-Precision"
-CLOAKED_CLOUD_URL = "https://api.x.ai/v1/chat/completions"
-DEFAULT_CLOAKED_MODEL = "grok-2-latest"
+CLOAKED_ENGINE_LABEL = "Groq LPU (500+ tok/s Ultra-Fast)"
+CLOAKED_CLOUD_URL = "https://api.groq.com/openai/v1/chat/completions"
+DEFAULT_CLOAKED_MODEL = "qwen/qwen3.8-27b"
 
 
 def is_internet_available(host: str = "8.8.8.8", port: int = 53, timeout: float = 1.2) -> bool:
@@ -65,24 +65,21 @@ def detect_query_complexity(prompt: str, context_tokens: int = 0) -> Tuple[bool,
 
 def resolve_cloud_credentials(api_key: Optional[str] = None) -> Tuple[str, str, str]:
     """Resolve endpoint URL, bearer key, and model ID with strict zero-leakage cloaking."""
+    primary_groq_model = "qwen/qwen3.8-27b"  # 500+ tok/s ultra-fast primary model
     if api_key:
         key = api_key.strip()
         if key.startswith("gsk_"):
-            return "https://api.groq.com/openai/v1/chat/completions", key, "openai/gpt-oss-120b"
+            return "https://api.groq.com/openai/v1/chat/completions", key, primary_groq_model
         elif key.startswith("xai-"):
             return "https://api.x.ai/v1/chat/completions", key, "grok-2-latest"
         elif key.startswith("sk-"):
             return "https://api.openai.com/v1/chat/completions", key, "gpt-4o-mini"
-        return "https://api.groq.com/openai/v1/chat/completions", key, "openai/gpt-oss-120b"
+        return "https://api.groq.com/openai/v1/chat/completions", key, primary_groq_model
 
     # Check env vars
-    xai_env = os.environ.get("XAI_API_KEY", "").strip()
-    if xai_env:
-        return "https://api.x.ai/v1/chat/completions", xai_env, "grok-2-latest"
-
     groq_env = os.environ.get("GROQ_API_KEY", "").strip()
     if groq_env:
-        return "https://api.groq.com/openai/v1/chat/completions", groq_env, "openai/gpt-oss-120b"
+        return "https://api.groq.com/openai/v1/chat/completions", groq_env, primary_groq_model
 
     # Check ~/.codex/config.json
     try:
@@ -90,9 +87,13 @@ def resolve_cloud_credentials(api_key: Optional[str] = None) -> Tuple[str, str, 
         cfg = load_config()
         for k in [cfg.get("api_key", "")] + cfg.get("backup_keys", []):
             if k and isinstance(k, str) and k.startswith("gsk_") and not k.startswith("gsk_test"):
-                return "https://api.groq.com/openai/v1/chat/completions", k.strip(), "openai/gpt-oss-120b"
+                return "https://api.groq.com/openai/v1/chat/completions", k.strip(), primary_groq_model
     except Exception:
         pass
+
+    xai_env = os.environ.get("XAI_API_KEY", "").strip()
+    if xai_env:
+        return "https://api.x.ai/v1/chat/completions", xai_env, "grok-2-latest"
 
     openai_env = os.environ.get("OPENAI_API_KEY", "").strip()
     if openai_env:
@@ -110,10 +111,10 @@ def is_cloud_available() -> bool:
 
 
 class CloakedCloudClient:
-    """Zero-leakage remote inference client labeled strictly as 'OSS-120B High-Precision'."""
+    """Zero-leakage remote inference client labeled strictly as 'Groq LPU (500+ tok/s)'."""
 
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.environ.get("XAI_API_KEY") or os.environ.get("CODEX_CLOUD_KEY") or ""
+        self.api_key = api_key or os.environ.get("GROQ_API_KEY") or os.environ.get("XAI_API_KEY") or os.environ.get("CODEX_CLOUD_KEY") or ""
         self.engine_label = CLOAKED_ENGINE_LABEL
 
     def set_api_key(self, key: str) -> None:
@@ -125,7 +126,7 @@ class CloakedCloudClient:
         max_tokens: int = 1500,
         temperature: float = 0.2,
     ) -> Generator[str, None, None]:
-        """Stream tokens directly from cloaked cloud endpoint."""
+        """Stream tokens directly from cloaked cloud endpoint token-by-token with zero buffering."""
         import httpx
 
         # Verify budget before starting
@@ -147,7 +148,10 @@ class CloakedCloudClient:
             "max_tokens": max_tokens,
             "temperature": temperature,
             "stream": True,
+            "stream_options": {"include_usage": True},
         }
+        if "gpt-oss" in model_id:
+            payload["include_reasoning"] = False
 
         prompt_text = " ".join(m.get("content", "") for m in messages if isinstance(m.get("content"), str))
         prompt_tokens_est = max(1, len(prompt_text) // 4)
@@ -168,11 +172,16 @@ class CloakedCloudClient:
                         break
                     try:
                         chunk = json.loads(line)
-                        delta = chunk.get("choices", [{}])[0].get("delta", {})
-                        content = delta.get("content", "")
-                        if content:
-                            completion_tokens_est += max(1, len(content) // 4)
-                            yield content
+                        usage = chunk.get("usage")
+                        if usage:
+                            self.last_usage = usage
+                        choices = chunk.get("choices", [])
+                        if choices:
+                            delta = choices[0].get("delta", {})
+                            content = delta.get("content", "")
+                            if content:
+                                completion_tokens_est += 1
+                                yield content
                     except Exception:
                         pass
 
@@ -207,6 +216,8 @@ class CloakedCloudClient:
             "temperature": temperature,
             "stream": False,
         }
+        if "gpt-oss" in model_id:
+            payload["include_reasoning"] = False
 
         with httpx.Client(timeout=45.0) as client:
             resp = client.post(endpoint_url, json=payload, headers=headers)

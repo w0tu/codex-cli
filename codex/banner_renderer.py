@@ -166,14 +166,31 @@ def render_borderless_block_frame(
     status_text: str = "ONLINE | ZERO-LATENCY PINNED",
     cwd: Optional[str] = None,
 ) -> str:
-    """Render a minimal, borderless block-styled layout using █, ▀, ▄, ▌, ░, ▒, ▓."""
+    """Render a minimal, borderless block-styled layout using █, ▀, ▄, ▌, ░, ▒, ▓ including live system telemetry."""
     workspace = cwd or os.getcwd()
     user = os.environ.get("USER", "engineer")
     
+    # Live System Telemetry
+    cpu_str = "N/A"
+    ram_str = "N/A"
+    try:
+        import psutil
+        cpu = psutil.cpu_percent(None)
+        v = psutil.virtual_memory()
+        cpu_str = f"{cpu:.1f}%"
+        ram_str = f"{round(v.used / (1024**2))}MB / {round(v.total / (1024**2))}MB ({v.percent:.0f}%)"
+    except Exception:
+        pass
+
+    import platform
+    os_info = f"{platform.system()} {platform.release()}"[:28]
+
     lines = [
         f"\033[38;2;120;120;130m▌ \033[1;37mCODEX-CLI\033[0m \033[38;2;100;100;110m░▒▓\033[0m \033[38;2;140;140;150mAutonomous Systems Architecture\033[0m",
         f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255mENGINE:\033[0m {model_label}  \033[38;2;80;200;120mSTATUS:\033[0m {status_text}",
         f"\033[38;2;120;120;130m▌\033[0m \033[38;2;160;160;170mWORKSPACE:\033[0m {workspace}  \033[38;2;160;160;170mUSER:\033[0m {user}",
+        f"\033[38;2;120;120;130m▌\033[0m \033[38;2;255;180;50mSYSTEM:\033[0m CPU: {cpu_str} │ RAM: {ram_str} │ OS: {os_info}",
+        f"\033[38;2;120;120;130m▌\033[0m \033[38;2;0;243;255mGROQ CONSOLE:\033[0m https://console.groq.com/home (500+ tok/s accelerated)",
         f"\033[38;2;90;90;100m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\033[0m",
     ]
     return "\n".join(lines)
@@ -181,10 +198,14 @@ def render_borderless_block_frame(
 
 def display_welcome_banner(
     model_label: str = "qwen2.5-coder:1.5b",
-    status_text: str = "ONLINE | VRAM PINNED",
+    status_text: str = "ONLINE | ZERO-LATENCY PINNED",
     cwd: Optional[str] = None,
+    clear_screen: bool = True,
 ) -> float:
-    """Print the colored block banner followed by the borderless block layout."""
+    """Clear terminal, then print the colored block banner followed by the system telemetry block layout."""
+    if clear_screen:
+        sys.stdout.write("\033[2J\033[H")
+        sys.stdout.flush()
     banner, load_ms = get_cached_banner()
     sys.stdout.write("\n" + banner + "\n\n")
     sys.stdout.write(render_borderless_block_frame(model_label=model_label, status_text=status_text, cwd=cwd) + "\n\n")

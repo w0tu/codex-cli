@@ -229,16 +229,31 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
 
             if not needs_tools and hasattr(client, "stream_chat"):
                 chunks = []
+                gen_start_time = None
+                token_count = 0
                 for chunk in client.stream_chat(scrubbed_msgs):
+                    if gen_start_time is None:
+                        gen_start_time = time.perf_counter()
                     sys.stdout.write(chunk)
                     sys.stdout.flush()
                     chunks.append(chunk)
+                    token_count += 1
                 sys.stdout.write("\n\n")
                 sys.stdout.flush()
                 full_resp = "".join(chunks)
                 session.add_assistant(full_resp)
-                turn_tokens = max(1, len(full_resp) // 4)
-                break
+                
+                # Retrieve actual Groq usage tokens if available
+                last_usage = getattr(getattr(client, "cloud_client", None), "last_usage", None)
+                if last_usage and "completion_tokens" in last_usage:
+                    turn_tokens = last_usage["completion_tokens"]
+                else:
+                    turn_tokens = max(token_count, len(full_resp) // 4)
+
+                gen_elapsed = (time.perf_counter() - gen_start_time) if gen_start_time else (time.perf_counter() - prompt_start_time)
+                session.record(turn_tokens, gen_elapsed)
+                print_telemetry(turn_tokens, gen_elapsed)
+                return
 
             resp = client.chat_turn(scrubbed_msgs)
         except Exception as e:
