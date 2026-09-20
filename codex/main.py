@@ -428,7 +428,7 @@ def run_repl(client: Any) -> None:
     if profile.get("recommended_model"):
         if hasattr(client, "local_client"):
             client.local_client.set_model(profile["recommended_model"])
-        elif hasattr(client, "set_model") and not getattr(client, "_explicit_model_flag", False):
+        elif isinstance(client, OllamaClient) and not getattr(client, "_explicit_model_flag", False):
             client.set_model(profile["recommended_model"])
 
     # 2. Directory Trust Gatekeeper
@@ -525,7 +525,9 @@ def run_repl(client: Any) -> None:
         if user_input == "/onboard":
             from codex.profiler import run_first_boot_profiling
             profile = run_first_boot_profiling(interactive=True, force=True)
-            if hasattr(client, "set_model") and profile.get("recommended_model"):
+            if hasattr(client, "local_client") and profile.get("recommended_model"):
+                client.local_client.set_model(profile["recommended_model"])
+            elif isinstance(client, OllamaClient) and profile.get("recommended_model"):
                 client.set_model(profile["recommended_model"])
             continue
 

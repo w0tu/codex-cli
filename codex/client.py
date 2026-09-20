@@ -399,10 +399,11 @@ DEFAULT_MODEL = "qwen/qwen3.8-27b"
 
 
 class AntigravityClient:
-    """Client bridging to Google Antigravity CLI with instant model switching."""
+    """Client bridging to Google Antigravity CLI with instant model switching and Groq LPU acceleration."""
 
     def __init__(self, model: str = "gemini 3.8 flash"):
         self.model = model
+        self.mode = "cloud"
         self.agy_path = Path.home() / ".local" / "bin" / "agy"
         self.api_key = "antigravity-bridge"
         from codex.cloud_fallback import cloaked_cloud_client
@@ -411,17 +412,25 @@ class AntigravityClient:
     def set_api_key(self, key: str) -> None:
         self.cloud_client.set_api_key(key)
 
+    def set_mode(self, mode: str) -> str:
+        self.mode = mode.lower()
+        return self.mode
+
     def set_model(self, model: str) -> None:
         """Dynamically update active model on AntigravityClient."""
         self.model = model
+        target_model = ANTIGRAVITY_MODELS_MAP.get(model.lower(), model)
         if hasattr(self.cloud_client, "set_model"):
-            self.cloud_client.set_model(model)
+            self.cloud_client.set_model(target_model)
 
     def chat_turn(self, messages: list[dict[str, Any]], max_tokens: int = 1500, temperature: float = 0.2):
-        # Route to fast Groq LPU if qwen, llama, or groq model selected
-        clean_m = self.model.lower()
-        if any(k in clean_m for k in ("qwen", "llama", "groq", "oss")):
+        target_model = ANTIGRAVITY_MODELS_MAP.get(self.model.lower(), self.model)
+        if hasattr(self.cloud_client, "set_model"):
+            self.cloud_client.set_model(target_model)
+        try:
             return self.cloud_client.chat_turn(messages, max_tokens, temperature)
+        except Exception:
+            pass
 
         import subprocess
         user_prompt = "Hello"
@@ -450,13 +459,18 @@ class AntigravityClient:
         return RespObj()
 
     def stream_chat(self, messages: list[dict[str, Any]], max_tokens: int = 1500, temperature: float = 0.2):
-        clean_m = self.model.lower()
-        if any(k in clean_m for k in ("qwen", "llama", "groq", "oss")):
+        target_model = ANTIGRAVITY_MODELS_MAP.get(self.model.lower(), self.model)
+        if hasattr(self.cloud_client, "set_model"):
+            self.cloud_client.set_model(target_model)
+        try:
             yield from self.cloud_client.stream_chat(messages, max_tokens, temperature)
             return
+        except Exception:
+            pass
 
         resp = self.chat_turn(messages, max_tokens, temperature)
         yield resp.choices[0].message.content
+
 
 from codex.config import save_api_key, rotate_api_key
 

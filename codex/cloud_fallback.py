@@ -65,7 +65,15 @@ def detect_query_complexity(prompt: str, context_tokens: int = 0) -> Tuple[bool,
 
 def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str] = None) -> Tuple[str, str, str]:
     """Resolve endpoint URL, bearer key, and model ID with strict zero-leakage cloaking."""
-    primary_groq_model = model or DEFAULT_CLOAKED_MODEL  # 500+ tok/s ultra-fast primary model
+    req_model = model or DEFAULT_CLOAKED_MODEL
+    # Map virtual or external model IDs to available Groq high-speed LPU models
+    if "120b" in req_model or "70b" in req_model or "pro" in req_model or "oss" in req_model:
+        primary_groq_model = "openai/gpt-oss-120b"
+    elif "20b" in req_model:
+        primary_groq_model = "openai/gpt-oss-20b"
+    else:
+        primary_groq_model = "qwen/qwen3.8-27b"  # 500+ tok/s ultra-fast primary model
+
     if api_key:
         key = api_key.strip()
         if key.startswith("gsk_"):
