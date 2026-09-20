@@ -86,6 +86,10 @@ class SlashCommandCompleter(Completer):
         ("/modal", "Open interactive Antigravity model selection modal"),
         ("/mascot", "Display animated mascot showcase with moving eyes"),
         ("/stats", "Show session token usage and stats"),
+        ("/panel", "Open interactive Cyberpunk telemetry & Groq usage dashboard"),
+        ("/marketing", "Generate viral Instagram Reel package & Google Flow video prompts"),
+        ("/lawyer", "Run autonomous legal counsel audit on contracts and IP compliance"),
+        ("/legal", "Alias for /lawyer contract audit"),
         ("/swarm", "Enter the 45,000+ Agent Swarm Command Center area"),
         ("/grokbot", "Enter the 45,000+ Agent Swarm Command Center area"),
         ("/agents", "Search and list 220+ specialized domain engineering agents"),
@@ -530,18 +534,43 @@ def run_repl(client: Any) -> None:
                 render_skills_list(skills)
             continue
 
+        if user_input in ("/panel", "/dashboard"):
+            from codex.panel import display_panel_once
+            display_panel_once()
+            continue
+
+        if user_input.startswith("/marketing") or user_input.startswith("/insta"):
+            parts = user_input.split(maxsplit=1)
+            topic = parts[1].strip() if len(parts) > 1 else "Autonomous AI Coding Agents in Linux Terminal"
+            from codex.marketing import InstagramAutomationEngine, render_marketing_campaign
+            console.print(f"[bold cyan]✦ Synthesizing Instagram Viral Campaign & Google Flow Prompts for: '{topic}'...[/]")
+            camp = InstagramAutomationEngine.create_campaign(topic)
+            render_marketing_campaign(camp)
+            continue
+
+        if user_input.startswith("/lawyer") or user_input.startswith("/legal"):
+            parts = user_input.split(maxsplit=1)
+            contract = parts[1].strip() if len(parts) > 1 else "Standard SaaS Developer Agreement with unlimited indemnification and non-compete."
+            from codex.lawyers import AutonomousLegalCounsel, render_legal_audit
+            console.print(f"[bold cyan]✦ Convening Autonomous Legal Counsel Contract Audit...[/]")
+            audit = AutonomousLegalCounsel.audit_contract(contract)
+            render_legal_audit(audit)
+            continue
+
         if user_input.startswith("/agents"):
             parts = user_input.split(maxsplit=1)
             registry = AgentRegistry()
             query = parts[1].strip() if len(parts) > 1 else None
             matches = registry.list_agents(query=query)
-            console.print(f"\n[bold white]✦ 220+ Specialized Agent Library ({len(matches)} matching)[/]:")
-            for a in matches[:25]:
-                console.print(f"  [bold cyan]{a['name']:<28}[/] [dim]({a['category']})[/] - {a['description'][:75]}...")
-            if len(matches) > 25:
-                console.print(f"\n[dim]...and {len(matches)-25} more agents. Filter with /agents <query> or activate with /agent <name>[/]\n")
+            console.print(f"\n[bold green]✦ MASSIVE 45,046 ACTIVE AGENTS SWARM MATRIX[/] [dim]({len(matches)} matching)[/]:")
+            console.print("[dim]Structure: Tier 1 Commander (#0) ➔ 45 Cluster Managers (#1-#45) ➔ 45,000 Workers (#46-#45045)[/]")
+            for a in matches[:28]:
+                t_str = f"Tier {a.get('tier', 3)}"
+                console.print(f"  [bold cyan]{a['name']:<32}[/] [dim]({t_str} - {a.get('category', 'General')})[/] - {a.get('description', '')[:70]}...")
+            if len(matches) > 28:
+                console.print(f"\n[dim]...and {len(matches)-28} more agents. Filter with /agents <query> or activate any node with /agent <id|name>[/]\n")
             else:
-                console.print("\n[dim]Activate any agent with: /agent <name>[/]\n")
+                console.print("\n[dim]Activate any agent with: /agent <id|name> (e.g. /agent 0, /agent 15, /agent marketing, /agent react-architect)[/]\n")
             continue
 
         if user_input.startswith("/agent"):
@@ -555,9 +584,9 @@ def run_repl(client: Any) -> None:
                     console.print(f"\n[bold white]✦ Activated Agent Persona:[/] [bold cyan]{found['role']}[/]")
                     console.print(f"[dim]{found['description']}[/]\n")
                 else:
-                    console.print(f"[dim]Agent '{target}' not found. Type /agents to view all available agents.[/]\n")
+                    console.print(f"[dim]Agent '{target}' not found. Type /agents to view all 45,046 available agents.[/]\n")
             else:
-                console.print("[dim]Usage: /agent <name> (e.g. /agent react-architect, /agent postgres-optimizer)[/]\n")
+                console.print("[dim]Usage: /agent <id|name> (e.g. /agent 0, /agent 1, /agent marketing, /agent react-architect)[/]\n")
             continue
 
         if user_input.startswith("/swarm") or user_input.startswith("/grokbot"):
@@ -918,9 +947,49 @@ def main() -> None:
     parser.add_argument("--offline", action="store_true", help="Run in fully offline mode using local Ollama model.")
     parser.add_argument("--antigravity", "--agy", action="store_true", help="Forward prompts to Google Antigravity CLI.")
     parser.add_argument("--swarm", "--grokbot", action="store_true", help="Launch the massive 45,000+ agent Swarm Command Center area.")
+    parser.add_argument("--boot", action="store_true", help="Launch Cyberpunk terminal coding screen loader and boot selector.")
+    parser.add_argument("--panel", action="store_true", help="Display live telemetry & Groq console HUD panel.")
     parser.add_argument("--max-cost", type=float, default=0.0, help="Spending cap in USD.")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
+
+    if args.boot:
+        from codex.bootloader import play_coding_screen_loader, run_boot_selector
+        play_coding_screen_loader(duration_seconds=0.6)
+        boot_choice = run_boot_selector()
+        if boot_choice == "swarm":
+            from codex.swarm import run_swarm_area
+            run_swarm_area()
+            return
+        elif boot_choice == "marketing":
+            from codex.marketing import InstagramAutomationEngine, render_marketing_campaign
+            camp = InstagramAutomationEngine.create_campaign("Autonomous AI Terminal Swarm 2026")
+            render_marketing_campaign(camp)
+            return
+        elif boot_choice == "legal":
+            from codex.lawyers import AutonomousLegalCounsel, render_legal_audit
+            audit = AutonomousLegalCounsel.audit_contract("Standard Developer IP Assignment and Indemnification Agreement")
+            render_legal_audit(audit)
+            return
+
+    if args.panel or (args.prompt and args.prompt[0].lower() in ("panel", "dashboard")):
+        from codex.panel import display_panel_once
+        display_panel_once()
+        return
+
+    if args.prompt and args.prompt[0].lower() in ("marketing", "insta"):
+        topic = " ".join(args.prompt[1:]) or "Autonomous AI Coding Agents in Linux Terminal"
+        from codex.marketing import InstagramAutomationEngine, render_marketing_campaign
+        camp = InstagramAutomationEngine.create_campaign(topic)
+        render_marketing_campaign(camp)
+        return
+
+    if args.prompt and args.prompt[0].lower() in ("lawyer", "legal"):
+        contract = " ".join(args.prompt[1:]) or "Standard SaaS Developer Agreement with unlimited indemnification and non-compete."
+        from codex.lawyers import AutonomousLegalCounsel, render_legal_audit
+        audit = AutonomousLegalCounsel.audit_contract(contract)
+        render_legal_audit(audit)
+        return
 
     if args.swarm or (args.prompt and args.prompt[0].lower() in ("swarm", "grokbot")):
         from codex.swarm import run_swarm_area

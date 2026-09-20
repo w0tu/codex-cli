@@ -108,8 +108,8 @@ def get_cached_banner(
     t0 = time.perf_counter()
     img_path = Path(image_path) if image_path else DEFAULT_IMAGE_PATH
     
-    term_width = width or shutil.get_terminal_size((100, 24)).columns
-    target_width = max(80, min(120, term_width - 4))
+    term_width = width or shutil.get_terminal_size((120, 24)).columns
+    target_width = max(90, min(140, term_width - 2))
 
     cache_file = CONFIG_DIR / f"banner_{target_width}.ansi"
     cache_meta_file = CONFIG_DIR / f"banner_{target_width}.meta"
@@ -135,14 +135,15 @@ def get_cached_banner(
 
     # Check nearby cached widths before rebuilding
     if not force_rebuild:
-        for nearby in [target_width, 80, 90, 100, 110, 120]:
+        for nearby in [target_width, 140, 130, 120, 110, 100]:
             nearby_file = CONFIG_DIR / f"banner_{nearby}.ansi"
-            if nearby_file.exists() and abs(nearby - target_width) <= 10:
+            if nearby_file.exists() and abs(nearby - target_width) <= 6:
                 try:
                     content = nearby_file.read_text(encoding="utf-8")
                     elapsed_ms = (time.perf_counter() - t0) * 1000.0
                     return content, elapsed_ms
                 except Exception:
+                    pass
                     pass
 
     # Build cache
