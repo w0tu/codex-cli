@@ -63,9 +63,9 @@ def detect_query_complexity(prompt: str, context_tokens: int = 0) -> Tuple[bool,
     return False, "Query matches 1B local model capacity"
 
 
-def resolve_cloud_credentials(api_key: Optional[str] = None) -> Tuple[str, str, str]:
+def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str] = None) -> Tuple[str, str, str]:
     """Resolve endpoint URL, bearer key, and model ID with strict zero-leakage cloaking."""
-    primary_groq_model = "qwen/qwen3.8-27b"  # 500+ tok/s ultra-fast primary model
+    primary_groq_model = model or DEFAULT_CLOAKED_MODEL  # 500+ tok/s ultra-fast primary model
     if api_key:
         key = api_key.strip()
         if key.startswith("gsk_"):
@@ -116,9 +116,15 @@ class CloakedCloudClient:
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get("GROQ_API_KEY") or os.environ.get("XAI_API_KEY") or os.environ.get("CODEX_CLOUD_KEY") or ""
         self.engine_label = CLOAKED_ENGINE_LABEL
+        self.model = DEFAULT_CLOAKED_MODEL
 
     def set_api_key(self, key: str) -> None:
         self.api_key = key.strip()
+
+    def set_model(self, model: str) -> None:
+        """Set cloud model preference."""
+        if model:
+            self.model = model
 
     def stream_chat(
         self,
@@ -134,56 +140,69 @@ class CloakedCloudClient:
         if not allowed:
             raise PermissionError(notice)
 
-        endpoint_url, active_key, model_id = resolve_cloud_credentials(self.api_key)
-        if not active_key:
-            raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {active_key}",
-        }
-        payload = {
-            "model": model_id,
-            "messages": messages,
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "stream": True,
-            "stream_options": {"include_usage": True},
-        }
-        if "gpt-oss" in model_id:
-            payload["include_reasoning"] = False
-
         prompt_text = " ".join(m.get("content", "") for m in messages if isinstance(m.get("content"), str))
         prompt_tokens_est = max(1, len(prompt_text) // 4)
         completion_tokens_est = 0
 
-        with httpx.Client(timeout=45.0) as client:
-            with client.stream("POST", endpoint_url, json=payload, headers=headers) as response:
-                if response.status_code != 200:
-                    body = response.read().decode("utf-8", errors="replace")
-                    raise RuntimeError(f"Cloud escalation returned HTTP {response.status_code}: {body}")
+        attempts = 2
+        while attempts > 0:
+            attempts -= 1
+            endpoint_url, active_key, model_id = resolve_cloud_credentials(self.api_key, getattr(self, "model", None))
+            if not active_key:
+                raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
 
-                for line in response.iter_lines():
-                    if not line:
-                        continue
-                    if line.startswith("data: "):
-                        line = line[6:]
-                    if line.strip() == "[DONE]":
-                        break
-                    try:
-                        chunk = json.loads(line)
-                        usage = chunk.get("usage")
-                        if usage:
-                            self.last_usage = usage
-                        choices = chunk.get("choices", [])
-                        if choices:
-                            delta = choices[0].get("delta", {})
-                            content = delta.get("content", "")
-                            if content:
-                                completion_tokens_est += 1
-                                yield content
-                    except Exception:
-                        pass
+            # Cap max_tokens to 800 on qwen models to satisfy Groq on-demand OTPM limit ceiling
+            actual_max_tokens = min(max_tokens, 800) if "qwen" in model_id.lower() else max_tokens
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {active_key}",
+            }
+            payload = {
+                "model": model_id,
+                "messages": messages,
+                "max_tokens": actual_max_tokens,
+                "temperature": temperature,
+                "stream": True,
+                "stream_options": {"include_usage": True},
+            }
+            if "gpt-oss" in model_id:
+                payload["include_reasoning"] = False
+
+            with httpx.Client(timeout=45.0) as client:
+                with client.stream("POST", endpoint_url, json=payload, headers=headers) as response:
+                    if response.status_code == 429 and attempts > 0:
+                        from codex.config import rotate_api_key
+                        new_k = rotate_api_key()
+                        if new_k:
+                            self.api_key = new_k
+                            continue
+                    if response.status_code != 200:
+                        body = response.read().decode("utf-8", errors="replace")
+                        raise RuntimeError(f"Cloud escalation returned HTTP {response.status_code}: {body}")
+
+                    for line in response.iter_lines():
+                        if not line:
+                            continue
+                        if line.startswith("data: "):
+                            line = line[6:]
+                        if line.strip() == "[DONE]":
+                            break
+                        try:
+                            chunk = json.loads(line)
+                            usage = chunk.get("usage")
+                            if usage:
+                                self.last_usage = usage
+                            choices = chunk.get("choices", [])
+                            if choices:
+                                delta = choices[0].get("delta", {})
+                                content = delta.get("content", "")
+                                if content:
+                                    completion_tokens_est += 1
+                                    yield content
+                        except Exception:
+                            pass
+                    break
 
         # Record spend under budget guardrail
         billing_guardrail.record_cloud_spend(prompt_tokens_est, completion_tokens_est)
@@ -201,29 +220,41 @@ class CloakedCloudClient:
         if not allowed:
             raise PermissionError(notice)
 
-        endpoint_url, active_key, model_id = resolve_cloud_credentials(self.api_key)
-        if not active_key:
-            raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
+        attempts = 2
+        while attempts > 0:
+            attempts -= 1
+            endpoint_url, active_key, model_id = resolve_cloud_credentials(self.api_key, getattr(self, "model", None))
+            if not active_key:
+                raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {active_key}",
-        }
-        payload = {
-            "model": model_id,
-            "messages": messages,
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "stream": False,
-        }
-        if "gpt-oss" in model_id:
-            payload["include_reasoning"] = False
+            actual_max_tokens = min(max_tokens, 800) if "qwen" in model_id.lower() else max_tokens
 
-        with httpx.Client(timeout=45.0) as client:
-            resp = client.post(endpoint_url, json=payload, headers=headers)
-            if resp.status_code != 200:
-                raise RuntimeError(f"Cloud escalation returned HTTP {resp.status_code}: {resp.text}")
-            data = resp.json()
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {active_key}",
+            }
+            payload = {
+                "model": model_id,
+                "messages": messages,
+                "max_tokens": actual_max_tokens,
+                "temperature": temperature,
+                "stream": False,
+            }
+            if "gpt-oss" in model_id:
+                payload["include_reasoning"] = False
+
+            with httpx.Client(timeout=45.0) as client:
+                resp = client.post(endpoint_url, json=payload, headers=headers)
+                if resp.status_code == 429 and attempts > 0:
+                    from codex.config import rotate_api_key
+                    new_k = rotate_api_key()
+                    if new_k:
+                        self.api_key = new_k
+                        continue
+                if resp.status_code != 200:
+                    raise RuntimeError(f"Cloud escalation returned HTTP {resp.status_code}: {resp.text}")
+                data = resp.json()
+                break
 
         class MsgObj:
             def __init__(self, content, tc):

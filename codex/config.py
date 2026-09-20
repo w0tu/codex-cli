@@ -13,6 +13,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "api_key": "",
     "backup_keys": [],
     "model": DEFAULT_MODEL,
+    "default_mode": "cloud",
     "theme": "monochrome",
     "permission_mode": "safe",
 }

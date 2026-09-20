@@ -272,15 +272,21 @@ class HybridCodexClient:
             self.cloud_client.set_api_key(api_key)
         self.cloud_enabled = cloud_enabled
 
-        # Set execution mode: 'cloud', 'local', or 'auto'
-        from codex.cloud_fallback import is_cloud_available
+        # Set execution mode: 'cloud' by default unless explicitly configured or offline
+        cfg_mode = None
+        try:
+            from codex.config import load_config
+            c = load_config()
+            cfg_mode = c.get("default_mode")
+        except Exception:
+            pass
+
         if mode:
             self.mode = mode.lower()
-        elif is_cloud_available() and self.cloud_enabled:
-            # Cloud-first for high performance and sub-second 120B quality
-            self.mode = "cloud"
+        elif cfg_mode:
+            self.mode = cfg_mode.lower()
         else:
-            self.mode = "auto"
+            self.mode = "cloud" if self.cloud_enabled else "local"
 
         self.model = CLOAKED_ENGINE_LABEL if self.mode == "cloud" else chosen_model
         self.last_engine_used = self.model
@@ -288,15 +294,15 @@ class HybridCodexClient:
     def set_mode(self, mode: str) -> str:
         """Switch routing mode between 'cloud', 'local', and 'auto'."""
         mode_clean = mode.lower().strip()
-        if mode_clean in ["cloud", "remote", "oss-120b"]:
+        if mode_clean in ["cloud", "remote", "oss-120b", "groq"]:
             self.mode = "cloud"
             self.model = CLOAKED_ENGINE_LABEL
         elif mode_clean in ["local", "ollama", "offline"]:
             self.mode = "local"
             self.model = self.local_client.model
         else:
-            self.mode = "auto"
-            self.model = self.local_client.model
+            self.mode = "cloud"
+            self.model = CLOAKED_ENGINE_LABEL
         return self.mode
 
     def rotate_failover(self) -> Optional[str]:
@@ -308,14 +314,13 @@ class HybridCodexClient:
         return None
 
     def set_model(self, model: str) -> None:
-        if model == CLOAKED_ENGINE_LABEL or "120b" in model.lower():
-            self.mode = "cloud"
-            self.model = CLOAKED_ENGINE_LABEL
-        else:
-            self.model = model
+        self.model = model
+        if hasattr(self.cloud_client, "set_model"):
+            self.cloud_client.set_model(model)
+        if hasattr(self.local_client, "set_model"):
             self.local_client.set_model(model)
-            if self.mode == "cloud":
-                self.mode = "auto"
+        if model == CLOAKED_ENGINE_LABEL or any(k in model.lower() for k in ("120b", "qwen", "groq", "llama", "grok", "gemini", "cloud")):
+            self.mode = "cloud"
 
     def set_api_key(self, key: str) -> None:
         self.cloud_client.set_api_key(key)
@@ -326,7 +331,7 @@ class HybridCodexClient:
         max_tokens: int = 1500,
         temperature: float = 0.2,
     ) -> Generator[str, None, None]:
-        """Intelligently route turn to local pinned engine or cloaked cloud fallback."""
+        """Intelligently route turn to cloaked cloud engine (default) or local pinned engine."""
         user_prompt = ""
         for m in reversed(messages):
             if m.get("role") == "user":
@@ -341,7 +346,7 @@ class HybridCodexClient:
             if is_internet_available():
                 allowed, notice = billing_guardrail.check_cloud_escalation()
                 if allowed:
-                    if self.mode == "cloud" or exceeds_1b:
+                    if self.mode in ("cloud", "auto") or exceeds_1b:
                         route_to_cloud = True
                         self.last_engine_used = CLOAKED_ENGINE_LABEL
                 else:
@@ -390,7 +395,7 @@ class HybridCodexClient:
 # Backward compatibility aliases for existing commands & tests
 GroqClient = HybridCodexClient
 CodexClient = HybridCodexClient
-DEFAULT_MODEL = DEFAULT_LOCAL_MODEL
+DEFAULT_MODEL = "qwen/qwen3.8-27b"
 
 
 class AntigravityClient:

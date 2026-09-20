@@ -96,9 +96,11 @@ class SlashCommandCompleter(Completer):
         ("/agent", "Activate a specialized agent persona (/agent <name>)"),
         ("/reach", "Access 16+ platforms via Agent Reach router (/reach doctor|search|url|...)"),
         ("/offline", "Switch to 100% offline local Ollama agent mode"),
+        ("/local", "Switch to 100% offline local Ollama agent mode"),
         ("/antigravity", "Forward tasks and prompts to Google Antigravity CLI"),
         ("/agy", "Shortcut to forward tasks to Google Antigravity CLI"),
-        ("/online", "Switch back to online cloud inference"),
+        ("/online", "Switch back to online cloud inference (Groq LPU 500+ tok/s)"),
+        ("/cloud", "Switch to online cloud inference (Groq LPU 500+ tok/s)"),
         ("/reset", "Clear conversation history context"),
         ("/exit", "Exit Codex terminal"),
     ]
@@ -609,10 +611,15 @@ def run_repl(client: Any) -> None:
             run_swarm_area(client=client)
             continue
 
-        if user_input.startswith("/offline"):
+        if user_input.startswith("/offline") or user_input.startswith("/local"):
             parts = user_input.split(maxsplit=1)
             off_model = parts[1] if len(parts) > 1 else "qwen2.5-coder:1.5b"
-            client = OllamaClient(model=off_model)
+            if hasattr(client, "set_mode"):
+                client.set_mode("local")
+                if hasattr(client, "local_client"):
+                    client.local_client.set_model(off_model)
+            else:
+                client = OllamaClient(model=off_model)
             console.print(f"\n[bold white]✦ Switched to 100% Offline Mode[/] via local Ollama ([cyan]{off_model}[/])\n")
             continue
 
@@ -621,9 +628,13 @@ def run_repl(client: Any) -> None:
             console.print("\n[bold white]✦ Connected to Google Antigravity CLI[/] (prompts will bridge to agy)\n")
             continue
 
-        if user_input.startswith("/online"):
-            client = GroqClient()
-            console.print("\n[bold white]✦ Switched to Online Cloud Mode[/]\n")
+        if user_input.startswith("/online") or user_input.startswith("/cloud"):
+            if hasattr(client, "set_mode"):
+                client.set_mode("cloud")
+            else:
+                from codex.client import HybridCodexClient
+                client = HybridCodexClient(mode="cloud")
+            console.print("\n[bold white]✦ Switched to Online Cloud Mode[/] (Groq LPU 500+ tok/s)\n")
             continue
 
         if user_input.startswith("/reach"):
@@ -1016,7 +1027,7 @@ def main() -> None:
 
     model = args.model or DEFAULT_MODEL
 
-    mode_arg = "cloud" if args.cloud else ("local" if (args.local or args.offline) else None)
+    mode_arg = "local" if (args.local or args.offline) else "cloud"
 
     if args.offline:
         off_model = args.model or "qwen2.5-coder:1.5b"
@@ -1024,9 +1035,9 @@ def main() -> None:
     elif args.antigravity:
         client = AntigravityClient(model=args.model or "gemini 3.8 flash")
     else:
-        # Default: Zero-Latency Local Ollama engine with Cloaked OSS-120B Fallback and $2 budget guardrail
+        # Default: High-Performance Cloud Groq LPU (500+ tok/s) with offline local fallback
         from codex.client import HybridCodexClient
-        client = HybridCodexClient(local_model=model, mode=mode_arg)
+        client = HybridCodexClient(model=model if args.model else None, local_model=model, mode=mode_arg)
 
     if args.model:
         client._explicit_model_flag = True
