@@ -86,6 +86,8 @@ class SlashCommandCompleter(Completer):
         ("/modal", "Open interactive Antigravity model selection modal"),
         ("/mascot", "Display animated mascot showcase with moving eyes"),
         ("/stats", "Show session token usage and stats"),
+        ("/swarm", "Enter the 45,000+ Agent Swarm Command Center area"),
+        ("/grokbot", "Enter the 45,000+ Agent Swarm Command Center area"),
         ("/agents", "Search and list 220+ specialized domain engineering agents"),
         ("/agent", "Activate a specialized agent persona (/agent <name>)"),
         ("/reach", "Access 16+ platforms via Agent Reach router (/reach doctor|search|url|...)"),
@@ -558,6 +560,11 @@ def run_repl(client: Any) -> None:
                 console.print("[dim]Usage: /agent <name> (e.g. /agent react-architect, /agent postgres-optimizer)[/]\n")
             continue
 
+        if user_input.startswith("/swarm") or user_input.startswith("/grokbot"):
+            from codex.swarm import run_swarm_area
+            run_swarm_area(client=client)
+            continue
+
         if user_input.startswith("/offline"):
             parts = user_input.split(maxsplit=1)
             off_model = parts[1] if len(parts) > 1 else "qwen2.5-coder:1.5b"
@@ -910,9 +917,15 @@ def main() -> None:
     parser.add_argument("--local", action="store_true", help="Force local pinned Ollama inference")
     parser.add_argument("--offline", action="store_true", help="Run in fully offline mode using local Ollama model.")
     parser.add_argument("--antigravity", "--agy", action="store_true", help="Forward prompts to Google Antigravity CLI.")
+    parser.add_argument("--swarm", "--grokbot", action="store_true", help="Launch the massive 45,000+ agent Swarm Command Center area.")
     parser.add_argument("--max-cost", type=float, default=0.0, help="Spending cap in USD.")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
+
+    if args.swarm or (args.prompt and args.prompt[0].lower() in ("swarm", "grokbot")):
+        from codex.swarm import run_swarm_area
+        run_swarm_area()
+        return
 
     if args.key:
         os.environ["GROQ_API_KEY"] = args.key

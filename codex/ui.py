@@ -467,6 +467,7 @@ def render_help() -> None:
     t.add_row("/modal", "Open interactive Antigravity model selection modal")
     t.add_row("/mascot", "Display animated mascot showcase with moving eyes")
     t.add_row("/stats", "Display session token and latency stats")
+    t.add_row("/swarm, /grokbot", "Enter the 45,000+ Agent Swarm Command Center area")
     t.add_row("/reset", "Clear conversation history")
     t.add_row("/exit, /quit", "Exit Codex terminal (or Ctrl+D)")
     console.print(t)
