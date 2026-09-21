@@ -80,6 +80,8 @@ def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str
             return "https://api.groq.com/openai/v1/chat/completions", key, primary_groq_model
         elif key.startswith("xai-"):
             return "https://api.x.ai/v1/chat/completions", key, "grok-2-latest"
+        elif key.startswith("sk-c7db") or key.startswith("sk-or"):
+            return "https://openrouter.ai/api/v1/chat/completions", key, "meta-llama/llama-3.3-70b-instruct"
         elif key.startswith("sk-"):
             return "https://api.openai.com/v1/chat/completions", key, "gpt-4o-mini"
         return "https://api.groq.com/openai/v1/chat/completions", key, primary_groq_model
@@ -89,13 +91,23 @@ def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str
     if groq_env:
         return "https://api.groq.com/openai/v1/chat/completions", groq_env, primary_groq_model
 
+    omni_env = os.environ.get("OMNI_ROUTE_API_KEY", "").strip() or os.environ.get("OPENROUTER_API_KEY", "").strip()
+    if omni_env:
+        return "https://openrouter.ai/api/v1/chat/completions", omni_env, "meta-llama/llama-3.3-70b-instruct"
+
     # Check ~/.codex/config.json
     try:
         from codex.config import load_config
         cfg = load_config()
+        omni_key = cfg.get("omni_route_key", "") or cfg.get("openrouter_api_key", "")
+        if omni_key:
+            return "https://openrouter.ai/api/v1/chat/completions", omni_key.strip(), "meta-llama/llama-3.3-70b-instruct"
+
         for k in [cfg.get("api_key", "")] + cfg.get("backup_keys", []):
             if k and isinstance(k, str) and k.startswith("gsk_") and not k.startswith("gsk_test"):
                 return "https://api.groq.com/openai/v1/chat/completions", k.strip(), primary_groq_model
+            elif k and isinstance(k, str) and (k.startswith("sk-c7db") or k.startswith("sk-or")):
+                return "https://openrouter.ai/api/v1/chat/completions", k.strip(), "meta-llama/llama-3.3-70b-instruct"
     except Exception:
         pass
 
