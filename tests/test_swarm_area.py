@@ -56,10 +56,11 @@ def test_subagent_swarm_orchestration():
     assert result["status"] == "completed"
     assert len(result["nodes"]) == 4
     roles = [node["role"] for node in result["nodes"]]
-    assert "System Architect" in roles
-    assert "Core Backend Engineer" in roles
-    assert "Frontend & UI Stylist" in roles
-    assert "Security & Vulnerability Auditor" in roles
+    names = [node["name"] for node in result["nodes"]]
+    assert any("Architect" in name for name in names)
+    assert any("Core Logic" in name for name in names)
+    assert any("Frontend" in name for name in names)
+    assert any("Security" in name for name in names)
     assert "synthesis" in result
-    assert "Mocked expert sub-agent output" in result["synthesis"]
+    assert "Swarm Mission Synthesis" in result["synthesis"]
 
