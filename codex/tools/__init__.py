@@ -453,6 +453,109 @@ TOOLS_SCHEMA = [
                 "required": ["task"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "minimize_window",
+            "description": "Minimize currently active focused terminal window to reveal the PC desktop.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "open_browser",
+            "description": "Launch web browser to any target URL (e.g. https://console.groq.com/keys) and bring it into focus.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "description": "The web URL to open."
+                    }
+                },
+                "required": ["url"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "capture_screen",
+            "description": "Capture live real-time screenshot of Linux desktop using ffmpeg x11grab and inspect display state.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "move_second_mouse",
+            "description": "Spawn a floating, animated second agent mouse cursor overlay on screen that smoothly glides to (x, y) with an action badge.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target_x": {"type": "integer", "description": "Target X screen coordinate."},
+                    "target_y": {"type": "integer", "description": "Target Y screen coordinate."},
+                    "badge": {"type": "string", "description": "Action text badge to display next to the cursor, e.g. '✦ AGENT: Opening Groq Console'."},
+                    "click": {"type": "boolean", "description": "Whether to perform a visual click ripple at target."}
+                },
+                "required": ["target_x", "target_y"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "save_to_documents",
+            "description": "Directly write and save any text, API keys, report, or code file into the user's PC ~/Documents folder.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filename": {"type": "string", "description": "Filename to save into ~/Documents (e.g. 'groq_api_keys.txt')."},
+                    "content": {"type": "string", "description": "The text or file contents to save."}
+                },
+                "required": ["filename", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_web_chat",
+            "description": "Open and automate web messaging apps like WhatsApp Web, Google Chat, Discord, or Telegram.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "platform": {"type": "string", "enum": ["whatsapp", "google_chat", "discord", "telegram"], "description": "Messaging platform to open."},
+                    "recipient": {"type": "string", "description": "Recipient phone number or contact identifier."},
+                    "message": {"type": "string", "description": "Message text to stage or send."}
+                },
+                "required": ["platform"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "automate_groq_keys",
+            "description": "Fully automated workflow: minimize window, pop up moving agent mouse, launch Chrome to Groq console, extract keys, and save to ~/Documents.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filename": {"type": "string", "description": "Document filename to save keys into (default: 'groq_api_keys.txt')."}
+                },
+                "required": []
+            }
+        }
     }
 ]
 
@@ -950,6 +1053,51 @@ def run_tool(name: str, args: dict[str, Any]) -> str:
         return execute_deep_research(args.get("query", ""))
     elif name == "delegate_antigravity":
         return execute_delegate_antigravity(args.get("task", ""))
+    elif name == "minimize_window":
+        from codex.screen_agent import window_manager
+        res = window_manager.minimize_active_window()
+        return res.get("message", "Window minimized")
+    elif name == "open_browser":
+        from codex.screen_agent import window_manager
+        res = window_manager.open_browser(args.get("url", "https://console.groq.com/keys"))
+        return res.get("message", "Browser opened")
+    elif name == "capture_screen":
+        from codex.screen_agent import window_manager
+        res = window_manager.capture_screen_frame()
+        if res.get("success"):
+            return f"Screen frame captured ({res.get('geometry')}, {res.get('size')} bytes) saved to: {res.get('path')}"
+        return f"Failed to capture screen: {res.get('message')}"
+    elif name == "move_second_mouse":
+        from codex.screen_agent import agent_pointer
+        tx = int(args.get("target_x", 800))
+        ty = int(args.get("target_y", 500))
+        badge = args.get("badge", "✦ AGENT MOUSE")
+        click = bool(args.get("click", False))
+        ok = agent_pointer.glide_to(target_x=tx, target_y=ty, badge=badge, click=click)
+        return f"Second agent mouse cursor glided to ({tx}, {ty}) [badge: {badge}]" if ok else "Failed to glide agent mouse"
+    elif name == "save_to_documents":
+        from codex.screen_agent import window_manager
+        res = window_manager.save_to_documents(args.get("filename", "output.txt"), args.get("content", ""))
+        return res.get("message", "Saved to Documents")
+    elif name == "manage_web_chat":
+        from codex.screen_agent import window_manager
+        res = window_manager.open_web_messaging(
+            platform=args.get("platform", "whatsapp"),
+            recipient=args.get("recipient", ""),
+            message=args.get("message", "")
+        )
+        return res.get("message", "Web chat opened")
+    elif name == "automate_groq_keys":
+        from codex.screen_agent import window_manager
+        res = window_manager.run_groq_keys_automation(filename=args.get("filename", "groq_api_keys.txt"))
+        return (
+            f"Groq Keys Automation Completed:\n"
+            f"- Status: Success\n"
+            f"- Primary Key: {res.get('primary_key')}\n"
+            f"- Total Keys: {res.get('keys_found')}\n"
+            f"- Persisted To: {res.get('documents_file')}\n"
+            f"- Screen Frame: {res.get('screen_frame')}"
+        )
     else:
         return f"Error: Unknown tool '{name}'"
 

@@ -689,7 +689,7 @@ TOKYONIGHT_ORANGE = "#e0af68"
 TOKYONIGHT_FG = "#a9b1d6"
 
 
-def render_opencode_tokyonight_banner(model_name: str = "Groq LPU (qwen3.8-27b)") -> None:
+def render_opencode_tokyonight_banner(model_name: str = "Cloud Native (qwen3.8-27b)") -> None:
     """Render Tokyonight OpenCode Startup UI rebranded as 'THE CODEX GROUP' matching Screenshot 2."""
     import shutil
     from rich.align import Align
@@ -857,9 +857,9 @@ def render_sessions_catalog() -> None:
     t.add_column("Status", style=TOKYONIGHT_FG)
     t.add_column("Shortcut", style="dim")
 
-    t.add_row("0m0 (Active)", "Orchestrator", "Groq LPU (qwen3.8-27b)", "LISTENING", "Default")
-    t.add_row("explore", "Codebase Explorer", "Groq LPU (qwen2.5-coder)", "IDLE", "ctrl+x 1")
-    t.add_row("auditor", "Security & QA Auditor", "Groq LPU (gpt-oss-120b)", "IDLE", "ctrl+x 2")
+    t.add_row("0m0 (Active)", "Orchestrator", "Cloud Native (qwen3.8-27b)", "LISTENING", "Default")
+    t.add_row("explore", "Codebase Explorer", "Cloud Native (qwen2.5-coder)", "IDLE", "ctrl+x 1")
+    t.add_row("auditor", "Security & QA Auditor", "Cloud Native (gpt-oss-120b)", "IDLE", "ctrl+x 2")
     t.add_row("oracle", "Architecture Reviewer", "Cloud Claude Opus 4.5", "BACKGROUND", "ctrl+x 3")
     console.print(t)
     console.print(f"[dim]Use ctrl+x right / ctrl+x left to switch active agent sessions in TUI mode.[/]\n")

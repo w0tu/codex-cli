@@ -23,7 +23,7 @@ class TestTuiWorkflow(unittest.TestCase):
 
     @patch("shutil.get_terminal_size", return_value=os.terminal_size((80, 24)))
     def test_render_stage1_welcome_banner_80_col(self, mock_term):
-        render_opencode_tokyonight_banner(model_name="Groq LPU (qwen3.8-27b)")
+        render_opencode_tokyonight_banner(model_name="Cloud Native (qwen3.8-27b)")
 
     @patch("shutil.get_terminal_size", return_value=os.terminal_size((80, 24)))
     def test_render_stage2_dashboard_80_col_stacked(self, mock_term):

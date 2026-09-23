@@ -104,8 +104,8 @@ class SlashCommandCompleter(Completer):
         ("/research", "Run deep multi-platform internet research"),
         ("/run", "Directly execute terminal shell command on PC"),
         ("/save", "Directly write and save file to local PC disk"),
-        ("/online", "Switch back to online cloud inference (Groq LPU 500+ tok/s)"),
-        ("/cloud", "Switch to online cloud inference (Groq LPU 500+ tok/s)"),
+        ("/online", "Switch back to online cloud inference (Cloud Native Zero-Latency)"),
+        ("/cloud", "Switch to online cloud inference (Cloud Native Zero-Latency)"),
         ("/dashboard", "Open the Stage 2 OpenCode TUI dashboard"),
         ("/tui", "Open the Stage 2 OpenCode TUI dashboard"),
         ("/welcome", "Return to Stage 1 Tokyonight welcome screen"),
@@ -840,7 +840,7 @@ def run_repl(client: Any) -> None:
             else:
                 from codex.client import HybridCodexClient
                 client = HybridCodexClient(mode="cloud")
-            console.print("\n[bold white]✦ Switched to Online Cloud Mode[/] (Groq LPU 500+ tok/s)\n")
+            console.print("\n[bold white]✦ Switched to Online Cloud Mode[/] (Cloud Native Zero-Latency)\n")
             continue
 
         if user_input.startswith("/reach"):
@@ -1241,7 +1241,7 @@ def main() -> None:
     elif args.antigravity:
         client = AntigravityClient(model=args.model or "gemini 3.8 flash")
     else:
-        # Default: High-Performance Cloud Groq LPU (500+ tok/s) with offline local fallback
+        # Default: High-Performance Cloud Native Server with offline local fallback
         from codex.client import HybridCodexClient
         client = HybridCodexClient(model=model if args.model else None, local_model=model, mode=mode_arg)
 

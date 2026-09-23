@@ -54,7 +54,7 @@ def run_boot_selector(interactive: bool = True) -> str:
     selector_text = (
         "[bold cyan]SELECT SYSTEM BOOT ENVIRONMENT:[/]\n\n"
         "  [bold green][1][/] [bold white]45,000+ AGENT SWARM COMMAND CENTER[/]  [dim](Command Core, Clusters, 60 FPS Visualizer)[/]\n"
-        "  [bold green][2][/] [bold white]CODEX-CLI AUTONOMOUS CODING REPL[/]    [dim](Sub-second Groq LPU, 222 Personas, Local Mode)[/]\n"
+        "  [bold green][2][/] [bold white]CODEX-CLI AUTONOMOUS CODING REPL[/]    [dim](Sub-second Cloud Native, 222 Personas, Local Mode)[/]\n"
         "  [bold green][3][/] [bold white]INSTAGRAM & GOOGLE FLOW VIDEO STUDIO[/] [dim](Reels generation, Flow prompts, viral hooks)[/]\n"
         "  [bold green][4][/] [bold white]AUTONOMOUS LEGAL COUNSEL & AUDIT[/]    [dim](Contract auditor, IP copyright scan, TOS shield)[/]\n\n"
         "[dim]Press [1-4] or hit ENTER for default [2 CODEX-CLI]:[/]"

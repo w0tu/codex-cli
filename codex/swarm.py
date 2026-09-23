@@ -197,12 +197,12 @@ def render_swarm_help():
     t.add_row("consensus", "<code/prop>", "Run multi-agent debate and voting audit (>75% approval pass)")
     t.add_row("decompose", "<goal>", "Compute sequential DAG task decomposition graph")
     t.add_row("inspect", "<0..45045>", "Deep inspect any node (Tier 1, Tier 2, or Tier 3)")
-    t.add_row("models", "", "Probe latency across Groq LPU, OpenRouter, Gemini, Ollama, DeepSeek")
+    t.add_row("models", "", "Probe latency across Cloud Native, OpenRouter, Gemini, Ollama, DeepSeek")
     t.add_row("web", "", "Open real-time 60 FPS HTML5 Canvas Visualizer in browser (port 8888)")
     t.add_row("clear", "", "Clear terminal screen and redraw SIMPLI leaf banner")
     t.add_row("help, ?", "", "Show this command reference")
     t.add_row("exit, back", "", "Exit Swarm Area and return to Codex CLI")
-    t.add_row("[any query]", "<text>", "Direct chat with Tier 1 Commander via fast Groq LPU")
+    t.add_row("[any query]", "<text>", "Direct chat with Tier 1 Commander via Cloud Native Server")
 
     console.print(t)
     console.print()
@@ -484,12 +484,12 @@ def run_swarm_area(client: Optional[Any] = None) -> None:
 
         else:
             # Query Tier 1 Commander directly
-            console.print("[dim]✦ Querying Tier 1 Commander via Groq LPU...[/]")
+            console.print("[dim]✦ Querying Tier 1 Commander via Cloud Native Server...[/]")
             try:
                 res = bridge.chat_commander(cmd)
                 txt = res.get("content", "Directive processed.")
                 console.print(Markdown(txt))
-                model_used = res.get("model_used", "Groq LPU")
+                model_used = res.get("model_used", "Cloud Native Server")
                 console.print(f"[dim]Processed by {model_used}[/]\n")
             except Exception as e:
                 console.print(f"[bold red]Commander query error:[/] {e}")

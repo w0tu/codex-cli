@@ -119,7 +119,7 @@ def is_cloud_available() -> bool:
 
 
 class CloakedCloudClient:
-    """Zero-leakage remote inference client labeled strictly as 'Groq LPU (500+ tok/s)'."""
+    """Zero-leakage remote inference client labeled strictly as 'Cloud Native (Zero-Latency)'."""
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get("GROQ_API_KEY") or os.environ.get("XAI_API_KEY") or os.environ.get("CODEX_CLOUD_KEY") or ""

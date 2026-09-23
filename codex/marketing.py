@@ -115,7 +115,7 @@ class InstagramAutomationEngine:
             f"Strategic decomposition, BFS deep research, and instant consensus—all running at 500+ tok/s.\n\n"
             f"✦ Core Features:\n"
             f"• 3-Tier Multi-Agent Hierarchy (Commander ➔ 45 Managers ➔ 45K Workers)\n"
-            f"• Sub-second Groq LPU Cloaked Cloud Fallback\n"
+            f"• Sub-second Cloud Native Server Pipeline\n"
             f"• Automated State Bubbling Shards\n\n"
             f"Drop a 'SWARM' below and we'll DM you the open-source CLI setup! 👇\n\n"
             f"{' '.join(hashtags)}"

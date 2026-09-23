@@ -405,7 +405,7 @@ DEFAULT_MODEL = "qwen/qwen3.8-27b"
 
 
 class AntigravityClient:
-    """Client bridging to Google Antigravity CLI with instant model switching and Groq LPU acceleration."""
+    """Client bridging to Google Antigravity CLI with instant model switching and Cloud Native acceleration."""
 
     def __init__(self, model: str = "gemini 3.8 flash"):
         self.model = model
