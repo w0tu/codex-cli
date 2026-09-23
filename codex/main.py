@@ -498,7 +498,7 @@ def run_repl(client: Any) -> None:
                         f'<style fg="#7aa2f7">enter</style> <style fg="#565f89">send</style>   '
                         f'<style fg="#bb9af7">ctrl+x</style> <style fg="#565f89">shortcuts</style>   '
                         f'<style fg="#7dcfff">/</style> <style fg="#565f89">commands</style>       '
-                        f'│ <style fg="#9ece6a">Groq LPU (500+ tok/s) · {clean_model}</style>'
+                        f'│ <style fg="#9ece6a">Codex Native · {clean_model}</style>'
                     )
             else:
                 from codex.ui import format_prompt_string
@@ -506,7 +506,7 @@ def run_repl(client: Any) -> None:
                 def get_toolbar():
                     return HTML(
                         f'<style fg="#7aa2f7">The Codex Group v1.7.0</style> <style fg="#565f89">│</style> '
-                        f'<style fg="#9ece6a">Groq LPU (500+ tok/s)</style> <style fg="#565f89">│</style> '
+                        f'<style fg="#9ece6a">Codex Native · {clean_model}</style> <style fg="#565f89">│</style> '
                         f'<style fg="#bb9af7">tab</style> <style fg="#565f89">BUILD MODE</style>'
                     )
 

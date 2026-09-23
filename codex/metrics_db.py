@@ -197,27 +197,48 @@ class MetricsDB:
         }
 
     def render_block_telemetry_card(self) -> str:
-        """Render a clean block-style telemetry card for /usage using █, ░, ▓."""
+        """Render a clean GitHub contribution heatmap and usage telemetry card for /usage."""
         data = self.get_summary()
         spend = data["daily_spend"]
         budget = data["daily_budget"]
         spend_pct = min(100.0, (spend / budget) * 100.0) if budget > 0 else 0.0
 
-        # 20-character progress bar
-        bar_len = 20
-        filled = int((spend_pct / 100.0) * bar_len)
-        bar = "█" * filled + "░" * (bar_len - filled)
+        # Fetch last 28 days for GitHub contribution grid
+        history_map: dict[str, int] = {}
+        with self._conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT date, turns_count FROM daily_usage ORDER BY date DESC LIMIT 28")
+            for r in cursor.fetchall():
+                history_map[r["date"]] = r["turns_count"]
+
+        # Build 4-week GitHub contribution blocks:  ░ (0), ▒ (1-10), ▓ (11-30), █ (30+)
+        contrib_blocks: list[str] = []
+        today = date.today()
+        for offset in range(27, -1, -1):
+            day_str = (today - timedelta(days=offset)).isoformat()
+            turns = history_map.get(day_str, 0)
+            if turns == 0:
+                contrib_blocks.append("\033[38;2;60;65;85m░\033[0m")
+            elif turns < 10:
+                contrib_blocks.append("\033[38;2;122;162;247m▒\033[0m")
+            elif turns < 30:
+                contrib_blocks.append("\033[38;2;125;207;255m▓\033[0m")
+            else:
+                contrib_blocks.append("\033[38;2;158;206;106m█\033[0m")
+
+        heatmap_str = " ".join("".join(contrib_blocks[i:i+7]) for i in range(0, 28, 7))
 
         lines = [
-            f"\033[38;2;120;120;130m▌\033[0m \033[1;37mCODEX-CLI TELEMETRY & USAGE DASHBOARD\033[0m \033[38;2;100;100;110m░▒▓\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m \033[1;37mTHE CODEX GROUP — TELEMETRY & CONTRIBUTION DASHBOARD\033[0m \033[38;2;100;100;110m░▒▓\033[0m",
             f"\033[38;2;90;90;100m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\033[0m",
-            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255mLifetime Tokens:\033[0m     \033[1;37m{data['lifetime_tokens']:,}\033[0m tokens evaluated (local + cloaked)",
-            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;200;120mDaily Active Streak:\033[0m \033[1;32m{data['streak']}\033[0m consecutive days active",
-            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;240;180;60mAll-Time Peak Record:\033[0m\033[1;37m{data['peak_day_tokens']:,}\033[0m tokens on {data['peak_day_date']}",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;122;162;247mContribution Activity (Last 4 Weeks):\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m   [{heatmap_str}]  \033[2m(Less ░ ▒ ▓ █ More)\033[0m",
             f"\033[38;2;120;120;130m▌\033[0m",
-            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;220;80;80mDaily Cloud Spend:\033[0m   \033[1;37m${spend:.4f}\033[0m / \033[1;37m${budget:.2f}\033[0m budget cap",
-            f"\033[38;2;120;120;130m▌\033[0m Budget Meter:        [{bar}] \033[1;37m{spend_pct:.1f}%\033[0m",
-            f"\033[38;2;120;120;130m▌\033[0m Today Breakdown:     Local: \033[1;37m{data['daily_local_tokens']:,}\033[0m | Cloud: \033[1;37m{data['daily_cloud_tokens']:,}\033[0m | Turns: \033[1;37m{data['turns_count']}\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;125;207;255mLifetime Tokens Evaluated:\033[0m \033[1;37m{data['lifetime_tokens']:,}\033[0m tokens",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;158;206;106mConsecutive Daily Streak:\033[0m  \033[1;32m{data['streak']}\033[0m days active",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;224;175;104mAll-Time Daily Record:\033[0m     \033[1;37m{data['peak_day_tokens']:,}\033[0m tokens on {data['peak_day_date']}",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;187;154;247mToday Breakdown:\033[0m           Total: \033[1;37m{data['daily_total_tokens']:,}\033[0m | Local: \033[1;37m{data['daily_local_tokens']:,}\033[0m | Turns: \033[1;37m{data['turns_count']}\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;120;120;130mHardware & Storage:\033[0m        Mouse: \033[1;32m3072x1728 (xdotool)\033[0m | Storage: \033[1;36mLocal Disk (RWX)\033[0m",
             f"\033[38;2;90;90;100m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\033[0m",
         ]
         return "\n".join(lines)

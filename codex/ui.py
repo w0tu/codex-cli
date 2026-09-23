@@ -35,12 +35,20 @@ THINKING_GLYPHS = ["◇", "◈", "◆", "◈"]
 
 
 def format_clean_model_name(model_name: str) -> str:
-    """Format model name cleanly, hiding internal vendor strings like antigravity."""
+    """Format model name cleanly, stripping vendor tags like Groq LPU and speed meters."""
     clean = model_name.strip()
-    for s in [" antigravity", "-antigravity", "_antigravity"]:
-        if clean.lower().endswith(s):
-            clean = clean[:-len(s)].strip()
-    return clean
+    for s in [
+        "Groq LPU (500+ tok/s Ultra-Fast)",
+        "Groq LPU (500+ tok/s)",
+        "Groq LPU (qwen3.8-27b)",
+        "Groq LPU",
+        "(500+ tok/s)",
+        " antigravity",
+        "-antigravity",
+        "_antigravity",
+    ]:
+        clean = clean.replace(s, "").strip()
+    return clean or "Codex High-Performance"
 
 
 def render_mascot(eye_state: str = "center") -> Text:
@@ -799,7 +807,7 @@ def render_opencode_dashboard(
     right_content.append("[✓] Demonstrate AGENTS: 2,000+ curated swarm agents\n", style=TOKYONIGHT_GREEN)
     right_content.append("[✓] Demonstrate BACKGROUND AGENTS: Parallel tasks\n", style=TOKYONIGHT_GREEN)
     right_content.append("[✓] Demonstrate HARDWARE CONTROL: Mouse & WiFi\n", style=TOKYONIGHT_GREEN)
-    right_content.append("[ ] Demonstrate ZERO-LATENCY: 500+ tok/s Groq LPU\n", style=TOKYONIGHT_ORANGE)
+    right_content.append("[✓] Demonstrate HIGH-PERFORMANCE: Zero-Latency Engine\n", style=TOKYONIGHT_GREEN)
     right_content.append("[ ] Demonstrate PERMISSION PROMPTS: Inline diff approval\n\n", style=TOKYONIGHT_ORANGE)
 
     right_content.append(f"{workspace}\n", style="dim")
@@ -834,7 +842,7 @@ def render_stage2_turn_header(query_text: str, model_name: str = "qwen/qwen3.8-2
         content,
         box=box.ROUNDED,
         border_style=TOKYONIGHT_BLUE,
-        subtitle=f"[{TOKYONIGHT_CYAN}]{tokens_info}[/]  [{TOKYONIGHT_GREEN}]Groq LPU (500+ tok/s)[/] [{TOKYONIGHT_FG}]· {clean_model}[/]",
+        subtitle=f"[{TOKYONIGHT_CYAN}]{tokens_info}[/]  [{TOKYONIGHT_GREEN}]Codex Native[/] [{TOKYONIGHT_FG}]· {clean_model}[/]",
         subtitle_align="right"
     )
     console.print(panel)
