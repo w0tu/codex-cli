@@ -683,45 +683,41 @@ TOKYONIGHT_FG = "#a9b1d6"
 
 def render_opencode_tokyonight_banner(model_name: str = "Groq LPU (qwen3.8-27b)") -> None:
     """Render Tokyonight OpenCode Startup UI rebranded as 'THE CODEX GROUP' matching Screenshot 2."""
+    import shutil
+    from rich.align import Align
+
     clean_model = format_clean_model_name(model_name)
+    term_w = shutil.get_terminal_size().columns
+
+    # 70-col compact voxel banner that never wraps on standard 80+ col terminals
     banner_text = [
-        "████████╗██╗  ██╗███████╗    ██████╗ ██████╗ ██████╗ ███████╗██╗  ██╗    ██████╗ ██████╗ ██╗   ██╗██████╗ ",
-        "╚══██╔══╝██║  ██║██╔════╝    ██╔════╝██╔═══██╗██╔══██╗██╔════╝╚██╗██╔╝    ██╔════╝ ██╔══██╗██║   ██║██╔══██╗",
-        "   ██║   ███████║█████╗      ██║     ██║   ██║██║  ██║█████╗   ╚███╔╝     ██║  ███╗██████╔╝██║   ██║██████╔╝",
-        "   ██║   ██╔══██║██╔══╝      ██║     ██║   ██║██║  ██║██╔══╝   ██╔██╗     ██║   ██║██╔══██╗██║   ██║██╔═══╝ ",
-        "   ██║   ██║  ██║███████╗    ╚██████╗╚██████╔╝██████╔╝███████╗██╔╝ ██╗    ╚██████╔╝██║  ██║╚██████╔╝██║     ",
-        "   ╚═╝   ╚═╝  ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝     ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ",
+        "████████╗██╗  ██╗███████╗    ██████╗ ██████╗ ██████╗ ███████╗██╗  ██╗",
+        "╚══██╔══╝██║  ██║██╔════╝   ██╔════╝██╔═══██╗██╔══██╗██╔════╝╚██╗██╔╝",
+        "   ██║   ███████║█████╗     ██║     ██║   ██║██║  ██║█████╗   ╚███╔╝ ",
+        "   ██║   ██╔══██║██╔══╝     ██║     ██║   ██║██║  ██║██╔══╝   ██╔██╗ ",
+        "   ██║   ██║  ██║███████╗   ╚██████╗╚██████╔╝██████╔╝███████╗██╔╝ ██╗",
+        "   ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝",
     ]
 
-    console.print("\n\n")
+    console.print("\n")
     for line in banner_text:
-        console.print(f"[{TOKYONIGHT_BLUE}]{line:<100}[/]")
-    console.print(f"[{TOKYONIGHT_PURPLE}]                                           v1.7.0 (Tokyonight Edition)[/]\n\n")
+        console.print(f"[{TOKYONIGHT_BLUE}]{line.center(term_w)}[/]")
+    console.print(f"[bold {TOKYONIGHT_PURPLE}]{'T H E   C O D E X   G R O U P'.center(term_w)}[/]")
+    console.print(f"[dim {TOKYONIGHT_FG}]{'v1.7.0 (Tokyonight Edition)'.center(term_w)}[/]\n")
 
     cmd_table = Table.grid(padding=(0, 4))
-    cmd_table.add_column(style=f"bold {TOKYONIGHT_CYAN}", justify="right")
+    cmd_table.add_column(style=f"bold {TOKYONIGHT_CYAN}", justify="left")
     cmd_table.add_column(style=f"{TOKYONIGHT_FG}", justify="left")
-    cmd_table.add_column(style="dim", justify="left")
+    cmd_table.add_column(style="dim", justify="right")
 
     cmd_table.add_row("/help", "show help reference", "ctrl+x h")
     cmd_table.add_row("/editor", "open multiline editor", "ctrl+x e")
     cmd_table.add_row("/models", "list active LLM models", "ctrl+x m")
-    cmd_table.add_row("/init", "create AGENTS.md / CODEX.md context", "ctrl+x i")
+    cmd_table.add_row("/init", "create/update AGENTS.md", "ctrl+x i")
     cmd_table.add_row("/compact", "compact context session", "ctrl+x c")
     cmd_table.add_row("/sessions", "list active subagent sessions", "ctrl+x l")
 
-    console.print(cmd_table)
-    console.print("\n")
-
-    input_panel = Panel(
-        Text("> ", style=f"bold {TOKYONIGHT_CYAN}"),
-        box=box.ROUNDED,
-        border_style=TOKYONIGHT_PURPLE,
-        expand=False,
-        subtitle=f"[{TOKYONIGHT_FG}]enter [dim]send[/]                 [{TOKYONIGHT_BLUE}]Engine: {clean_model}[/]",
-        subtitle_align="right"
-    )
-    console.print(input_panel)
+    console.print(Align.center(cmd_table))
     console.print("\n")
 
 
@@ -730,10 +726,17 @@ def render_opencode_dashboard(
     model_name: str = "qwen/qwen3.8-27b",
     tasks_completed: list[dict] | None = None,
     cwd: str | None = None,
+    query_title: str | None = None,
 ) -> None:
-    """Render Tokyonight split-pane OpenCode TUI dashboard matching Screenshot 1."""
+    """Render Tokyonight split-pane OpenCode TUI dashboard matching Screenshot 1 & 3."""
+    import shutil
     workspace = cwd or os.getcwd()
     display_model = format_clean_model_name(model_name)
+    title_str = query_title.strip() if query_title else "Leveraging agents for tasks"
+    if len(title_str) > 60:
+        title_str = title_str[:57] + "..."
+
+    term_w = shutil.get_terminal_size().columns
 
     # 1. Main Left Pane: Tasks, Sub-Agent Tabs, and Thought Log
     left_content = Text()
@@ -746,7 +749,7 @@ def render_opencode_dashboard(
     left_content.append("ctrl+x right, ctrl+x left to navigate between subagent sessions\n\n", style="dim")
 
     # Tabs
-    left_content.append("■ 0m0 · claude-opus-4-5  ", style=f"bold {TOKYONIGHT_CYAN}")
+    left_content.append(f"■ {active_agent} · {display_model}  ", style=f"bold {TOKYONIGHT_CYAN}")
     left_content.append("  explore · qwen2.5-coder  ", style="dim")
     left_content.append("  auditor · gpt-oss-120b\n", style="dim")
 
@@ -761,7 +764,7 @@ def render_opencode_dashboard(
 
     left_panel = Panel(
         left_content,
-        title="[bold white][The Codex Group] Leveraging agents for tasks[/]",
+        title=f"[bold white][The Codex Group] {title_str}[/]",
         title_align="left",
         border_style=TOKYONIGHT_BLUE,
         box=box.ROUNDED,
@@ -769,7 +772,7 @@ def render_opencode_dashboard(
 
     # 2. Right Sidebar Pane: Context, MCP, LSP, Todo, Workspace
     right_content = Text()
-    right_content.append("Leveraging agents for tasks\n\n", style="bold white")
+    right_content.append(f"{title_str}\n\n", style="bold white")
     right_content.append("Context\n", style=f"bold {TOKYONIGHT_PURPLE}")
     right_content.append("66,518 tokens\n33% used\n$0.00 spent\n\n", style=TOKYONIGHT_FG)
 
@@ -777,11 +780,11 @@ def render_opencode_dashboard(
     right_content.append("• context7 Connected\n• grep_app Connected\n• websearch_exa Connected\n\n", style=TOKYONIGHT_GREEN)
 
     right_content.append("▼ LSP\n", style=f"bold {TOKYONIGHT_CYAN}")
-    right_content.append("• markdown-oxide\n• typescript\n• eslint\n\n", style=TOKYONIGHT_FG)
+    right_content.append("• markdown-oxide\n• typescript\n• python-lsp\n\n", style=TOKYONIGHT_FG)
 
     right_content.append("▼ Todo\n", style=f"bold {TOKYONIGHT_CYAN}")
-    right_content.append("[✓] Demonstrate AGENTS: Show all 2,000+ curated swarm agents\n", style=TOKYONIGHT_GREEN)
-    right_content.append("[✓] Demonstrate BACKGROUND AGENTS: Run parallel tasks\n", style=TOKYONIGHT_GREEN)
+    right_content.append("[✓] Demonstrate AGENTS: 2,000+ curated swarm agents\n", style=TOKYONIGHT_GREEN)
+    right_content.append("[✓] Demonstrate BACKGROUND AGENTS: Parallel tasks\n", style=TOKYONIGHT_GREEN)
     right_content.append("[ ] Demonstrate ZERO-LATENCY: 500+ tok/s Groq LPU\n", style=TOKYONIGHT_ORANGE)
     right_content.append("[ ] Demonstrate PERMISSION PROMPTS: Inline diff approval\n\n", style=TOKYONIGHT_ORANGE)
 
@@ -794,13 +797,50 @@ def render_opencode_dashboard(
         box=box.ROUNDED,
     )
 
-    # 3. Render side-by-side grid
-    grid = Table.grid(expand=True)
-    grid.add_column(ratio=7)
-    grid.add_column(ratio=3)
-    grid.add_row(left_panel, right_panel)
+    if term_w >= 105:
+        grid = Table.grid(expand=True)
+        grid.add_column(ratio=7)
+        grid.add_column(ratio=3)
+        grid.add_row(left_panel, right_panel)
+        console.print(grid)
+    else:
+        # Responsive stacked layout for narrower terminals
+        console.print(left_panel)
+        console.print(right_panel)
 
-    console.print(grid)
+
+def render_stage2_turn_header(query_text: str, model_name: str = "qwen/qwen3.8-27b", tokens_info: str = "66.5K/33% ($0.00)") -> None:
+    """Render the active OpenCode query box for a turn in Stage 2 (matching Screenshot 3)."""
+    clean_model = format_clean_model_name(model_name)
+    content = Text()
+    content.append(f"# {query_text}\n", style=f"bold white")
+    content.append("https://codex.group/s/live   /unshare", style="dim")
+    
+    panel = Panel(
+        content,
+        box=box.ROUNDED,
+        border_style=TOKYONIGHT_BLUE,
+        subtitle=f"[{TOKYONIGHT_CYAN}]{tokens_info}[/]  [{TOKYONIGHT_GREEN}]Groq LPU (500+ tok/s)[/] [{TOKYONIGHT_FG}]· {clean_model}[/]",
+        subtitle_align="right"
+    )
+    console.print(panel)
+
+
+def render_sessions_catalog() -> None:
+    """Render catalog of active subagent sessions for /sessions command."""
+    t = Table(box=box.ROUNDED, border_style=TOKYONIGHT_BLUE, title=f"[bold white]The Codex Group — Active Subagent Sessions[/]")
+    t.add_column("Session ID", style=f"bold {TOKYONIGHT_CYAN}")
+    t.add_column("Agent Type", style=TOKYONIGHT_PURPLE)
+    t.add_column("Engine / Model", style=TOKYONIGHT_GREEN)
+    t.add_column("Status", style=TOKYONIGHT_FG)
+    t.add_column("Shortcut", style="dim")
+
+    t.add_row("0m0 (Active)", "Orchestrator", "Groq LPU (qwen3.8-27b)", "LISTENING", "Default")
+    t.add_row("explore", "Codebase Explorer", "Groq LPU (qwen2.5-coder)", "IDLE", "ctrl+x 1")
+    t.add_row("auditor", "Security & QA Auditor", "Groq LPU (gpt-oss-120b)", "IDLE", "ctrl+x 2")
+    t.add_row("oracle", "Architecture Reviewer", "Cloud Claude Opus 4.5", "BACKGROUND", "ctrl+x 3")
+    console.print(t)
+    console.print(f"[dim]Use ctrl+x right / ctrl+x left to switch active agent sessions in TUI mode.[/]\n")
 
 
 def render_inline_diff_box(

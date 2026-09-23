@@ -101,6 +101,10 @@ class SlashCommandCompleter(Completer):
         ("/agy", "Shortcut to forward tasks to Google Antigravity CLI"),
         ("/online", "Switch back to online cloud inference (Groq LPU 500+ tok/s)"),
         ("/cloud", "Switch to online cloud inference (Groq LPU 500+ tok/s)"),
+        ("/dashboard", "Open the Stage 2 OpenCode TUI dashboard"),
+        ("/tui", "Open the Stage 2 OpenCode TUI dashboard"),
+        ("/welcome", "Return to Stage 1 Tokyonight welcome screen"),
+        ("/sessions", "List active subagent sessions and status"),
         ("/reset", "Clear conversation history context"),
         ("/exit", "Exit Codex terminal"),
     ]
@@ -138,6 +142,7 @@ class Session:
         self.total_time = 0.0
         self.total_queries = 0
         self.notifications_enabled = False
+        self.tui_stage = 1  # 1 = Stage 1 (Tokyonight Welcome Screen), 2 = Stage 2 (Active Workspace TUI Dashboard)
 
     @property
     def messages(self) -> list[dict[str, Any]]:
@@ -158,6 +163,7 @@ class Session:
 
     def reset(self):
         self.memory.clear()
+        self.tui_stage = 1
 
     def record(self, tokens: int, elapsed: float):
         self.total_tokens += tokens
@@ -202,6 +208,10 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
 
     prompt_start_time = time.perf_counter()
     turn_tokens = 0
+
+    if getattr(session, "tui_stage", 1) == 2 and prompt_text:
+        from codex.ui import render_stage2_turn_header
+        render_stage2_turn_header(query_text=prompt_text, model_name=client.model)
 
     for _ in range(max_steps):
         try:
@@ -455,8 +465,11 @@ def run_repl(client: Any) -> None:
     from codex.gatekeeper import gatekeeper
     gatekeeper.check_and_prompt(os.getcwd(), interactive=True)
 
-    # 3. Tokyonight OpenCode TUI Banner ("THE CODEX GROUP")
-    from codex.ui import render_opencode_tokyonight_banner
+    session = Session()
+
+    # 3. Stage 1: Tokyonight OpenCode TUI Welcome Screen ("THE CODEX GROUP")
+    clear_terminal()
+    from codex.ui import render_opencode_tokyonight_banner, format_clean_model_name
     render_opencode_tokyonight_banner(model_name=client.model)
 
     HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -468,19 +481,50 @@ def run_repl(client: Any) -> None:
         style=MENU_STYLE,
     )
 
-    session = Session()
+    from prompt_toolkit.formatted_text import HTML, ANSI
 
     while True:
         try:
-            from codex.ui import format_prompt_string
-            prompt_str = format_prompt_string(os.getcwd())
-            user_input = pt.prompt(ANSI(prompt_str)).strip()
+            clean_model = format_clean_model_name(client.model)
+            if session.tui_stage == 1:
+                prompt_str = "\x1b[38;2;125;207;255m> \x1b[0m"
+                def get_toolbar():
+                    return HTML(
+                        f'<style fg="#7aa2f7">enter</style> <style fg="#565f89">send</style>   '
+                        f'<style fg="#bb9af7">ctrl+x</style> <style fg="#565f89">shortcuts</style>   '
+                        f'<style fg="#7dcfff">/</style> <style fg="#565f89">commands</style>       '
+                        f'│ <style fg="#9ece6a">Groq LPU (500+ tok/s) · {clean_model}</style>'
+                    )
+            else:
+                from codex.ui import format_prompt_string
+                prompt_str = format_prompt_string(os.getcwd())
+                def get_toolbar():
+                    return HTML(
+                        f'<style fg="#7aa2f7">The Codex Group v1.7.0</style> <style fg="#565f89">│</style> '
+                        f'<style fg="#9ece6a">Groq LPU (500+ tok/s)</style> <style fg="#565f89">│</style> '
+                        f'<style fg="#bb9af7">tab</style> <style fg="#565f89">BUILD MODE</style>'
+                    )
+
+            user_input = pt.prompt(ANSI(prompt_str), bottom_toolbar=get_toolbar).strip()
         except (KeyboardInterrupt, EOFError):
             console.print("[dim]Goodbye.[/]")
             break
 
         if not user_input:
             continue
+
+        # Two-Stage TUI Transition:
+        # As soon as the user says anything (enters query or command), transition to Stage 2 Active TUI Dashboard!
+        if session.tui_stage == 1 and user_input != "/welcome":
+            session.tui_stage = 2
+            clear_terminal()
+            from codex.ui import render_opencode_dashboard
+            render_opencode_dashboard(
+                active_agent="0m0",
+                model_name=client.model,
+                cwd=os.getcwd(),
+                query_title=user_input
+            )
 
         # Automatic API key capture & global persistence
         key_match = re.search(r"\b(gsk_[a-zA-Z0-9]{20,})\b", user_input)
@@ -502,15 +546,38 @@ def run_repl(client: Any) -> None:
             user_input = cleaned_input
 
         # Slash commands
-        if user_input == "/clear":
+        if user_input == "/welcome":
+            session.tui_stage = 1
             clear_terminal()
-            from codex.banner_renderer import display_welcome_banner
-            display_welcome_banner(model_label=client.model, status_text="ONLINE | ZERO-LATENCY PINNED", cwd=os.getcwd())
+            from codex.ui import render_opencode_tokyonight_banner
+            render_opencode_tokyonight_banner(model_name=client.model)
             continue
 
         if user_input in ["/dashboard", "/tui", "/opencode"]:
+            session.tui_stage = 2
+            clear_terminal()
             from codex.ui import render_opencode_dashboard
-            render_opencode_dashboard(model_name=client.model)
+            render_opencode_dashboard(
+                active_agent="0m0",
+                model_name=client.model,
+                cwd=os.getcwd(),
+                query_title="The Codex Group Workspace Dashboard"
+            )
+            continue
+
+        if user_input == "/sessions":
+            from codex.ui import render_sessions_catalog
+            render_sessions_catalog()
+            continue
+
+        if user_input == "/clear":
+            clear_terminal()
+            if session.tui_stage == 1:
+                from codex.ui import render_opencode_tokyonight_banner
+                render_opencode_tokyonight_banner(model_name=client.model)
+            else:
+                from codex.ui import render_opencode_dashboard
+                render_opencode_dashboard(model_name=client.model)
             continue
 
         if user_input == "/help":
