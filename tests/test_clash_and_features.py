@@ -1,0 +1,101 @@
+import sys
+from pathlib import Path
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+import pytest
+from codex.cloud_fallback import resolve_cloud_credentials
+from codex.client import ANTIGRAVITY_MODELS_MAP, HybridCodexClient
+from codex.context.headroom import HeadroomManager, headroom
+from codex.claude_hud import ClaudeHUD, claude_hud
+from codex.personas import get_specialized_persona, list_specialized_personas
+from codex.agents import AgentRegistry
+from codex.snake_benchmark import SnakeArenaBenchmark, run_snake_benchmark
+from codex.clash import ClashEngine, clash_engine
+from codex.boss_loop import BossLoopSupervisor, boss_supervisor
+from codex.ruflo_agency import RufloAgentAgency, ruflo_agency
+
+
+def test_minimax_model_resolution():
+    url, key, model_id = resolve_cloud_credentials(api_key="gsk_test_key_1234567890", model="minimax-m2.7")
+    assert "minimax" in model_id.lower()
+    assert "minimax-m2.7" in ANTIGRAVITY_MODELS_MAP
+    assert ANTIGRAVITY_MODELS_MAP["minimax-m2.7"] == "minimax/minimax-m2.7"
+
+
+def test_headroom_context_accounting():
+    hm = HeadroomManager(model_name="minimax-m2.7")
+    assert hm.context_limit == 204800
+    info = hm.calculate_headroom("def test(): pass", history_tokens=1000)
+    assert info["remaining_headroom"] > 190000
+    assert info["headroom_pct"] > 90.0
+
+    compacted, meta = hm.compact_prompt("Short prompt")
+    assert compacted == "Short prompt"
+    assert meta["compressed"] is False
+
+    badge = hm.render_hud_badge("hello", 500)
+    assert "Headroom" in badge
+
+
+def test_claude_hud_rendering():
+    hud = ClaudeHUD()
+    line = hud.render_bar(model_name="minimax-m2.7", total_tokens=1500, session_cost=0.002)
+    assert "Claude HUD" in line
+    assert "minimax-m2.7" in line
+    assert "tok" in line
+
+
+def test_specialized_personas_and_registry():
+    for name in ["frontend", "writer", "reddit", "wizard", "explore", "plan"]:
+        p = get_specialized_persona(name)
+        assert p is not None, f"Persona {name} not found"
+        assert "system_prompt" in p
+        assert len(p["system_prompt"]) > 50
+
+    reg = AgentRegistry()
+    assert reg.get_agent("wizard") is not None
+    assert reg.get_agent("frontend") is not None
+    assert reg.get_agent("reddit") is not None
+    assert reg.get_agent("writer") is not None
+    assert reg.get_agent("explore") is not None
+    assert reg.get_agent("plan") is not None
+
+    all_agents = reg.list_agents()
+    names = [a.get("name", "") for a in all_agents]
+    assert any("Wizard" in n for n in names)
+    assert any("Reddit" in n for n in names)
+
+
+def test_snake_benchmark_arena():
+    arena = SnakeArenaBenchmark(grid_size=10, max_ticks=5)
+    res = arena.run_benchmark(interactive=False)
+    assert "winner" in res
+    assert len(res["leaderboard"]) >= 5
+    assert all("latency_ms" in p for p in res["leaderboard"])
+
+
+def test_clash_mode_execution():
+    ce = ClashEngine()
+    res = ce.run_clash("Design a lock-free queue in Python")
+    assert "winner" in res
+    assert "synthesis" in res
+    assert len(res["candidates"]) == 4
+    assert any("minimax" in c["model_id"].lower() for c in res["candidates"])
+
+
+def test_boss_loop_supervisor():
+    bl = BossLoopSupervisor(max_iterations=2)
+    # Mock verifier to simulate test outcome
+    bl.verifier.run_tests = lambda: (True, "All 75 tests passed successfully")
+    res = bl.run_boss_loop("Audit codebase for high performance invariants")
+    assert res["success"] is True
+    assert res["iterations_used"] == 1
+
+
+def test_ruflo_agency_dispatch():
+    agency = RufloAgentAgency()
+    res = agency.run_mission("Capture screen frame and record mission dossier")
+    assert res["success"] is True
+    assert len(res["actions"]) >= 2

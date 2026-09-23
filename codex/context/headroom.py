@@ -110,7 +110,7 @@ class HeadroomManager:
         intermediate = "\n".join(pruned_lines)
 
         # 2. Condense long traceback / log blocks (>20 consecutive similar lines)
-        condensed = re.sub(r"(\n\s*File\s+"[^"]+",\s+line\s+\d+.*){4,}", r"\n[... nested tracebacks pruned by Headroom ...]", intermediate)
+        condensed = re.sub(r"(\n\s*File\s+\"[^\"]+\",\s+line\s+\d+.*){4,}", r"\n[... nested tracebacks pruned by Headroom ...]", intermediate)
 
         # 3. Compact long repetitive data lines
         final_tokens = self.estimate_tokens(condensed)

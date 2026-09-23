@@ -112,6 +112,15 @@ class SlashCommandCompleter(Completer):
         ("/cloud", "Switch to online cloud inference (Cloud Native Zero-Latency)"),
         ("/dashboard", "Open the Stage 2 OpenCode TUI dashboard"),
         ("/tui", "Open the Stage 2 OpenCode TUI dashboard"),
+        ("/clash", "Parallel multi-model ensemble & adjudicator consensus (/clash <query>)"),
+        ("/test", "Multi-AI Snake Game benchmark arena (/test or /snake)"),
+        ("/snake", "Alias for /test Multi-AI Snake Game benchmark"),
+        ("/boss", "Autonomous self-healing supervisor loop for hard tasks (/boss <task>)"),
+        ("/bossloop", "Alias for /boss self-healing loop"),
+        ("/hud", "Display Claude Code statusline HUD telemetry"),
+        ("/headroom", "Display model context headroom and compaction status"),
+        ("/agency", "Ruflo Multi-Agent Agency with custom mouse & desktop control"),
+        ("/ruflo", "Alias for /agency Ruflo Multi-Agent Agency"),
         ("/welcome", "Return to Stage 1 Tokyonight welcome screen"),
         ("/sessions", "List active subagent sessions and status"),
         ("/reset", "Clear conversation history context"),
@@ -222,6 +231,21 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
         from codex.ui import render_stage2_turn_header
         render_stage2_turn_header(query_text=prompt_text, model_name=client.model)
 
+    # Render Claude HUD statusline
+    try:
+        from codex.claude_hud import claude_hud
+        from codex.billing import billing_guardrail
+        hud_bar = claude_hud.render_bar(
+            model_name=client.model,
+            total_tokens=session.total_tokens,
+            session_cost=billing_guardrail.total_spend,
+            current_prompt=prompt_text or "",
+        )
+        sys.stdout.write(f"\n{hud_bar}\n\n")
+        sys.stdout.flush()
+    except Exception:
+        pass
+
     for _ in range(max_steps):
         try:
             from codex.security import SecretScrubber
@@ -252,11 +276,10 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                 chunks = []
                 gen_start_time = None
                 token_count = 0
-                for chunk in client.stream_chat(scrubbed_msgs):
+                from codex.ui import smooth_stream_tokens
+                for chunk in smooth_stream_tokens(client.stream_chat(scrubbed_msgs)):
                     if gen_start_time is None:
                         gen_start_time = time.perf_counter()
-                    sys.stdout.write(chunk)
-                    sys.stdout.flush()
                     chunks.append(chunk)
                     token_count += 1
                 sys.stdout.write("\n\n")
@@ -443,6 +466,41 @@ def run_direct(prompt: str, client: Any) -> None:
         from codex.screen_agent import agent_pointer
         ok = agent_pointer.glide_to(target_x=900, target_y=550, badge="✦ CODEX AGENT MOUSE", click=True)
         console.print(f"\n[bold green]✦ Floating Agent Mouse Activated:[/] Gliding across desktop ({'OK' if ok else 'FAILED'})\n")
+        return
+
+    if clean_prompt.startswith("/clash"):
+        from codex.clash import clash_engine
+        query = clean_prompt[6:].strip() or "Synthesize high-throughput concurrent architecture"
+        clash_engine.run_clash(query, client=client)
+        return
+
+    if clean_prompt in ("/test", "/snake") or clean_prompt.startswith("/test ") or clean_prompt.startswith("/snake "):
+        from codex.snake_benchmark import run_snake_benchmark
+        run_snake_benchmark(client=client)
+        return
+
+    if clean_prompt.startswith("/boss"):
+        from codex.boss_loop import boss_supervisor
+        task_str = clean_prompt.split(maxsplit=1)[1] if len(clean_prompt.split()) > 1 else "Perform autonomous verification and repair"
+        boss_supervisor.run_boss_loop(task_str, client=client)
+        return
+
+    if clean_prompt in ("/hud", "/claude-hud"):
+        from codex.claude_hud import claude_hud
+        claude_hud.render_panel(model_name=client.model)
+        return
+
+    if clean_prompt.startswith("/headroom"):
+        from codex.context.headroom import headroom
+        info = headroom.calculate_headroom(prompt)
+        console.print(f"[bold cyan]⚡ Context Headroom for {client.model}:[/] {info['remaining_headroom']:,} tokens free / {info['context_limit']:,} limit ({info['headroom_pct']}% headroom)")
+        return
+
+    if clean_prompt.startswith("/agency") or clean_prompt.startswith("/ruflo"):
+        from codex.ruflo_agency import ruflo_agency
+        parts = clean_prompt.split(maxsplit=1)
+        mission = parts[1].strip() if len(parts) > 1 else "Autonomous screen capture and mouse automation"
+        ruflo_agency.run_mission(mission, client=client)
         return
 
     if clean_prompt == "/groq":
@@ -731,6 +789,41 @@ def run_repl(client: Any) -> None:
             console.print(f"  • Primary Key: [bold white]{res.get('primary_key')}[/]")
             console.print(f"  • Total Keys: [cyan]{res.get('keys_found')}[/]")
             console.print(f"  • Document: [yellow]{res.get('documents_file')}[/]\n")
+            continue
+
+        if user_input.startswith("/clash"):
+            from codex.clash import clash_engine
+            q = user_input[6:].strip() or "Synthesize high-throughput concurrent architecture"
+            clash_engine.run_clash(q, client=client)
+            continue
+
+        if user_input in ("/test", "/snake") or user_input.startswith("/test ") or user_input.startswith("/snake "):
+            from codex.snake_benchmark import run_snake_benchmark
+            run_snake_benchmark(client=client)
+            continue
+
+        if user_input.startswith("/boss"):
+            from codex.boss_loop import boss_supervisor
+            task_str = user_input.split(maxsplit=1)[1] if len(user_input.split()) > 1 else "Perform autonomous verification and repair"
+            boss_supervisor.run_boss_loop(task_str, client=client)
+            continue
+
+        if user_input in ("/hud", "/claude-hud"):
+            from codex.claude_hud import claude_hud
+            claude_hud.render_panel(model_name=client.model, total_tokens=session.total_tokens)
+            continue
+
+        if user_input.startswith("/headroom"):
+            from codex.context.headroom import headroom
+            info = headroom.calculate_headroom(user_input, history_tokens=session.total_tokens)
+            console.print(f"\n[bold cyan]⚡ Context Headroom for {client.model}:[/] {info['remaining_headroom']:,} tokens free / {info['context_limit']:,} limit ({info['headroom_pct']}% headroom)\n")
+            continue
+
+        if user_input.startswith("/agency") or user_input.startswith("/ruflo"):
+            from codex.ruflo_agency import ruflo_agency
+            parts = user_input.split(maxsplit=1)
+            mission = parts[1].strip() if len(parts) > 1 else "Autonomous desktop screen capture and custom mouse automation"
+            ruflo_agency.run_mission(mission, client=client)
             continue
 
         if user_input.startswith("/antigravity") or user_input.startswith("/agy"):
@@ -1245,6 +1338,10 @@ def main() -> None:
     parser.add_argument("--offline", action="store_true", help="Run in fully offline mode using local Ollama model.")
     parser.add_argument("--antigravity", "--agy", action="store_true", help="Forward prompts to Google Antigravity CLI.")
     parser.add_argument("--swarm", "--grokbot", action="store_true", help="Launch the massive 45,000+ agent Swarm Command Center area.")
+    parser.add_argument("--clash", type=str, default=None, help="Run Clash Mode across all AI models concurrently.")
+    parser.add_argument("--test", "--snake", action="store_true", help="Launch Multi-AI Snake Game benchmark arena.")
+    parser.add_argument("--boss", type=str, default=None, help="Run autonomous self-healing Boss Loop on a hard task.")
+    parser.add_argument("--agency", "--ruflo", type=str, default=None, help="Dispatch mission to Ruflo Multi-Agent Agency.")
     parser.add_argument("--boot", action="store_true", help="Launch Cyberpunk terminal coding screen loader and boot selector.")
     parser.add_argument("--panel", action="store_true", help="Display live telemetry & Groq console HUD panel.")
     parser.add_argument("--max-cost", type=float, default=0.0, help="Spending cap in USD.")
@@ -1287,6 +1384,29 @@ def main() -> None:
         from codex.lawyers import AutonomousLegalCounsel, render_legal_audit
         audit = AutonomousLegalCounsel.audit_contract(contract)
         render_legal_audit(audit)
+        return
+
+    if args.test or (args.prompt and args.prompt[0].lower() in ("test", "snake")):
+        from codex.snake_benchmark import run_snake_benchmark
+        run_snake_benchmark()
+        return
+
+    if args.clash or (args.prompt and args.prompt[0].lower() == "clash"):
+        from codex.clash import clash_engine
+        q = args.clash or (" ".join(args.prompt[1:]) if len(args.prompt) > 1 else "Synthesize optimal high-throughput concurrency architecture")
+        clash_engine.run_clash(q)
+        return
+
+    if args.boss or (args.prompt and args.prompt[0].lower() in ("boss", "bossloop")):
+        from codex.boss_loop import boss_supervisor
+        task_str = args.boss or (" ".join(args.prompt[1:]) if len(args.prompt) > 1 else "Perform autonomous verification audit")
+        boss_supervisor.run_boss_loop(task_str)
+        return
+
+    if args.agency or (args.prompt and args.prompt[0].lower() in ("agency", "ruflo")):
+        from codex.ruflo_agency import ruflo_agency
+        mission = args.agency or (" ".join(args.prompt[1:]) if len(args.prompt) > 1 else "Autonomous desktop screen capture and custom mouse automation")
+        ruflo_agency.run_mission(mission)
         return
 
     if args.swarm or (args.prompt and args.prompt[0].lower() in ("swarm", "grokbot")):

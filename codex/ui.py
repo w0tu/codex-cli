@@ -914,3 +914,20 @@ def render_realtime_agent_bar(agent_name: str, task_desc: str, status: str = "CO
     tag_style = f"bold {TOKYONIGHT_CYAN}" if status == "CODING" else f"bold {TOKYONIGHT_GREEN}"
     console.print(f"[{tag_style}]⚡ [{agent_name} - {status}]:[/] [{TOKYONIGHT_FG}]{task_desc}[/]")
 
+
+def smooth_stream_tokens(stream_gen, min_delay: float = 0.002):
+    """Smooth real-time token-by-token text loading with fluid terminal rendering."""
+    for chunk in stream_gen:
+        if len(chunk) > 20:
+            for ch in chunk:
+                sys.stdout.write(ch)
+                sys.stdout.flush()
+                time.sleep(0.0008)
+        else:
+            sys.stdout.write(chunk)
+            sys.stdout.flush()
+            if min_delay > 0:
+                time.sleep(min_delay)
+        yield chunk
+
+
