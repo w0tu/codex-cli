@@ -24,7 +24,7 @@ Recommends: nodejs, npm
 Maintainer: The Codex Group <dev@codex.group>
 Homepage: https://github.com/w0tu/codex-cli
 Description: The Codex Group — Autonomous AI Desktop & Terminal
- Autonomous AI coding agent, native desktop application,
+ Autonomous AI coding agent, native OLED desktop application,
  hardware-accelerated Groq LPU streaming, desktop mouse control,
  and Google Antigravity delegation bridge.
 CTRL
@@ -42,8 +42,11 @@ exit 0
 POSTINST
 chmod 755 "$PKG_DIR/DEBIAN/postinst"
 
-# 3. Copy application files to /usr/share/cdx
+# 3. Clean local pycache and copy application files excluding pycache & node_modules
+find codex -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 cp -r codex "$PKG_DIR/usr/share/cdx/"
+rm -rf "$PKG_DIR/usr/share/cdx/codex/electron/node_modules"
+find "$PKG_DIR" -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 cp setup.py pyproject.toml README.md "$PKG_DIR/usr/share/cdx/"
 
 # 4. Binaries /usr/bin/cdx and /usr/bin/cdx-app
