@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Codex Group — Autonomous AI Desktop</title>
+  <!-- Marked for Markdown, Highlight.js for Syntax Highlighting, FontAwesome Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #1a1b26;
+      --panel: #24283b;
+      --panel-hover: #2f354f;
+      --border: #414868;
+      --blue: #7aa2f7;
+      --purple: #bb9af7;
+      --cyan: #7dcfff;
+      --green: #9ece6a;
+      --red: #f7768e;
+      --orange: #e0af68;
+      --fg: #c0caf5;
+      --fg-dim: #7982a9;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "JetBrains Mono", monospace;
+    }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      user-select: none;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 290px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .brand {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(122, 162, 247, 0.3);
+    }
+    .brand-title {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
+    .brand-status {
+      font-size: 11px;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 8px var(--green); }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+    .nav-list {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--fg);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav-item:hover {
+      background: var(--panel-hover);
+      color: #fff;
+    }
+    .nav-item.active {
+      background: rgba(122, 162, 247, 0.18);
+      color: var(--blue);
+      font-weight: 600;
+      border: 1px solid rgba(122, 162, 247, 0.3);
+    }
+    .nav-item i {
+      width: 18px;
+      text-align: center;
+    }
+    /* System telemetry footer */
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      background: rgba(26, 27, 38, 0.5);
+      font-size: 12px;
+    }
+    .badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      color: var(--fg-dim);
+    }
+    .badge-val {
+      color: var(--cyan);
+      font-weight: 500;
+    }
+    /* Main Area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      position: relative;
+    }
+    .top-header {
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--panel);
+    }
+    .model-selector {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-action {
+      background: var(--panel-hover);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      background: var(--border);
+      color: #fff;
+    }
+    /* Tab views */
+    .tab-view {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .tab-view.active {
+      display: flex;
+    }
+    /* Chat View */
+    .messages-container {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      user-select: text;
+    }
+    .msg-card {
+      display: flex;
+      gap: 14px;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+    .avatar-user {
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      color: #fff;
+    }
+    .avatar-ai {
+      background: linear-gradient(135deg, var(--purple), #e0af68);
+      color: #fff;
+    }
+    .msg-body {
+      flex: 1;
+      background: var(--panel);
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    .msg-body.user-msg {
+      background: rgba(122, 162, 247, 0.12);
+      border-color: rgba(122, 162, 247, 0.3);
+    }
+    .msg-body pre {
+      background: #14151e;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 10px 0;
+      overflow-x: auto;
+      border: 1px solid #2e344e;
+    }
+    .msg-body code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 13px;
+    }
+    .telemetry-tag {
+      font-size: 11px;
+      color: var(--fg-dim);
+      margin-top: 8px;
+      display: block;
+    }
+    /* Tool card */
+    .tool-card {
+      background: rgba(36, 40, 59, 0.7);
+      border: 1px solid var(--blue);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    .tool-title {
+      font-weight: 600;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    /* Input dock */
+    .input-dock {
+      padding: 16px 24px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pills-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+    .pill {
+      background: rgba(65, 72, 104, 0.4);
+      color: var(--fg-dim);
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .pill:hover {
+      background: var(--panel-hover);
+      color: var(--fg);
+      border-color: var(--border);
+    }
+    .input-box-wrapper {
+      display: flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .input-box-wrapper:focus-within {
+      border-color: var(--blue);
+      box-shadow: 0 0 10px rgba(122, 162, 247, 0.2);
+    }
+    textarea.chat-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      resize: none;
+      max-height: 120px;
+      min-height: 24px;
+      line-height: 1.5;
+    }
+    .btn-send {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    .btn-send:hover {
+      transform: scale(1.05);
+    }
+    /* Touchpad & Mouse Controller Tab */
+    .touchpad-container {
+      padding: 30px;
+      display: flex;
+      gap: 30px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .virtual-pad {
+      flex: 1;
+      background: #14151f;
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: crosshair;
+      position: relative;
+      user-select: none;
+    }
+    .virtual-pad:hover {
+      border-color: var(--blue);
+    }
+    .pad-label {
+      color: var(--fg-dim);
+      font-size: 14px;
+      pointer-events: none;
+    }
+    .mouse-actions-col {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .control-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .control-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-ctrl {
+      background: var(--panel-hover);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-ctrl:hover {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+    .btn-ctrl:active {
+      transform: scale(0.97);
+    }
+    /* File explorer */
+    .file-container {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .file-input-row {
+      display: flex;
+      gap: 10px;
+    }
+    .file-input {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+    }
+    .file-editor-area {
+      flex: 1;
+      background: #14151e;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #fff;
+      padding: 14px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 13px;
+      outline: none;
+      resize: none;
+      min-height: 400px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-cube"></i></div>
+      <div>
+        <div class="brand-title">THE CODEX GROUP</div>
+        <div class="brand-status">
+          <span class="pulse-dot"></span>
+          <span>ONLINE · ZERO-LATENCY</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-list">
+      <div class="nav-item active" onclick="switchTab('chat')">
+        <i class="fa-solid fa-comment-dots"></i>
+        <span>Chat & Copilot</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('mouse')">
+        <i class="fa-solid fa-arrow-pointer"></i>
+        <span>Desktop Mouse Control</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('files')">
+        <i class="fa-solid fa-folder-open"></i>
+        <span>Files & Workspace</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('network')">
+        <i class="fa-solid fa-wifi"></i>
+        <span>WiFi & Deep Research</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('antigravity')">
+        <i class="fa-solid fa-microchip"></i>
+        <span>Google Antigravity</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="badge-row">
+        <span><i class="fa-solid fa-wifi"></i> WiFi</span>
+        <span class="badge-val" id="sb-wifi">Connected</span>
+      </div>
+      <div class="badge-row">
+        <span><i class="fa-solid fa-desktop"></i> Screen</span>
+        <span class="badge-val" id="sb-screen">3072x1728</span>
+      </div>
+      <div class="badge-row">
+        <span><i class="fa-solid fa-bolt"></i> Engine</span>
+        <span class="badge-val" style="color:var(--green)">Groq LPU (500+ tok/s)</span>
+      </div>
+      <div class="badge-row">
+        <span><i class="fa-solid fa-hard-drive"></i> Storage</span>
+        <span class="badge-val">/home/feds (RWX)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main View -->
+  <div class="main-content">
+    <div class="top-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-weight:600; font-size:14px;" id="header-tab-title">Chat & Copilot</span>
+      </div>
+      <div class="header-actions">
+        <select class="model-selector" id="model-select" onchange="changeModel(this.value)">
+          <option value="qwen/qwen3.8-27b">Groq LPU (Qwen 3.8 27B)</option>
+          <option value="openai/gpt-oss-120b">Groq LPU (GPT-OSS 120B High Precision)</option>
+          <option value="gemini 3.8 flash">Google Antigravity (Gemini 3.8 Flash)</option>
+          <option value="claude-opus-4-5">Claude Opus 4.5 Cloud</option>
+        </select>
+        <button class="btn-action" onclick="clearChat()"><i class="fa-solid fa-trash-can"></i> Clear</button>
+      </div>
+    </div>
+
+    <!-- 1. Chat Tab -->
+    <div class="tab-view active" id="tab-chat">
+      <div class="messages-container" id="chat-messages">
+        <div class="msg-card">
+          <div class="avatar avatar-ai"><i class="fa-solid fa-robot"></i></div>
+          <div class="msg-body">
+            Hello! I am <strong>The Codex Group</strong> autonomous AI assistant with full native control over your Linux PC.
+            <br><br>
+            I can write & save files, execute shell commands, automate your mouse & GUI, connect to WiFi, run deep internet research, and delegate complex tasks to Google Antigravity.
+            <span class="telemetry-tag">Ready · 500+ tok/s Zero-Latency Pinned</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-dock">
+        <div class="pills-row">
+          <div class="pill" onclick="insertPrompt('Run git status and show current branch diff')"><i class="fa-solid fa-code-branch"></i> Git Status</div>
+          <div class="pill" onclick="insertPrompt('Move mouse to center and click')"><i class="fa-solid fa-mouse"></i> Click Center</div>
+          <div class="pill" onclick="insertPrompt('Inspect WiFi health and test internet connectivity')"><i class="fa-solid fa-wifi"></i> WiFi Check</div>
+          <div class="pill" onclick="insertPrompt('Research recent breakthroughs in autonomous AI agent swarms')"><i class="fa-solid fa-globe"></i> Deep Research</div>
+          <div class="pill" onclick="insertPrompt('Delegate complex architectural scaffolding to Google Antigravity')"><i class="fa-solid fa-microchip"></i> Antigravity Scaffolding</div>
+        </div>
+
+        <div class="input-box-wrapper">
+          <textarea class="chat-input" id="prompt-input" rows="1" placeholder="Ask Codex anything or give commands to your PC (Enter to send, Shift+Enter for newline)..." onkeydown="handleKey(event)"></textarea>
+          <button class="btn-send" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Desktop Mouse Control Tab -->
+    <div class="tab-view" id="tab-mouse">
+      <div class="touchpad-container">
+        <div class="virtual-pad" id="trackpad" onmousemove="handleTrackpadMove(event)" onclick="handleTrackpadClick(event)">
+          <i class="fa-solid fa-arrows-up-down-left-right" style="font-size:32px; color:var(--border); margin-bottom:12px;"></i>
+          <div class="pad-label">Virtual Touchpad — Move cursor or click here to control your PC mouse</div>
+          <div style="font-size:12px; color:var(--blue); margin-top:8px;" id="mouse-coord-label">Cursor: x=1536, y=864</div>
+        </div>
+
+        <div class="mouse-actions-col">
+          <div class="control-card">
+            <div class="control-title"><i class="fa-solid fa-mouse"></i> Mouse Buttons</div>
+            <div class="btn-grid">
+              <button class="btn-ctrl" onclick="sendMouseClick(1)"><i class="fa-solid fa-arrow-pointer"></i> Left Click</button>
+              <button class="btn-ctrl" onclick="sendMouseClick(3)"><i class="fa-solid fa-bars"></i> Right Click</button>
+              <button class="btn-ctrl" onclick="sendMouseDoubleClick()"><i class="fa-solid fa-hand-pointer"></i> Double Click</button>
+              <button class="btn-ctrl" onclick="sendMouseClick(2)"><i class="fa-solid fa-circle"></i> Middle Click</button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-title"><i class="fa-solid fa-arrows-up-down"></i> Scroll Wheel</div>
+            <div class="btn-grid">
+              <button class="btn-ctrl" onclick="sendMouseScroll('up')"><i class="fa-solid fa-arrow-up"></i> Scroll Up</button>
+              <button class="btn-ctrl" onclick="sendMouseScroll('down')"><i class="fa-solid fa-arrow-down"></i> Scroll Down</button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-title"><i class="fa-solid fa-keyboard"></i> Quick Text Typing</div>
+            <input type="text" id="type-text-input" placeholder="Text to type into PC active window..." style="width:100%; background:var(--bg); border:1px solid var(--border); color:#fff; padding:8px; border-radius:6px; margin-bottom:8px; outline:none;">
+            <button class="btn-ctrl" style="width:100%;" onclick="sendTypeText()"><i class="fa-solid fa-font"></i> Type into Active Window</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Files Tab -->
+    <div class="tab-view" id="tab-files">
+      <div class="file-container">
+        <div class="file-input-row">
+          <input class="file-input" id="file-path-input" value="hello.py" placeholder="Relative or absolute path on PC (e.g. hello.py or /home/feds/test.txt)">
+          <button class="btn-action" onclick="loadFile()"><i class="fa-solid fa-file-arrow-down"></i> Load</button>
+          <button class="btn-action" style="background:var(--blue); color:#fff;" onclick="saveFile()"><i class="fa-solid fa-floppy-disk"></i> Save to PC</button>
+        </div>
+        <textarea class="file-editor-area" id="file-content-area" placeholder="# Write or edit code directly on your PC disk..."></textarea>
+      </div>
+    </div>
+
+    <!-- 4. Network Tab -->
+    <div class="tab-view" id="tab-network">
+      <div class="file-container">
+        <div class="control-card">
+          <div class="control-title"><i class="fa-solid fa-wifi"></i> WiFi & Local Network Diagnostics</div>
+          <div style="font-size:13px; line-height:1.8;" id="wifi-diag-content">
+            Checking network interface and WiFi status...
+          </div>
+          <button class="btn-action" style="margin-top:12px;" onclick="refreshWifi()"><i class="fa-solid fa-rotate-right"></i> Refresh WiFi</button>
+        </div>
+
+        <div class="control-card">
+          <div class="control-title"><i class="fa-solid fa-globe"></i> Deep Multi-Platform Internet Research</div>
+          <div class="file-input-row" style="margin-bottom:12px;">
+            <input class="file-input" id="research-query-input" placeholder="Topic to research across web, Exa, news, and developer communities...">
+            <button class="btn-action" style="background:var(--cyan); color:#1a1b26; font-weight:600;" onclick="startResearch()"><i class="fa-solid fa-magnifying-glass"></i> Research</button>
+          </div>
+          <div id="research-results" style="background:#14151e; border:1px solid var(--border); border-radius:8px; padding:14px; min-height:200px; font-size:13px; line-height:1.6; max-height:400px; overflow-y:auto;">
+            Enter a research query above to aggregate live multi-platform data.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Antigravity Tab -->
+    <div class="tab-view" id="tab-antigravity">
+      <div class="file-container">
+        <div class="control-card">
+          <div class="control-title"><i class="fa-solid fa-microchip"></i> Google Antigravity Delegation Bridge</div>
+          <p style="font-size:13px; color:var(--fg-dim); margin-bottom:12px;">
+            Delegate large refactoring tasks, multi-file codebases, or complex architectural planning to Google Antigravity CLI and Gemini 3.8 Flash.
+          </p>
+          <textarea class="file-editor-area" id="antigravity-prompt" style="min-height:100px; margin-bottom:12px;" placeholder="Describe the complex task or architectural workflow to delegate..."></textarea>
+          <button class="btn-action" style="background:var(--purple); color:#fff; font-weight:600;" onclick="submitAntigravity()"><i class="fa-solid fa-paper-plane"></i> Delegate to Antigravity</button>
+        </div>
+        <div id="antigravity-output" style="background:#14151e; border:1px solid var(--border); border-radius:8px; padding:14px; min-height:200px; font-size:13px; line-height:1.6; max-height:400px; overflow-y:auto;">
+          Antigravity results will stream here.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+
+      const titles = {
+        chat: 'Chat & Copilot',
+        mouse: 'Desktop Mouse Control',
+        files: 'Files & Workspace',
+        network: 'WiFi & Deep Research',
+        antigravity: 'Google Antigravity'
+      };
+
+      document.getElementById('header-tab-title').innerText = titles[tabId] || 'The Codex Group';
+      document.getElementById('tab-' + tabId).classList.add('active');
+
+      // Highlight active nav item
+      const indexMap = { chat: 0, mouse: 1, files: 2, network: 3, antigravity: 4 };
+      document.querySelectorAll('.nav-item')[indexMap[tabId]].classList.add('active');
+
+      if (tabId === 'network') refreshWifi();
+    }
+
+    function insertPrompt(text) {
+      document.getElementById('prompt-input').value = text;
+      document.getElementById('prompt-input').focus();
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    async function changeModel(modelName) {
+      await fetch('/api/model', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({model: modelName})
+      });
+    }
+
+    function clearChat() {
+      document.getElementById('chat-messages').innerHTML = '';
+    }
+
+    // Live Streaming Chat
+    async function sendMessage() {
+      const input = document.getElementById('prompt-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      const container = document.getElementById('chat-messages');
+
+      // Add user card
+      const userCard = document.createElement('div');
+      userCard.className = 'msg-card';
+      userCard.innerHTML = `
+        <div class="avatar avatar-user"><i class="fa-solid fa-user"></i></div>
+        <div class="msg-body user-msg">${escapeHtml(text)}</div>
+      `;
+      container.appendChild(userCard);
+
+      // Add assistant card container
+      const aiCard = document.createElement('div');
+      aiCard.className = 'msg-card';
+      const aiBody = document.createElement('div');
+      aiBody.className = 'msg-body';
+      aiBody.innerHTML = '<span style="color:var(--fg-dim)"><i class="fa-solid fa-spinner fa-spin"></i> Generating...</span>';
+      aiCard.innerHTML = `<div class="avatar avatar-ai"><i class="fa-solid fa-robot"></i></div>`;
+      aiCard.appendChild(aiBody);
+      container.appendChild(aiCard);
+      container.scrollTop = container.scrollHeight;
+
+      let fullResponse = '';
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({prompt: text})
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        aiBody.innerHTML = '';
+
+        while (true) {
+          const {value, done} = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, {stream: true});
+          fullResponse += chunk;
+          aiBody.innerHTML = marked.parse(fullResponse);
+          hljs.highlightAll();
+          container.scrollTop = container.scrollHeight;
+        }
+
+        const tele = document.createElement('span');
+        tele.className = 'telemetry-tag';
+        tele.innerText = `· Delivered via Groq LPU Ultra-Fast`;
+        aiBody.appendChild(tele);
+      } catch (err) {
+        aiBody.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+      }
+    }
+
+    // Mouse Touchpad
+    let lastMoveTime = 0;
+    function handleTrackpadMove(e) {
+      const now = Date.now();
+      if (now - lastMoveTime < 40) return; // rate limit 25fps
+      lastMoveTime = now;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const normX = (e.clientX - rect.left) / rect.width;
+      const normY = (e.clientY - rect.top) / rect.height;
+
+      // Scale to 3072x1728
+      const realX = Math.round(normX * 3072);
+      const realY = Math.round(normY * 1728);
+
+      document.getElementById('mouse-coord-label').innerText = `Cursor: x=${realX}, y=${realY}`;
+
+      fetch('/api/mouse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'move', x: realX, y: realY})
+      });
+    }
+
+    function handleTrackpadClick(e) {
+      sendMouseClick(1);
+    }
+
+    async function sendMouseClick(btn) {
+      await fetch('/api/mouse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'click', button: btn})
+      });
+    }
+
+    async function sendMouseDoubleClick() {
+      await fetch('/api/mouse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'double_click'})
+      });
+    }
+
+    async function sendMouseScroll(dir) {
+      await fetch('/api/mouse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'scroll', direction: dir, amount: 4})
+      });
+    }
+
+    async function sendTypeText() {
+      const val = document.getElementById('type-text-input').value;
+      if (!val) return;
+      await fetch('/api/mouse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'type', text: val})
+      });
+      document.getElementById('type-text-input').value = '';
+    }
+
+    // Files
+    async function loadFile() {
+      const path = document.getElementById('file-path-input').value.trim();
+      const res = await fetch('/api/files?path=' + encodeURIComponent(path));
+      const data = await res.json();
+      document.getElementById('file-content-area').value = data.content || data.error || '';
+    }
+
+    async function saveFile() {
+      const path = document.getElementById('file-path-input').value.trim();
+      const content = document.getElementById('file-content-area').value;
+      const res = await fetch('/api/files', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({path, content})
+      });
+      const data = await res.json();
+      alert(data.message || 'File saved to PC successfully!');
+    }
+
+    // WiFi & Research
+    async function refreshWifi() {
+      const el = document.getElementById('wifi-diag-content');
+      el.innerHTML = 'Inspecting WiFi network...';
+      const res = await fetch('/api/wifi');
+      const data = await res.json();
+      el.innerHTML = `
+        <strong>Status:</strong> <span style="color:${data.connected ? 'var(--green)' : 'var(--red)'}">${data.connected ? 'CONNECTED' : 'DISCONNECTED'}</span><br>
+        <strong>SSID:</strong> ${data.ssid}<br>
+        <strong>Interface:</strong> ${data.interface}<br>
+        <strong>Signal Strength:</strong> ${data.signal}%<br>
+        <strong>IP Address:</strong> ${data.ip}<br>
+        <strong>Internet Connectivity:</strong> <span style="color:${data.internet ? 'var(--green)' : 'var(--red)'}">${data.internet ? 'ONLINE' : 'OFFLINE'}</span>
+      `;
+      document.getElementById('sb-wifi').innerText = data.connected ? 'Connected' : 'Offline';
+    }
+
+    async function startResearch() {
+      const q = document.getElementById('research-query-input').value.trim();
+      if (!q) return;
+      const resEl = document.getElementById('research-results');
+      resEl.innerHTML = '<span style="color:var(--cyan)"><i class="fa-solid fa-spinner fa-spin"></i> Researching across live web, Exa, and developer communities...</span>';
+      const res = await fetch('/api/research?q=' + encodeURIComponent(q));
+      const data = await res.json();
+      resEl.innerHTML = marked.parse(data.report || 'No data retrieved.');
+    }
+
+    // Antigravity
+    async function submitAntigravity() {
+      const prompt = document.getElementById('antigravity-prompt').value.trim();
+      if (!prompt) return;
+      const out = document.getElementById('antigravity-output');
+      out.innerHTML = '<span style="color:var(--purple)"><i class="fa-solid fa-spinner fa-spin"></i> Delegating to Google Antigravity autonomous engine...</span>';
+      const res = await fetch('/api/antigravity', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({prompt})
+      });
+      const data = await res.json();
+      out.innerHTML = marked.parse(data.result || 'Delegation complete.');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

@@ -1152,11 +1152,17 @@ def main() -> None:
     parser.add_argument("--offline", action="store_true", help="Run in fully offline mode using local Ollama model.")
     parser.add_argument("--antigravity", "--agy", action="store_true", help="Forward prompts to Google Antigravity CLI.")
     parser.add_argument("--swarm", "--grokbot", action="store_true", help="Launch the massive 45,000+ agent Swarm Command Center area.")
+    parser.add_argument("--app", action="store_true", help="Launch The Codex Group standalone desktop application window.")
     parser.add_argument("--boot", action="store_true", help="Launch Cyberpunk terminal coding screen loader and boot selector.")
     parser.add_argument("--panel", action="store_true", help="Display live telemetry & Groq console HUD panel.")
     parser.add_argument("--max-cost", type=float, default=0.0, help="Spending cap in USD.")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
+
+    if args.app or (args.prompt and args.prompt[0].lower() in ("app", "gui", "desktop")):
+        from codex.desktop_launcher import launch_desktop_app
+        launch_desktop_app()
+        return
 
     if args.boot:
         from codex.bootloader import play_coding_screen_loader, run_boot_selector
