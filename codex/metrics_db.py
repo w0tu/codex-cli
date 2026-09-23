@@ -223,5 +223,22 @@ class MetricsDB:
         return "\n".join(lines)
 
 
+    def get_history(self, days: int = 35) -> list[dict[str, Any]]:
+        """Fetch daily token and turn history for contribution activity heatmap."""
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days - 1)
+        with self._conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT date, total_tokens, turns_count, cloud_spend FROM daily_usage WHERE date >= ? ORDER BY date ASC", (start_date.isoformat(),))
+            rows = {r["date"]: dict(r) for r in cursor.fetchall()}
+
+        history = []
+        for i in range(days):
+            d_str = (start_date + timedelta(days=i)).isoformat()
+            item = rows.get(d_str, {"date": d_str, "total_tokens": 0, "turns_count": 0, "cloud_spend": 0.0})
+            history.append(item)
+        return history
+
+
 # Global singleton instance
 metrics_db = MetricsDB()

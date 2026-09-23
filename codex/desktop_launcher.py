@@ -59,7 +59,18 @@ def wait_for_server(timeout: float = 8.0) -> bool:
 
 
 def find_browser_cmd() -> list[str]:
-    """Find the best available browser executable for standalone app mode."""
+    """Find native app launcher or fallback browser executable."""
+    # 1. Native Standalone Desktop Window via Electron (Zero Chrome branding)
+    electron_app_dir = Path(__file__).parent / "electron"
+    local_electron = electron_app_dir / "node_modules" / ".bin" / "electron"
+    if local_electron.exists():
+        return [str(local_electron), str(electron_app_dir)]
+
+    global_electron = shutil.which("electron")
+    if global_electron:
+        return [global_electron, str(electron_app_dir)]
+
+    # 2. Chrome/Chromium App Mode Fallback
     chrome_bin = shutil.which("google-chrome") or "/usr/bin/google-chrome"
     chromium_bin = shutil.which("chromium") or "/usr/bin/chromium"
     firefox_bin = shutil.which("firefox") or "/usr/bin/firefox"
