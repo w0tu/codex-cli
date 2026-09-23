@@ -534,6 +534,7 @@ CDX_MODELS_MAP = {
     "gemini 2.5 flash": "llama-3.1-8b-instant",
     "gemini 2.5 pro": "deepseek-r1-distill-llama-70b",
     "gemini-2.0-flash": "llama-3.1-8b-instant",
+    "minimax-m2.7": "minimax/minimax-m2.7",
 }
 
 ANTIGRAVITY_MODELS_MAP = CDX_MODELS_MAP

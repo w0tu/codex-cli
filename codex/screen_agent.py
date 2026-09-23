@@ -125,6 +125,18 @@ root.mainloop()
         except Exception:
             return False
 
+    def glide_to(self, target_x: int = 960, target_y: int = 540, badge: str = "", click: bool = False) -> bool:
+        """Glide floating cursor overlay to target coordinates."""
+        self.spawn(target_x, target_y)
+        if click:
+            try:
+                from codex.mouse_agent import mouse_controller
+                mouse_controller.move_to(target_x, target_y, smooth=True)
+                mouse_controller.click()
+            except Exception:
+                pass
+        return True
+
     def close(self):
         if self.proc and self.proc.poll() is None:
             try:

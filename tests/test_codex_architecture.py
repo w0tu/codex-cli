@@ -44,6 +44,14 @@ from codex.client import OllamaClient, HybridCodexClient
 class TestCodexArchitecture(unittest.TestCase):
     """Test all functional requirements of Codex-CLI."""
 
+    def setUp(self):
+        from codex.gatekeeper import gatekeeper
+        gatekeeper.read_only_mode = False
+
+    def tearDown(self):
+        from codex.gatekeeper import gatekeeper
+        gatekeeper.read_only_mode = False
+
     def test_01_banner_renderer_and_caching(self):
         """Verify image-to-ANSI 24-bit half-block rendering and sub-5ms cache latency."""
         self.assertTrue(DEFAULT_IMAGE_PATH.exists(), "Voxel banner image must exist")

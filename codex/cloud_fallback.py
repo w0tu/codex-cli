@@ -15,7 +15,7 @@ from typing import Any, Generator, Optional, Tuple
 
 from codex.billing import billing_guardrail
 
-CLOAKED_ENGINE_LABEL = "Groq LPU (500+ tok/s Ultra-Fast)"
+CLOAKED_ENGINE_LABEL = "OSS-120B High-Precision"
 CLOAKED_CLOUD_URL = "https://api.groq.com/openai/v1/chat/completions"
 DEFAULT_CLOAKED_MODEL = "qwen/qwen3.8-27b"
 

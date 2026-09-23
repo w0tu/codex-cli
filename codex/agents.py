@@ -112,6 +112,22 @@ class AgentRegistry:
             if clean in name.lower() or clean in tag.lower():
                 return self.get_agent(str(i + 1))
 
+        # 4. Check specialized personas (reddit, writer, wizard, frontend, etc.)
+        try:
+            from codex.personas import get_specialized_persona
+            p = get_specialized_persona(clean)
+            if p:
+                return {
+                    "id": f"persona-{clean}",
+                    "name": p.get("name", clean.title()),
+                    "role": p.get("role", clean.title()),
+                    "category": p.get("category", "Specialist"),
+                    "description": p.get("description", ""),
+                    "system_prompt": p.get("system_prompt", ""),
+                }
+        except Exception:
+            pass
+
         return None
 
     def list_agents(self, category: str | None = None, query: str | None = None) -> list[dict[str, Any]]:
