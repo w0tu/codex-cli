@@ -59,11 +59,11 @@ class TestTuiWorkflow(unittest.TestCase):
             "+  variant=\"danger\"\n"
             " />"
         )
-        with patch("rich.console.Console.input", return_value="y"):
+        with patch("codex.ui.console.input", return_value="y"):
             approved = render_inline_diff_box("settings.tsx", diff_example, prompt_permission=True)
             self.assertTrue(approved, "Diff should be approved when user enters 'y'")
 
-        with patch("rich.console.Console.input", return_value="n"):
+        with patch("codex.ui.console.input", return_value="n"):
             denied = render_inline_diff_box("settings.tsx", diff_example, prompt_permission=True)
             self.assertFalse(denied, "Diff should be denied when user enters 'n'")
 
@@ -88,7 +88,7 @@ class TestTuiWorkflow(unittest.TestCase):
 
     def test_antigravity_bridge(self):
         from codex.antigravity_bridge import delegate_to_antigravity
-        with patch("codex.client.AntigravityClient.chat_turn") as mock_chat:
+        with patch("os.path.exists", return_value=False), patch("codex.client.AntigravityClient.chat_turn") as mock_chat:
             class DummyChoice:
                 class DummyMsg:
                     content = "Mocked Antigravity architectural output"

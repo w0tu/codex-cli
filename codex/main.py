@@ -104,6 +104,10 @@ class SlashCommandCompleter(Completer):
         ("/research", "Run deep multi-platform internet research"),
         ("/run", "Directly execute terminal shell command on PC"),
         ("/save", "Directly write and save file to local PC disk"),
+        ("/docs", "Save text or report directly into ~/Documents folder"),
+        ("/pointer", "Spawn smooth animated floating second agent mouse cursor"),
+        ("/screen", "Capture real-time desktop screen frame with ffmpeg x11grab"),
+        ("/groq", "Automated Groq keys retrieval, visual mouse glide, and ~/Documents save"),
         ("/online", "Switch back to online cloud inference (Cloud Native Zero-Latency)"),
         ("/cloud", "Switch to online cloud inference (Cloud Native Zero-Latency)"),
         ("/dashboard", "Open the Stage 2 OpenCode TUI dashboard"),
@@ -426,6 +430,31 @@ def run_direct(prompt: str, client: Any) -> None:
         sys.stdout.flush()
         return
 
+    if clean_prompt == "/screen":
+        from codex.screen_agent import window_manager
+        res = window_manager.capture_screen_frame()
+        if res.get("success"):
+            console.print(f"\n[bold green]✦ Screen Frame Captured:[/] {res.get('path')} ({res.get('geometry')}, {res.get('size')} bytes)\n")
+        else:
+            console.print(f"\n[bold red]Screen capture failed:[/] {res.get('message')}\n")
+        return
+
+    if clean_prompt.startswith("/pointer"):
+        from codex.screen_agent import agent_pointer
+        ok = agent_pointer.glide_to(target_x=900, target_y=550, badge="✦ CODEX AGENT MOUSE", click=True)
+        console.print(f"\n[bold green]✦ Floating Agent Mouse Activated:[/] Gliding across desktop ({'OK' if ok else 'FAILED'})\n")
+        return
+
+    if clean_prompt == "/groq":
+        from codex.screen_agent import window_manager
+        console.print("\n[bold cyan]✦ Executing Groq Keys Desktop Automation...[/]")
+        res = window_manager.run_groq_keys_automation()
+        console.print(f"[bold green]✦ {res.get('message')}[/]")
+        console.print(f"  • Primary Key: [bold white]{res.get('primary_key')}[/]")
+        console.print(f"  • Total Keys: [cyan]{res.get('keys_found')}[/]")
+        console.print(f"  • Document: [yellow]{res.get('documents_file')}[/]\n")
+        return
+
     if clean_prompt.startswith("/subagent"):
         from codex.subagents import MultiAgentStateMachine
         parts = clean_prompt.split(maxsplit=1)
@@ -665,6 +694,43 @@ def run_repl(client: Any) -> None:
                 console.print(f"\n[bold green]✦ {res}[/]\n")
             else:
                 console.print("[dim]Usage: /save <filepath> <content>[/]\n")
+            continue
+
+        if user_input.startswith("/docs"):
+            parts = user_input.split(maxsplit=2)
+            if len(parts) >= 3:
+                target_f = parts[1].strip()
+                content_f = parts[2]
+                from codex.screen_agent import window_manager
+                res = window_manager.save_to_documents(target_f, content_f)
+                console.print(f"\n[bold green]✦ {res.get('message')}[/]\n")
+            else:
+                console.print("[dim]Usage: /docs <filename> <content>[/]\n")
+            continue
+
+        if user_input == "/screen":
+            from codex.screen_agent import window_manager
+            res = window_manager.capture_screen_frame()
+            if res.get("success"):
+                console.print(f"\n[bold green]✦ Screen Frame Captured:[/] {res.get('path')} ({res.get('geometry')}, {res.get('size')} bytes)\n")
+            else:
+                console.print(f"\n[bold red]Screen capture failed:[/] {res.get('message')}\n")
+            continue
+
+        if user_input.startswith("/pointer"):
+            from codex.screen_agent import agent_pointer
+            ok = agent_pointer.glide_to(target_x=900, target_y=550, badge="✦ CODEX AGENT MOUSE", click=True)
+            console.print(f"\n[bold green]✦ Floating Agent Mouse Activated:[/] Gliding across desktop ({'OK' if ok else 'FAILED'})\n")
+            continue
+
+        if user_input == "/groq":
+            from codex.screen_agent import window_manager
+            console.print("\n[bold cyan]✦ Executing Groq Keys Desktop Automation...[/]")
+            res = window_manager.run_groq_keys_automation()
+            console.print(f"[bold green]✦ {res.get('message')}[/]")
+            console.print(f"  • Primary Key: [bold white]{res.get('primary_key')}[/]")
+            console.print(f"  • Total Keys: [cyan]{res.get('keys_found')}[/]")
+            console.print(f"  • Document: [yellow]{res.get('documents_file')}[/]\n")
             continue
 
         if user_input.startswith("/antigravity") or user_input.startswith("/agy"):
