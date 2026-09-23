@@ -67,6 +67,38 @@ class TestTuiWorkflow(unittest.TestCase):
             denied = render_inline_diff_box("settings.tsx", diff_example, prompt_permission=True)
             self.assertFalse(denied, "Diff should be denied when user enters 'n'")
 
+    def test_mouse_controller(self):
+        from codex.mouse_control import mouse_controller
+        self.assertTrue(mouse_controller.is_available)
+        pos = mouse_controller.get_position()
+        self.assertIn("x", pos)
+        self.assertIn("y", pos)
+        sz = mouse_controller.get_screen_size()
+        self.assertIn("width", sz)
+        self.assertIn("height", sz)
+
+    def test_tools_mouse_and_wifi(self):
+        from codex.tools import run_tool
+        res_pos = run_tool("control_mouse", {"action": "position"})
+        self.assertIn("Mouse cursor at", res_pos)
+        res_sz = run_tool("control_mouse", {"action": "screen_size"})
+        self.assertIn("Screen resolution:", res_sz)
+        res_wifi = run_tool("wifi_status", {})
+        self.assertIn("WiFi Status:", res_wifi)
+
+    def test_antigravity_bridge(self):
+        from codex.antigravity_bridge import delegate_to_antigravity
+        with patch("codex.client.AntigravityClient.chat_turn") as mock_chat:
+            class DummyChoice:
+                class DummyMsg:
+                    content = "Mocked Antigravity architectural output"
+                message = DummyMsg()
+            class DummyResp:
+                choices = [DummyChoice()]
+            mock_chat.return_value = DummyResp()
+            res = delegate_to_antigravity("Build microservice scaffold")
+            self.assertIn("Antigravity", res)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -99,6 +99,11 @@ class SlashCommandCompleter(Completer):
         ("/local", "Switch to 100% offline local Ollama agent mode"),
         ("/antigravity", "Forward tasks and prompts to Google Antigravity CLI"),
         ("/agy", "Shortcut to forward tasks to Google Antigravity CLI"),
+        ("/mouse", "Desktop mouse automation (move, click, drag, scroll, pos)"),
+        ("/wifi", "Inspect or connect WiFi and network status"),
+        ("/research", "Run deep multi-platform internet research"),
+        ("/run", "Directly execute terminal shell command on PC"),
+        ("/save", "Directly write and save file to local PC disk"),
         ("/online", "Switch back to online cloud inference (Groq LPU 500+ tok/s)"),
         ("/cloud", "Switch to online cloud inference (Groq LPU 500+ tok/s)"),
         ("/dashboard", "Open the Stage 2 OpenCode TUI dashboard"),
@@ -569,6 +574,114 @@ def run_repl(client: Any) -> None:
             from codex.ui import render_sessions_catalog
             render_sessions_catalog()
             continue
+
+        if user_input.startswith("/mouse"):
+            parts = user_input.split()
+            subcmd = parts[1].lower() if len(parts) > 1 else "pos"
+            from codex.mouse_control import mouse_controller
+            if subcmd in ("pos", "position"):
+                pos = mouse_controller.get_position()
+                sz = mouse_controller.get_screen_size()
+                console.print(f"\n[bold cyan]✦ Mouse Position:[/] x={pos.get('x')}, y={pos.get('y')} (Screen: {sz.get('width')}x{sz.get('height')})\n")
+            elif subcmd == "move" and len(parts) >= 4:
+                try:
+                    mx, my = int(parts[2]), int(parts[3])
+                    res = mouse_controller.move_to(mx, my, smooth=True)
+                    console.print(f"\n[bold green]✦ {res.get('message')}[/]\n")
+                except ValueError:
+                    console.print("[dim]Usage: /mouse move <x> <y>[/]\n")
+            elif subcmd == "click":
+                btn = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 1
+                res = mouse_controller.click(button=btn)
+                console.print(f"\n[bold green]✦ {res.get('message')}[/]\n")
+            elif subcmd == "scroll" and len(parts) >= 3:
+                direction = parts[2].lower()
+                res = mouse_controller.scroll(direction=direction)
+                console.print(f"\n[bold green]✦ {res.get('message')}[/]\n")
+            elif subcmd == "screen":
+                sz = mouse_controller.get_screen_size()
+                console.print(f"\n[bold cyan]✦ Screen Geometry:[/] {sz.get('width')}x{sz.get('height')}\n")
+            else:
+                console.print("[dim]Usage: /mouse [pos | move <x> <y> | click [1|2|3] | scroll <up|down> | screen][/]\n")
+            continue
+
+        if user_input.startswith("/wifi"):
+            parts = user_input.split(maxsplit=2)
+            if len(parts) >= 2 and parts[1].lower() == "connect":
+                ssid = parts[2].strip() if len(parts) > 2 else ""
+                if ssid:
+                    from codex.network import connect_wifi
+                    console.print(f"[dim]Connecting to WiFi '{ssid}'...[/]")
+                    msg = connect_wifi(ssid)
+                    console.print(f"[white]{msg}[/]\n")
+                else:
+                    console.print("[dim]Usage: /wifi connect <SSID>[/]\n")
+            else:
+                from codex.network import check_wifi_status
+                st = check_wifi_status()
+                conn_color = "bold green" if st.get("connected") else "bold red"
+                inet_color = "bold green" if st.get("internet") else "bold red"
+                console.print(f"\n[{conn_color}]✦ WiFi Status: {'CONNECTED' if st.get('connected') else 'DISCONNECTED'}[/]")
+                console.print(f"  • SSID: [bold white]{st.get('ssid')}[/]")
+                console.print(f"  • Interface: [cyan]{st.get('interface')}[/]")
+                console.print(f"  • Signal: [white]{st.get('signal')}%[/]")
+                console.print(f"  • Local IP: [cyan]{st.get('ip')}[/]")
+                console.print(f"  • Internet: [{inet_color}]{'ONLINE' if st.get('internet') else 'OFFLINE'}[/]\n")
+            continue
+
+        if user_input.startswith("/research"):
+            parts = user_input.split(maxsplit=1)
+            if len(parts) > 1:
+                q = parts[1].strip()
+                console.print(f"\n[bold cyan]✦ Running Deep Internet Research:[/] [white]{q}[/]\n")
+                from codex.network import run_deep_research
+                report = run_deep_research(q)
+                console.print(Markdown(report))
+                console.print()
+            else:
+                console.print("[dim]Usage: /research <topic or query>[/]\n")
+            continue
+
+        if user_input.startswith("/run"):
+            parts = user_input.split(maxsplit=1)
+            if len(parts) > 1:
+                cmd_to_run = parts[1].strip()
+                console.print(f"\n[bold yellow]✦ Executing on PC:[/] [dim]{cmd_to_run}[/]\n")
+                from codex.tools import execute_bash
+                res = execute_bash(cmd_to_run)
+                console.print(res)
+                console.print()
+            else:
+                console.print("[dim]Usage: /run <shell command>[/]\n")
+            continue
+
+        if user_input.startswith("/save"):
+            parts = user_input.split(maxsplit=2)
+            if len(parts) >= 3:
+                target_f = parts[1].strip()
+                content_f = parts[2]
+                from codex.tools import execute_write_file
+                res = execute_write_file(target_f, content_f)
+                console.print(f"\n[bold green]✦ {res}[/]\n")
+            else:
+                console.print("[dim]Usage: /save <filepath> <content>[/]\n")
+            continue
+
+        if user_input.startswith("/antigravity") or user_input.startswith("/agy"):
+            parts = user_input.split(maxsplit=1)
+            if len(parts) > 1:
+                prompt_agy = parts[1].strip()
+                console.print(f"\n[bold magenta]✦ Delegating Complex Task to Google Antigravity...[/]\n")
+                from codex.antigravity_bridge import delegate_to_antigravity
+                res = delegate_to_antigravity(prompt_agy)
+                console.print(res)
+                console.print()
+                continue
+            else:
+                from codex.client import AntigravityClient
+                client = AntigravityClient()
+                console.print("\n[bold white]✦ Connected to Google Antigravity CLI[/] (prompts will bridge to agy)\n")
+                continue
 
         if user_input == "/clear":
             clear_terminal()

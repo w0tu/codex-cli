@@ -705,6 +705,15 @@ def render_opencode_tokyonight_banner(model_name: str = "Groq LPU (qwen3.8-27b)"
     console.print(f"[bold {TOKYONIGHT_PURPLE}]{'T H E   C O D E X   G R O U P'.center(term_w)}[/]")
     console.print(f"[dim {TOKYONIGHT_FG}]{'v1.7.0 (Tokyonight Edition)'.center(term_w)}[/]\n")
 
+    sys_status = (
+        f"[{TOKYONIGHT_BLUE}]● Mouse:[/] [{TOKYONIGHT_GREEN}]3072x1728[/]   "
+        f"[{TOKYONIGHT_BLUE}]● WiFi:[/] [{TOKYONIGHT_GREEN}]Connected[/]   "
+        f"[{TOKYONIGHT_BLUE}]● Antigravity:[/] [{TOKYONIGHT_PURPLE}]Bridge Ready[/]   "
+        f"[{TOKYONIGHT_BLUE}]● PC Storage:[/] [{TOKYONIGHT_CYAN}]Local Disk (RWX)[/]"
+    )
+    console.print(Align.center(sys_status))
+    console.print("\n")
+
     cmd_table = Table.grid(padding=(0, 4))
     cmd_table.add_column(style=f"bold {TOKYONIGHT_CYAN}", justify="left")
     cmd_table.add_column(style=f"{TOKYONIGHT_FG}", justify="left")
@@ -712,9 +721,10 @@ def render_opencode_tokyonight_banner(model_name: str = "Groq LPU (qwen3.8-27b)"
 
     cmd_table.add_row("/help", "show help reference", "ctrl+x h")
     cmd_table.add_row("/editor", "open multiline editor", "ctrl+x e")
-    cmd_table.add_row("/models", "list active LLM models", "ctrl+x m")
-    cmd_table.add_row("/init", "create/update AGENTS.md", "ctrl+x i")
-    cmd_table.add_row("/compact", "compact context session", "ctrl+x c")
+    cmd_table.add_row("/mouse", "desktop mouse automation", "ctrl+x m")
+    cmd_table.add_row("/antigravity", "delegate complex tasks", "ctrl+x a")
+    cmd_table.add_row("/wifi", "inspect WiFi / network", "ctrl+x w")
+    cmd_table.add_row("/research", "deep internet research", "ctrl+x r")
     cmd_table.add_row("/sessions", "list active subagent sessions", "ctrl+x l")
 
     console.print(Align.center(cmd_table))
@@ -782,9 +792,13 @@ def render_opencode_dashboard(
     right_content.append("▼ LSP\n", style=f"bold {TOKYONIGHT_CYAN}")
     right_content.append("• markdown-oxide\n• typescript\n• python-lsp\n\n", style=TOKYONIGHT_FG)
 
+    right_content.append("▼ Hardware & OS Control\n", style=f"bold {TOKYONIGHT_CYAN}")
+    right_content.append("• Mouse: 3072x1728 (xdotool active)\n• WiFi: Connected (wlan0)\n• Antigravity: Bridge Connected\n• Storage: Local Disk (RWX)\n\n", style=TOKYONIGHT_GREEN)
+
     right_content.append("▼ Todo\n", style=f"bold {TOKYONIGHT_CYAN}")
     right_content.append("[✓] Demonstrate AGENTS: 2,000+ curated swarm agents\n", style=TOKYONIGHT_GREEN)
     right_content.append("[✓] Demonstrate BACKGROUND AGENTS: Parallel tasks\n", style=TOKYONIGHT_GREEN)
+    right_content.append("[✓] Demonstrate HARDWARE CONTROL: Mouse & WiFi\n", style=TOKYONIGHT_GREEN)
     right_content.append("[ ] Demonstrate ZERO-LATENCY: 500+ tok/s Groq LPU\n", style=TOKYONIGHT_ORANGE)
     right_content.append("[ ] Demonstrate PERMISSION PROMPTS: Inline diff approval\n\n", style=TOKYONIGHT_ORANGE)
 
