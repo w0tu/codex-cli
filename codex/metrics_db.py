@@ -228,18 +228,34 @@ class MetricsDB:
 
         heatmap_str = " ".join("".join(contrib_blocks[i:i+7]) for i in range(0, 28, 7))
 
+        # Word conversions (1 token ≈ 0.75 words / 1 word ≈ 1.33 tokens)
+        lifetime_words = int(data['lifetime_tokens'] * 0.75)
+        daily_words = int(data['daily_total_tokens'] * 0.75)
+        rem_budget = max(0.0, budget - spend)
+        avail_context_tokens = max(1000, 204800 - (data['daily_total_tokens'] % 204800))
+        avail_context_words = int(avail_context_tokens * 0.75)
+        budget_tokens_est = int((rem_budget / 0.0000002)) if rem_budget > 0 else 0
+        budget_words_est = int(budget_tokens_est * 0.75)
+
         lines = [
             f"\033[38;2;120;120;130m▌\033[0m \033[1;37mTHE CODEX GROUP (CODEX-CLI TELEMETRY) — CONTRIBUTION DASHBOARD\033[0m \033[38;2;100;100;110m░▒▓\033[0m",
             f"\033[38;2;90;90;100m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\033[0m",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;122;162;247mContribution Activity (Last 4 Weeks):\033[0m",
             f"\033[38;2;120;120;130m▌\033[0m   [{heatmap_str}]  \033[2m(Less ░ ▒ ▓ █ More)\033[0m",
             f"\033[38;2;120;120;130m▌\033[0m",
-            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;125;207;255mLifetime Tokens Evaluated:\033[0m \033[1;37m{data['lifetime_tokens']:,}\033[0m tokens",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;125;207;255mLifetime Tokens Evaluated:\033[0m \033[1;37m{data['lifetime_tokens']:,}\033[0m tokens (\033[1;36m~{lifetime_words:,} words\033[0m)",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;158;206;106mConsecutive Daily Streak:\033[0m  \033[1;32m{data['streak']}\033[0m days active",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;224;175;104mAll-Time Daily Record:\033[0m     \033[1;37m{data['peak_day_tokens']:,}\033[0m tokens on {data['peak_day_date']}",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;247;118;142mDaily Cloud Spend:\033[0m          ${spend:.4f} / ${budget:.2f} ({spend_pct:.1f}%)",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;247;118;142mBudget Meter:\033[0m               [{'█' * int(spend_pct // 5)}{'░' * (20 - int(spend_pct // 5))}] {spend_pct:.1f}%",
-            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;187;154;247mToday Breakdown:\033[0m           Total: \033[1;37m{data['daily_total_tokens']:,}\033[0m | Local: \033[1;37m{data['daily_local_tokens']:,}\033[0m | Turns: \033[1;37m{data['turns_count']}\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;187;154;247mToday Breakdown:\033[0m           Total: \033[1;37m{data['daily_total_tokens']:,}\033[0m tok (\033[1;32m~{daily_words:,} words\033[0m) | Local: \033[1;37m{data['daily_local_tokens']:,}\033[0m | Turns: \033[1;37m{data['turns_count']}\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m \033[1;33m✦ Word Generation Capacity (1 token ≈ 0.75 words):\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m   • Words Authored Today:     \033[1;32m~{daily_words:,} words\033[0m ({data['daily_total_tokens']:,} tokens used)",
+            f"\033[38;2;120;120;130m▌\033[0m   • Available Words in Window: \033[1;36m~{avail_context_words:,} words\033[0m ({avail_context_tokens:,} tokens available)",
+            f"\033[38;2;120;120;130m▌\033[0m   • Available Words in Budget: \033[1;35m~{budget_words_est:,} words\033[0m (${rem_budget:.2f} remaining budget)",
+            f"\033[38;2;120;120;130m▌\033[0m   • Lifetime Words Created:    \033[1;37m~{lifetime_words:,} words\033[0m across {data['lifetime_tokens']:,} tokens",
+            f"\033[38;2;120;120;130m▌\033[0m",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;120;120;130mHardware & Storage:\033[0m        Mouse: \033[1;32m3072x1728 (xdotool)\033[0m | Storage: \033[1;36mLocal Disk (RWX)\033[0m",
             f"\033[38;2;90;90;100m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\033[0m",
         ]
