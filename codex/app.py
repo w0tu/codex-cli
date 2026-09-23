@@ -353,6 +353,22 @@ async def terminal_handler(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e), "exit_code": 1}, status=500)
 
 
+async def subagents_swarm_handler(request: web.Request) -> web.Response:
+    """Execute multi-subagent swarm mission decomposition."""
+    try:
+        data = await request.json()
+        mission = data.get("mission", "").strip() or data.get("prompt", "").strip()
+        if not mission:
+            return web.json_response({"error": "Missing 'mission' in request payload."}, status=400)
+
+        loop = asyncio.get_running_loop()
+        from codex.subagents import orchestrate_subagent_swarm
+        result = await loop.run_in_executor(None, orchestrate_subagent_swarm, mission, desktop_client)
+        return web.json_response(result)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
 def create_app() -> web.Application:
     """Create and configure the aiohttp application."""
     app = web.Application()
@@ -368,6 +384,7 @@ def create_app() -> web.Application:
     app.router.add_get("/api/wifi", wifi_handler)
     app.router.add_get("/api/research", research_handler)
     app.router.add_post("/api/antigravity", antigravity_handler)
+    app.router.add_post("/api/subagents/swarm", subagents_swarm_handler)
     return app
 
 
