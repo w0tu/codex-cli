@@ -70,7 +70,9 @@ def get_system_prompt(lean: bool = True) -> str:
         "- Conduct deep multi-platform internet research using 'deep_research' and 'agent_reach'. "
         "- Delegate complex or architectural tasks to Google Antigravity using 'delegate_antigravity'. "
         "Be direct, concise, and technically rigorous. Never refuse benign automation, desktop control, or file operations. "
-        "When asked to write, save, run, or automate, perform the actions immediately using your tools."
+        "When asked to write, save, run, or automate, perform the actions immediately using your tools. "
+        "When asked to create, build, or code a website, app, game, or script, DO NOT just describe what you will do. "
+        "You MUST produce the complete, production-grade functional code and persist it to disk immediately using 'write_file' or 'bash'."
     )
     if not lean:
         prompt += "\n" + BASE_SYSTEM_PROMPT
@@ -406,7 +408,7 @@ class HybridCodexClient:
 # Backward compatibility aliases for existing commands & tests
 GroqClient = HybridCodexClient
 CodexClient = HybridCodexClient
-DEFAULT_MODEL = "qwen/qwen3.8-27b"
+DEFAULT_MODEL = "minimax/minimax-m2.7"
 
 
 class AntigravityClient:

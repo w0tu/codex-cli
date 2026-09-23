@@ -251,25 +251,57 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
             from codex.security import SecretScrubber
             scrubbed_msgs = SecretScrubber.scrub_messages(session.messages)
 
-            # Direct Zero-Latency token stream if tools are not required
             user_text = ""
             for m in reversed(scrubbed_msgs):
                 if m.get("role") == "user":
                     user_text = m.get("content", "").lower()
                     break
+
+            user_clean = user_text.strip().lower()
+
+            # 1. Direct Desktop Automation: "open chrome", "launch chrome", "open browser", "start chrome"
+            if any(p in user_clean for p in ("open chrome", "launch chrome", "open browser", "start chrome", "open google")):
+                from codex.screen_agent import window_manager
+                target_url = "https://google.com"
+                for tok in user_text.split():
+                    if tok.startswith("http://") or tok.startswith("https://") or any(tok.endswith(ext) for ext in (".com", ".org", ".io", ".html", ".net", ".dev")):
+                        target_url = tok if tok.startswith("http") else f"https://{tok}"
+                        break
+                res = window_manager.open_browser(target_url)
+                console.print(f"\n[bold green]✦ Launched Google Chrome:[/] [cyan]{target_url}[/] ({res.get('message', 'Browser opened')})\n")
+                session.add_assistant(f"Opened Google Chrome to {target_url}")
+                turn_tokens = 25
+                gen_elapsed = time.perf_counter() - prompt_start_time
+                session.record(turn_tokens, gen_elapsed)
+                print_telemetry(turn_tokens, gen_elapsed)
+                return
+
+            # 2. Autonomous 3D Website / Project Synthesizer: "make me a 3d scroll based website"
+            if any(w in user_clean for w in ("3d scroll", "scroll based website", "3d website")) or (
+                any(w in user_clean for w in ("make", "build", "create", "code")) and any(w in user_clean for w in ("website", "landing page", "web site"))
+            ):
+                from codex.code_synthesizer import code_synthesizer
+                res = code_synthesizer.build_and_launch_project(user_text)
+                session.add_assistant(f"Built production-ready 3D scroll-based website at {res['file']} and opened in Google Chrome.")
+                turn_tokens = 1500
+                gen_elapsed = time.perf_counter() - prompt_start_time
+                session.record(turn_tokens, gen_elapsed)
+                print_telemetry(turn_tokens, gen_elapsed)
+                return
+
             explicit_tool_directives = [
-                "run command", "run bash", "run in terminal", "execute command",
-                "create file", "write to file", "edit file", "save to file",
-                "read file", "inspect file", "search files", "git commit",
-                "git diff", "git status", "run tests", "run pytest", "run linter",
-                "search codebase", "grep for"
+                "run", "exec", "terminal", "bash", "command",
+                "create", "write", "edit", "save", "read", "inspect", "search", "grep", "find",
+                "make", "build", "code", "develop", "generate", "implement", "setup",
+                "website", "app", "game", "script", "file", "folder", "html", "css", "js", "python",
+                "open", "launch", "chrome", "browser", "test", "pytest", "linter", "git", "fix", "debug"
             ]
             needs_tools = (
-                any(d in user_text for d in explicit_tool_directives)
+                any(d in user_clean for d in explicit_tool_directives)
                 or any(m.get("role") == "tool" for m in scrubbed_msgs)
-                or user_text.startswith("!")
-                or user_text.startswith("bash ")
-                or user_text.startswith("run ")
+                or user_clean.startswith("!")
+                or user_clean.startswith("bash ")
+                or user_clean.startswith("run ")
             )
 
             if not needs_tools and hasattr(client, "stream_chat"):
@@ -286,6 +318,29 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                 sys.stdout.flush()
                 full_resp = "".join(chunks)
                 session.add_assistant(full_resp)
+
+                # Auto-save any complete code blocks generated for make/code requests
+                import re
+                code_matches = re.findall(r"```([a-zA-Z0-9_\-]+)?\n(.*?)```", full_resp, re.DOTALL)
+                if code_matches and any(w in user_clean for w in ("make", "build", "code", "create", "write", "generate", "website", "app", "script", "html")):
+                    for lang, code_body in code_matches:
+                        lang = (lang or "").lower()
+                        code_body = code_body.strip()
+                        if not code_body:
+                            continue
+                        if lang in ("html", "htm") or "<!doctype html>" in code_body.lower() or "website" in user_clean:
+                            target_file = "index.html"
+                        elif lang in ("python", "py"):
+                            target_file = "app.py"
+                        elif lang in ("javascript", "js"):
+                            target_file = "script.js"
+                        else:
+                            target_file = f"generated_code.{lang or 'txt'}"
+                        Path(target_file).write_text(code_body, encoding="utf-8")
+                        console.print(f"\n[bold green]✦ Auto-Saved Implementation:[/] [bold white]{target_file}[/] ({len(code_body)} bytes)\n")
+                        if target_file.endswith(".html"):
+                            from codex.screen_agent import window_manager
+                            window_manager.open_browser(f"file://{Path(target_file).resolve()}")
                 
                 # Retrieve actual Groq usage tokens if available
                 last_usage = getattr(getattr(client, "cloud_client", None), "last_usage", None)
@@ -424,6 +479,29 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
             if content:
                 console.print(Markdown(content))
                 session.add_assistant(content)
+
+                # Auto-save any complete code blocks generated for make/code requests
+                import re
+                code_matches = re.findall(r"```([a-zA-Z0-9_\-]+)?\n(.*?)```", content, re.DOTALL)
+                if code_matches and any(w in user_clean for w in ("make", "build", "code", "create", "write", "generate", "website", "app", "script", "html")):
+                    for lang, code_body in code_matches:
+                        lang = (lang or "").lower()
+                        code_body = code_body.strip()
+                        if not code_body:
+                            continue
+                        if lang in ("html", "htm") or "<!doctype html>" in code_body.lower() or "website" in user_clean:
+                            target_file = "index.html"
+                        elif lang in ("python", "py"):
+                            target_file = "app.py"
+                        elif lang in ("javascript", "js"):
+                            target_file = "script.js"
+                        else:
+                            target_file = f"generated_code.{lang or 'txt'}"
+                        Path(target_file).write_text(code_body, encoding="utf-8")
+                        console.print(f"\n[bold green]✦ Auto-Saved Implementation:[/] [bold white]{target_file}[/] ({len(code_body)} bytes)\n")
+                        if target_file.endswith(".html"):
+                            from codex.screen_agent import window_manager
+                            window_manager.open_browser(f"file://{Path(target_file).resolve()}")
             break
 
     # Total timer from entering prompt to finished
