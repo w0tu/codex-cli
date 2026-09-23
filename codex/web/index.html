@@ -77,13 +77,14 @@
         .card-cyan { background: linear-gradient(135deg, rgba(6, 182, 212, 0.4) 0%, rgba(0,0,0,0) 80%); }
         .card-amber { background: linear-gradient(135deg, rgba(217, 119, 6, 0.4) 0%, rgba(0,0,0,0) 80%); }
         .card-indigo { background: linear-gradient(135deg, rgba(79, 70, 229, 0.4) 0%, rgba(0,0,0,0) 80%); }
+        .card-violet { background: linear-gradient(135deg, rgba(139, 92, 246, 0.45) 0%, rgba(0,0,0,0) 80%); }
         
         .card-content { position: relative; z-index: 1; }
 
         .markdown-body p { margin-bottom: 0.75em; line-height: 1.6; }
         .markdown-body p:last-child { margin-bottom: 0; }
-        .markdown-body pre { background: #0c0c0c; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; border: 1px solid #1f1f1f; margin: 1em 0; }
-        .markdown-body code { background: #181818; padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: monospace; font-size: 0.85em; }
+        .markdown-body pre { background: #0a0a0a; padding: 1rem; border-radius: 0.75rem; overflow-x: auto; border: 1px solid #222; margin: 1em 0; position: relative; }
+        .markdown-body code { background: #161616; padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: monospace; font-size: 0.85em; }
         .markdown-body pre code { background: transparent; padding: 0; }
         .markdown-body ul { list-style: disc; margin-left: 1.5em; margin-bottom: 1em; }
         .markdown-body ol { list-style: decimal; margin-left: 1.5em; margin-bottom: 1em; }
@@ -91,6 +92,45 @@
         
         .typing-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+        /* Smooth Tab Fade/Slide Transitions */
+        .tab-pane {
+            animation: fadeInSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Glowing Border on Active Elements */
+        .glow-emerald {
+            box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Code Header Bar */
+        .code-header-bar {
+            background: #141414;
+            border: 1px solid #222;
+            border-bottom: none;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .code-header-bar + pre {
+            border-top-left-radius: 0 !important;
+            border-top-right-radius: 0 !important;
+            margin-top: 0 !important;
+        }
+
+        /* Deep Reasoning Collapsible Accordion */
+        .thinking-accordion summary::-webkit-details-marker { display: none; }
+        .thinking-accordion summary { list-style: none; }
 
         /* Custom High-Contrast Dropdown Menu */
         .custom-dropdown-menu {
@@ -151,8 +191,11 @@
 </head>
 <body class="font-sans flex h-screen overflow-hidden selection:bg-emerald-500/30">
 
+    <!-- Ambient Interactive Starfield / Particle Canvas -->
+    <canvas id="ambient-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
     <!-- OLED Left Sidebar -->
-    <aside class="w-[280px] bg-sidebar border-r border-borderLight flex flex-col flex-shrink-0 select-none">
+    <aside class="w-[280px] bg-sidebar border-r border-borderLight flex flex-col flex-shrink-0 select-none relative z-10">
         
         <!-- Sidebar Header / Custom Model Selector (High-Contrast & Easy to See) -->
         <div class="relative m-2">
@@ -220,13 +263,19 @@
             </button>
         </div>
 
-        <!-- Clean Core Navigation (Clutter removed, Agents & CLI added!) -->
+        <!-- Clean Core Navigation (Clutter removed, Swarm, Agents & CLI added!) -->
         <nav class="px-2 py-1 space-y-0.5" id="sidebar-nav">
-            <a href="javascript:void(0)" onclick="switchTab('chat')" id="nav-chat" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-surface rounded-lg transition-colors border border-borderLight">
+            <a href="javascript:void(0)" onclick="switchTab('chat')" id="nav-chat" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-surface rounded-lg transition-colors border border-borderLight glow-emerald">
                 <i class="fa-regular fa-comment-dots w-4 text-center text-sm text-emerald-400"></i> Chat & Copilot
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('swarm')" id="nav-swarm" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors group">
+                <i class="fa-solid fa-network-wired w-4 text-center text-sm text-teal-400 group-hover:scale-110 transition-transform"></i>
+                <span>Sub-Agents Swarm</span>
+                <span class="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">LIVE DAG</span>
             </a>
             <a href="javascript:void(0)" onclick="switchTab('agents')" id="nav-agents" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
                 <i class="fa-solid fa-users-gear w-4 text-center text-sm text-purple-400"></i> Agents Hub
+                <span class="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono">12 Specialists</span>
             </a>
             <a href="javascript:void(0)" onclick="switchTab('terminal')" id="nav-terminal" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
                 <i class="fa-solid fa-terminal w-4 text-center text-sm text-cyan-400"></i> CLI Terminal
@@ -236,12 +285,23 @@
             </a>
         </nav>
 
-        <!-- Chat History Sessions List -->
-        <div class="flex-1 overflow-y-auto px-2 py-3 space-y-4">
-            <div>
-                <div class="flex items-center justify-between px-3 mb-1.5">
+        <!-- Searchable Chat History Sessions List -->
+        <div class="flex-1 overflow-y-auto px-2 py-3 space-y-3">
+            <div class="px-1">
+                <div class="flex items-center justify-between px-2 mb-1.5">
                     <h3 class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Conversations</h3>
                     <span class="text-[9px] text-gray-600 font-mono" id="session-count-label">1 chat</span>
+                </div>
+                <!-- Search Box for History -->
+                <div class="relative mb-2">
+                    <input 
+                        type="text" 
+                        id="history-search-input" 
+                        placeholder="Search chats..." 
+                        oninput="filterSessions(this.value)"
+                        class="w-full bg-surface border border-borderLight rounded-lg pl-7 pr-2 py-1 text-[11px] text-gray-300 placeholder-gray-600 outline-none focus:border-gray-500 font-sans"
+                    >
+                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-[10px] text-gray-600"></i>
                 </div>
                 <ul class="space-y-0.5" id="history-sessions-list">
                     <!-- Populated dynamically with active sessions -->
@@ -256,23 +316,34 @@
                     <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
                     <span class="text-[11px] font-medium text-gray-300">CDX Autonomous Core</span>
                 </div>
-                <span class="text-[10px] text-gray-600 font-mono">Saad Kashif</span>
+                <span class="text-[10px] text-gray-500 font-mono">Saad Kashif</span>
             </div>
         </div>
     </aside>
 
     <!-- Main Content Container -->
-    <main class="flex-1 flex flex-col bg-oled relative overflow-hidden">
+    <main class="flex-1 flex flex-col bg-oled relative overflow-hidden z-10">
         
-        <!-- Header Actions -->
-        <header class="absolute top-0 right-0 p-4 flex items-center gap-2.5 z-20">
-            <button onclick="exportChatTranscript()" class="flex items-center gap-2 px-3 py-1.5 bg-surface border border-borderLight rounded-lg text-xs font-medium text-gray-300 hover:bg-surfaceHover hover:text-white transition-colors">
+        <!-- Header Actions with Audio & Particle Controls -->
+        <header class="absolute top-0 right-0 p-4 flex items-center gap-2 z-20">
+            <!-- Sound Effects Toggle -->
+            <button id="sound-toggle-btn" onclick="toggleSound()" title="Toggle Sound FX" class="flex items-center justify-center w-8 h-8 rounded-lg bg-surface border border-borderLight hover:bg-surfaceHover text-gray-300 hover:text-white transition-colors">
+                <i class="fa-solid fa-volume-high text-xs" id="sound-icon"></i>
+            </button>
+            <!-- Background Particles Toggle -->
+            <button id="particles-toggle-btn" onclick="toggleParticles()" title="Toggle Background Particles" class="flex items-center justify-center w-8 h-8 rounded-lg bg-surface border border-borderLight hover:bg-surfaceHover text-emerald-400 hover:text-emerald-300 transition-colors">
+                <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+            </button>
+            <!-- Export Transcript -->
+            <button onclick="exportChatTranscript()" class="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-borderLight rounded-lg text-xs font-medium text-gray-300 hover:bg-surfaceHover hover:text-white transition-colors">
                 <i class="fa-solid fa-arrow-up-from-bracket text-gray-400 text-xs"></i>
                 Export
             </button>
-            <button onclick="switchTab('terminal')" class="flex items-center gap-2 px-3.5 py-1.5 bg-surface border border-borderLight hover:border-cyan-500/50 text-white rounded-lg text-xs font-semibold transition-colors">
+            <!-- Quick CLI Shortcut -->
+            <button onclick="switchTab('terminal')" class="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-borderLight hover:border-cyan-500/50 text-white rounded-lg text-xs font-semibold transition-colors">
                 <i class="fa-solid fa-terminal text-cyan-400 text-xs"></i> CLI
             </button>
+            <!-- New Chat (⌘ N) -->
             <button onclick="createNewChatSession()" title="New Chat (⌘ N)" class="w-8 h-8 rounded-lg bg-surface border border-borderLight flex items-center justify-center hover:bg-surfaceHover text-emerald-400 transition-colors">
                 <i class="fa-solid fa-plus text-xs"></i>
             </button>
@@ -393,6 +464,161 @@
             </div>
         </div>
 
+        <!-- ── TAB: SUB-AGENTS SWARM ORCHESTRATION ── -->
+        <div id="tab-swarm" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-5xl mx-auto space-y-6 hidden">
+            <div class="border-b border-borderLight pb-4 flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-semibold text-white">Sub-Agents Swarm Orchestration</h2>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-violet-500/20 text-violet-300 border border-violet-500/40 animate-pulse">DAG Engine</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Autonomous multi-agent task decomposition &amp; concurrent execution pipeline</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs px-2.5 py-1 bg-surface border border-borderLight text-gray-300 rounded-full font-mono flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> 4 Sub-Agent Nodes
+                    </span>
+                </div>
+            </div>
+
+            <!-- Mission Control Input -->
+            <div class="glass-card card-violet p-6 rounded-2xl border border-borderLight space-y-4">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-gray-200 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-crosshairs text-violet-400"></i> Swarm Mission Directive
+                    </label>
+                    <span class="text-[11px] text-gray-400 font-mono">Decomposes across Architect → Backend → Frontend → Auditor</span>
+                </div>
+                <div class="relative">
+                    <textarea 
+                        id="swarm-mission-input" 
+                        rows="3" 
+                        placeholder="Enter mission directive (e.g. 'Build a real-time cryptocurrency portfolio tracker with FastAPI, WebSocket price feeds, dark mode Tailwind dashboard, and JWT auth')..."
+                        class="w-full bg-oled/80 border border-borderLight rounded-xl p-3.5 text-sm text-white placeholder-gray-500 focus:border-violet-500/70 focus:outline-none font-sans resize-none transition-colors"
+                    ></textarea>
+                </div>
+
+                <!-- Presets -->
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                    <span class="text-[11px] text-gray-500">Presets:</span>
+                    <button onclick="setSwarmPreset('Build a full-stack SaaS MVP for automated code review with FastAPI, GitHub webhooks, Tailwind UI, and security scanner')" class="px-3 py-1 rounded-full bg-surface border border-borderLight text-[11px] text-gray-300 hover:text-white hover:border-violet-500/50 transition-colors">
+                        🚀 Full-Stack SaaS MVP
+                    </button>
+                    <button onclick="setSwarmPreset('Audit, optimize, and harden an enterprise microservice with sub-millisecond latency and zero CVE vulnerabilities')" class="px-3 py-1 rounded-full bg-surface border border-borderLight text-[11px] text-gray-300 hover:text-white hover:border-violet-500/50 transition-colors">
+                        🛡️ Microservice Security Hardening
+                    </button>
+                    <button onclick="setSwarmPreset('Design and build an AI-powered developer analytics dashboard with streaming charts and exportable metrics')" class="px-3 py-1 rounded-full bg-surface border border-borderLight text-[11px] text-gray-300 hover:text-white hover:border-violet-500/50 transition-colors">
+                        📊 AI Analytics Dashboard
+                    </button>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button 
+                        id="swarm-launch-btn"
+                        onclick="launchSwarmMission()" 
+                        class="px-6 py-2.5 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-violet-900/30 flex items-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                        <i class="fa-solid fa-network-wired text-xs"></i> Launch Sub-Agents Swarm
+                    </button>
+                </div>
+            </div>
+
+            <!-- Swarm Execution DAG Pipeline Nodes -->
+            <div>
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-diagram-project text-cyan-400"></i> Swarm Pipeline DAG (4 Concurrent Sub-Agents)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3" id="swarm-nodes-grid">
+                    <!-- Node 1: Architect -->
+                    <div id="swarm-node-architect" class="glass-card card-purple p-4 rounded-xl border border-borderLight flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">NODE 1</span>
+                                <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-architect">IDLE</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-cubes text-purple-400 text-[11px]"></i> CDX-Architect
+                            </h4>
+                            <p class="text-[11px] text-gray-400 leading-snug">System blueprint, schema &amp; API contracts</p>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-borderLight/50 text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-architect">
+                            Awaiting launch...
+                        </div>
+                    </div>
+
+                    <!-- Node 2: Backend -->
+                    <div id="swarm-node-backend" class="glass-card card-teal p-4 rounded-xl border border-borderLight flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">NODE 2</span>
+                                <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-backend">IDLE</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-code text-teal-400 text-[11px]"></i> CDX-Backend
+                            </h4>
+                            <p class="text-[11px] text-gray-400 leading-snug">Core services, endpoints &amp; tests</p>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-borderLight/50 text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-backend">
+                            Awaiting launch...
+                        </div>
+                    </div>
+
+                    <!-- Node 3: Frontend -->
+                    <div id="swarm-node-frontend" class="glass-card card-cyan p-4 rounded-xl border border-borderLight flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">NODE 3</span>
+                                <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-frontend">IDLE</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-palette text-cyan-400 text-[11px]"></i> CDX-Frontend
+                            </h4>
+                            <p class="text-[11px] text-gray-400 leading-snug">Tailwind UI &amp; micro-interactions</p>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-borderLight/50 text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-frontend">
+                            Awaiting launch...
+                        </div>
+                    </div>
+
+                    <!-- Node 4: Auditor -->
+                    <div id="swarm-node-auditor" class="glass-card card-orange p-4 rounded-xl border border-borderLight flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-500/30">NODE 4</span>
+                                <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-auditor">IDLE</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved text-orange-400 text-[11px]"></i> CDX-Auditor
+                            </h4>
+                            <p class="text-[11px] text-gray-400 leading-snug">Security audit, CVE checks &amp; patches</p>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-borderLight/50 text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-auditor">
+                            Awaiting launch...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Swarm Results & Synthesis Output -->
+            <div id="swarm-results-panel" class="glass-card p-6 rounded-2xl border border-borderLight space-y-4 hidden">
+                <div class="flex items-center justify-between border-b border-borderLight pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <h3 class="text-sm font-semibold text-white">Synthesized Swarm Deliverable</h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="copySwarmSynthesis()" class="px-3 py-1 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy text-xs"></i> Copy Swarm Synthesis
+                        </button>
+                        <button onclick="sendSwarmToChat()" class="px-3 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-lg text-xs text-emerald-300 hover:text-emerald-200 transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane text-xs"></i> Send to Live Chat
+                        </button>
+                    </div>
+                </div>
+                <div id="swarm-synthesis-body" class="markdown-body text-gray-200 text-sm leading-relaxed max-h-[500px] overflow-y-auto pr-2">
+                </div>
+            </div>
+        </div>
+
         <!-- ── TAB 2: AGENTS HUB (NEW!) ── -->
         <div id="tab-agents" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
             <div class="border-b border-borderLight pb-4 flex items-center justify-between">
@@ -401,7 +627,7 @@
                     <p class="text-xs text-gray-400 mt-1">Talk to specialized subagents configured with targeted domain expertise</p>
                 </div>
                 <span class="text-xs px-2.5 py-1 bg-purple-500/15 border border-purple-500/30 text-purple-300 rounded-full font-mono">
-                    8 Autonomous Specialists
+                    12 Autonomous Specialists
                 </span>
             </div>
 
@@ -515,6 +741,62 @@
                     </div>
                     <button onclick="startAgentChat('CDX-Research', 'You are CDX-Research, a multi-source intelligence agent created by Saad Kashif. Conduct deep research and synthesize structured analytical reports.', 'Research the topic: ')" class="w-full py-2 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-semibold text-blue-300 transition-colors flex items-center justify-center gap-2">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i> Consult Researcher
+                    </button>
+                </div>
+
+                <!-- DeepSeek-R1 Reasoning Agent (NEW!) -->
+                <div class="glass-card card-purple p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-brain text-purple-400"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-white mb-1">CDX-DeepSeek-R1</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">Pure deep reasoning &amp; chain-of-thought engine. Decomposes NP-hard algorithms, cryptographic proofs, and multi-variable optimization problems with explicit &lt;thinking&gt; steps.</p>
+                    </div>
+                    <button onclick="startAgentChat('CDX-DeepSeek-R1', 'You are CDX-DeepSeek-R1, a pure deep reasoning and chain-of-thought engine created by Saad Kashif. Always think deeply within &lt;thinking&gt;...&lt;/thinking&gt; tags before providing exhaustive, rigorous mathematical and algorithmic solutions.', 'Decompose and prove algorithmic solution for: ')" class="w-full py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 rounded-xl text-xs font-semibold text-purple-300 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-brain text-xs"></i> Consult DeepSeek-R1
+                    </button>
+                </div>
+
+                <!-- Data Engineer Agent (NEW!) -->
+                <div class="glass-card card-teal p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-database text-teal-400"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-white mb-1">CDX-DataEngineer</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">Distributed data &amp; streaming pipeline architect. Specializes in ClickHouse, PostgreSQL schemas, Apache Kafka events, ETL pipelines, and sub-millisecond query optimization.</p>
+                    </div>
+                    <button onclick="startAgentChat('CDX-DataEngineer', 'You are CDX-DataEngineer, a principal data systems architect created by Saad Kashif. Design optimal database schemas, streaming ETL pipelines with Kafka/ClickHouse/PostgreSQL, and write production SQL queries with zero latency.', 'Design streaming data pipeline and schema for: ')" class="w-full py-2 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 rounded-xl text-xs font-semibold text-teal-300 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-database text-xs"></i> Deploy Data Engineer
+                    </button>
+                </div>
+
+                <!-- DevOps & SRE Agent (NEW!) -->
+                <div class="glass-card card-orange p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-server text-orange-400"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-white mb-1">CDX-DevOps-SRE</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">Production infrastructure &amp; SRE specialist. Builds multi-stage Dockerfiles, Kubernetes manifests, CI/CD GitHub Actions workflows, and automated Terraform infrastructure.</p>
+                    </div>
+                    <button onclick="startAgentChat('CDX-DevOps-SRE', 'You are CDX-DevOps-SRE, a senior site reliability engineer created by Saad Kashif. Build hardened production Dockerfiles, Kubernetes manifests, GitHub Actions CI/CD pipelines, and zero-downtime deployment architectures.', 'Generate production Dockerfile &amp; K8s deployment for: ')" class="w-full py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/40 rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-server text-xs"></i> Deploy DevOps SRE
+                    </button>
+                </div>
+
+                <!-- Mobile App Dev Agent (NEW!) -->
+                <div class="glass-card card-cyan p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-mobile-screen-button text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-white mb-1">CDX-MobileDev</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">Cross-platform mobile engineer. Builds fluid iOS and Android applications with React Native and Flutter, native device bridge integration, and 60fps animations.</p>
+                    </div>
+                    <button onclick="startAgentChat('CDX-MobileDev', 'You are CDX-MobileDev, an elite cross-platform mobile engineer created by Saad Kashif. Build fluid, beautiful React Native or Flutter applications with native device bridge integration and 60fps gesture animations.', 'Build mobile application screen and logic for: ')" class="w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-mobile text-xs"></i> Deploy Mobile Dev
                     </button>
                 </div>
             </div>
@@ -646,14 +928,196 @@
 
         marked.setOptions({ breaks: true, gfm: true });
 
+        // ── Web Audio Procedural Synthesizer ──
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playUiSound(type = 'click') {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.05);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'send') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'complete') {
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const subOsc = ctx.createOscillator();
+                        const subGain = ctx.createGain();
+                        subOsc.connect(subGain);
+                        subGain.connect(ctx.destination);
+                        subOsc.type = 'sine';
+                        subOsc.frequency.setValueAtTime(freq, now + i * 0.08);
+                        subGain.gain.setValueAtTime(0.06, now + i * 0.08);
+                        subGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.2);
+                        subOsc.start(now + i * 0.08);
+                        subOsc.stop(now + i * 0.08 + 0.2);
+                    });
+                } else if (type === 'swarm') {
+                    [329.63, 440.00, 554.37, 659.25, 880.00].forEach((freq, i) => {
+                        const subOsc = ctx.createOscillator();
+                        const subGain = ctx.createGain();
+                        subOsc.connect(subGain);
+                        subGain.connect(ctx.destination);
+                        subOsc.type = 'triangle';
+                        subOsc.frequency.setValueAtTime(freq, now + i * 0.05);
+                        subGain.gain.setValueAtTime(0.05, now + i * 0.05);
+                        subGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.35);
+                        subOsc.start(now + i * 0.05);
+                        subOsc.stop(now + i * 0.05 + 0.35);
+                    });
+                }
+            } catch (e) {
+                console.warn('Audio error:', e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle-btn');
+            if (btn) {
+                if (soundEnabled) {
+                    btn.innerHTML = '<i class="fa-solid fa-volume-high text-xs text-emerald-400"></i>';
+                    btn.title = 'Sound Effects: Enabled';
+                    playUiSound('click');
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-volume-xmark text-xs text-gray-500"></i>';
+                    btn.title = 'Sound Effects: Muted';
+                }
+            }
+        }
+
+        // ── Ambient Starfield Particle Engine ──
+        let particlesEnabled = true;
+        let particleAnimationId = null;
+
+        function initParticles() {
+            const canvas = document.getElementById('ambient-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            const particles = [];
+            const count = 40;
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    radius: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random() * 0.35 + 0.15
+                });
+            }
+
+            function render() {
+                if (!particlesEnabled) return;
+                ctx.clearRect(0, 0, width, height);
+
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0) p.x = width;
+                    if (p.x > width) p.x = 0;
+                    if (p.y < 0) p.y = height;
+                    if (p.y > height) p.y = 0;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(16, 185, 129, ${p.alpha})`;
+                    ctx.fill();
+
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        const dx = p.x - p2.x;
+                        const dy = p.y - p2.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 100) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(16, 185, 129, ${0.07 * (1 - dist / 100)})`;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                particleAnimationId = requestAnimationFrame(render);
+            }
+
+            render();
+        }
+
+        function toggleParticles() {
+            particlesEnabled = !particlesEnabled;
+            const canvas = document.getElementById('ambient-canvas');
+            const btn = document.getElementById('particles-toggle-btn');
+            if (canvas) canvas.style.display = particlesEnabled ? 'block' : 'none';
+            if (btn) {
+                if (particlesEnabled) {
+                    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-xs text-purple-400"></i>';
+                    btn.title = 'Ambient Starfield: Active';
+                    initParticles();
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-wand-magic text-xs text-gray-500"></i>';
+                    btn.title = 'Ambient Starfield: Paused';
+                    if (particleAnimationId) cancelAnimationFrame(particleAnimationId);
+                }
+            }
+        }
+
         // Tab Navigation
         function switchTab(tabId) {
+            playUiSound('click');
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
             const target = document.getElementById('tab-' + tabId);
             if (target) target.classList.remove('hidden');
 
             const navMap = {
                 chat: 'nav-chat',
+                swarm: 'nav-swarm',
                 agents: 'nav-agents',
                 terminal: 'nav-terminal',
                 usage: 'nav-usage'
@@ -686,6 +1150,7 @@
         });
 
         async function selectModel(modelKey, label) {
+            playUiSound('click');
             currentModel = modelKey;
             document.getElementById('active-model-title').innerText = label;
             document.querySelectorAll('.dropdown-opt').forEach(opt => {
@@ -702,6 +1167,7 @@
 
         // Session Management
         function createNewChatSession() {
+            playUiSound('click');
             const newSess = {
                 id: 'sess_' + Date.now(),
                 title: 'New Conversation',
@@ -716,10 +1182,24 @@
         }
 
         function switchSession(idx) {
+            playUiSound('click');
             activeSessionIndex = idx;
             renderSessionsList();
             renderActiveSessionMessages();
             switchTab('chat');
+        }
+
+        function filterSessions(query) {
+            const list = document.getElementById('history-sessions-list');
+            const q = (query || '').toLowerCase().trim();
+            Array.from(list.children).forEach((li, idx) => {
+                const title = (sessions[idx] && sessions[idx].title) ? sessions[idx].title.toLowerCase() : '';
+                if (!q || title.includes(q)) {
+                    li.style.display = '';
+                } else {
+                    li.style.display = 'none';
+                }
+            });
         }
 
         function renderSessionsList() {
@@ -782,6 +1262,78 @@
             }
         }
 
+        // Thinking Accordion & Code Block Enhancement
+        function formatMarkdownWithThinking(rawText) {
+            if (!rawText) return '';
+            let processed = rawText;
+            
+            // Format <thinking> or <thought> tags as collapsible interactive blocks
+            processed = processed.replace(/<(?:thinking|thought)>([\s\S]*?)<\/(?:thinking|thought)>/gi, (match, thought) => {
+                return `\n<details class="thinking-accordion" open><summary><i class="fa-solid fa-brain mr-1.5 text-purple-400"></i> Deep Chain of Thought</summary><div class="thinking-body">${marked.parse(thought.trim())}</div></details>\n`;
+            });
+
+            return marked.parse(processed);
+        }
+
+        function enhanceCodeBlocks(container) {
+            if (!container) return;
+            container.querySelectorAll('pre').forEach(pre => {
+                if (pre.querySelector('.code-header')) return;
+                const code = pre.querySelector('code');
+                if (!code) return;
+
+                let lang = 'CODE';
+                code.classList.forEach(cls => {
+                    if (cls.startsWith('language-')) {
+                        lang = cls.replace('language-', '').toUpperCase();
+                    }
+                });
+
+                const header = document.createElement('div');
+                header.className = 'code-header';
+                header.innerHTML = `
+                    <span class="code-lang">${escapeHTML(lang)}</span>
+                    <div class="code-actions">
+                        <button class="code-btn run-btn" onclick="runCodeInTerminal(this)" title="Execute command in GUI Terminal">
+                            <i class="fa-solid fa-play"></i> Run in CLI
+                        </button>
+                        <button class="code-btn copy-btn" onclick="copyCodeSnippet(this)" title="Copy snippet">
+                            <i class="fa-regular fa-copy"></i> Copy
+                        </button>
+                    </div>
+                `;
+                pre.insertBefore(header, code);
+                hljs.highlightElement(code);
+            });
+        }
+
+        function copyCodeSnippet(btn) {
+            const pre = btn.closest('pre');
+            const code = pre.querySelector('code');
+            if (code) {
+                navigator.clipboard.writeText(code.innerText);
+                btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Copied!';
+                playUiSound('click');
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+                }, 1800);
+            }
+        }
+
+        function runCodeInTerminal(btn) {
+            const pre = btn.closest('pre');
+            const code = pre.querySelector('code');
+            if (!code) return;
+            const text = code.innerText.trim();
+            switchTab('terminal');
+            const cliInput = document.getElementById('cli-input');
+            if (cliInput) {
+                cliInput.value = text.split('\n')[0];
+                cliInput.focus();
+            }
+            playUiSound('click');
+        }
+
         // Live Chat Streaming with Complete Memory!
         async function handleSend() {
             const text = userInput.value.trim();
@@ -812,6 +1364,7 @@
             sess.messages.push({ role: 'user', content: text });
 
             setLoadingState(true);
+            playUiSound('send');
 
             // Assistant Stream Card
             const aiCard = document.createElement('div');
@@ -854,10 +1407,8 @@
                     if (done) break;
                     const chunk = decoder.decode(value, {stream: true});
                     fullText += chunk;
-                    streamBody.innerHTML = marked.parse(fullText);
-                    streamBody.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightElement(block);
-                    });
+                    streamBody.innerHTML = formatMarkdownWithThinking(fullText);
+                    enhanceCodeBlocks(streamBody);
                     scrollToBottom();
                 }
 
@@ -872,6 +1423,7 @@
                     <span class="text-[10px] text-gray-600 font-mono">${currentModel.toUpperCase()} • 500+ tok/s</span>
                 `;
                 aiCard.querySelector('.flex-1').appendChild(footer);
+                playUiSound('complete');
 
             } catch (err) {
                 streamBody.innerHTML = `<span class="text-red-400 text-xs">Error: ${err.message}</span>`;
@@ -908,13 +1460,14 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="markdown-body text-gray-200 text-sm leading-relaxed">
-                            ${marked.parse(content)}
+                            ${formatMarkdownWithThinking(content)}
                         </div>
                         <div class="flex items-center gap-3 mt-3 text-gray-500">
                             <button onclick="copyToClipboard(this)" class="hover:text-gray-300 transition-colors" title="Copy text"><i class="fa-regular fa-copy text-xs"></i></button>
                         </div>
                     </div>
                 `;
+                enhanceCodeBlocks(wrapper.querySelector('.markdown-body'));
             }
             chatMessages.appendChild(wrapper);
             scrollToBottom();
@@ -929,6 +1482,7 @@
 
         // Start Chat with a Specialized Agent
         function startAgentChat(agentName, systemPrompt, initialPrompt) {
+            playUiSound('click');
             createNewChatSession();
             currentSystemPrompt = systemPrompt;
             sessions[activeSessionIndex].title = agentName;
@@ -1066,8 +1620,144 @@
             }[tag]));
         }
 
-        // Initialize sessions list
+        // ── Sub-Agents Swarm Orchestration Client ──
+        let latestSwarmResult = null;
+
+        function setSwarmPreset(presetText) {
+            const input = document.getElementById('swarm-mission-input');
+            if (input) {
+                input.value = presetText;
+                input.focus();
+                playUiSound('click');
+            }
+        }
+
+        async function launchSwarmMission() {
+            const input = document.getElementById('swarm-mission-input');
+            const mission = (input ? input.value : '').trim();
+            if (!mission) {
+                alert('Please enter a swarm mission directive.');
+                return;
+            }
+
+            playUiSound('swarm');
+            const launchBtn = document.getElementById('swarm-launch-btn');
+            if (launchBtn) {
+                launchBtn.disabled = true;
+                launchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Decomposing Swarm DAG...';
+            }
+
+            const nodes = ['architect', 'backend', 'frontend', 'auditor'];
+            nodes.forEach(n => {
+                const st = document.getElementById(`status-node-${n}`);
+                const out = document.getElementById(`out-node-${n}`);
+                if (st) {
+                    st.className = 'swarm-node-status text-[10px] font-mono text-cyan-400 animate-pulse';
+                    st.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[9px] mr-1"></i> RUNNING';
+                }
+                if (out) out.innerText = 'Executing subagent tasks...';
+            });
+
+            const resPanel = document.getElementById('swarm-results-panel');
+            const resBody = document.getElementById('swarm-synthesis-body');
+            if (resPanel) resPanel.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/subagents/swarm', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ mission })
+                });
+                const data = await response.json();
+                latestSwarmResult = data;
+
+                const nodeMap = {
+                    architect: data.nodes ? data.nodes[0] : null,
+                    backend: data.nodes ? data.nodes[1] : null,
+                    frontend: data.nodes ? data.nodes[2] : null,
+                    auditor: data.nodes ? data.nodes[3] : null
+                };
+
+                nodes.forEach(n => {
+                    const st = document.getElementById(`status-node-${n}`);
+                    const out = document.getElementById(`out-node-${n}`);
+                    const nodeData = nodeMap[n];
+                    if (st) {
+                        st.className = 'swarm-node-status text-[10px] font-mono text-emerald-400';
+                        st.innerHTML = '<i class="fa-solid fa-check text-[9px] mr-1"></i> DONE';
+                    }
+                    if (out && nodeData) {
+                        out.innerText = (nodeData.output || 'Complete').slice(0, 65) + '...';
+                        out.title = nodeData.output;
+                    }
+                });
+
+                if (resPanel && resBody) {
+                    resBody.innerHTML = formatMarkdownWithThinking(data.synthesis || 'Swarm execution finished.');
+                    enhanceCodeBlocks(resBody);
+                    resPanel.classList.remove('hidden');
+                }
+
+                playUiSound('complete');
+            } catch (err) {
+                console.error('Swarm error:', err);
+                nodes.forEach(n => {
+                    const st = document.getElementById(`status-node-${n}`);
+                    if (st) {
+                        st.className = 'swarm-node-status text-[10px] font-mono text-red-400';
+                        st.innerText = 'ERROR';
+                    }
+                });
+                if (resPanel && resBody) {
+                    resBody.innerHTML = `<span class="text-red-400">Swarm Execution Failed: ${escapeHTML(err.message)}</span>`;
+                    resPanel.classList.remove('hidden');
+                }
+            } finally {
+                if (launchBtn) {
+                    launchBtn.disabled = false;
+                    launchBtn.innerHTML = '<i class="fa-solid fa-network-wired text-xs"></i> Launch Sub-Agents Swarm';
+                }
+            }
+        }
+
+        function copySwarmSynthesis() {
+            if (!latestSwarmResult || !latestSwarmResult.synthesis) {
+                const body = document.getElementById('swarm-synthesis-body');
+                if (body) navigator.clipboard.writeText(body.innerText);
+            } else {
+                navigator.clipboard.writeText(latestSwarmResult.synthesis);
+            }
+            playUiSound('click');
+        }
+
+        function sendSwarmToChat() {
+            if (!latestSwarmResult) return;
+            const mission = latestSwarmResult.mission || 'Swarm Task';
+            const synthesis = latestSwarmResult.synthesis || '';
+            
+            createNewChatSession();
+            sessions[activeSessionIndex].title = `Swarm: ${mission.slice(0, 24)}...`;
+            sessions[activeSessionIndex].messages.push({
+                role: 'user',
+                content: `Sub-Agents Swarm Mission: ${mission}`
+            });
+            sessions[activeSessionIndex].messages.push({
+                role: 'assistant',
+                content: synthesis
+            });
+            renderSessionsList();
+            renderActiveSessionMessages();
+            switchTab('chat');
+            playUiSound('complete');
+        }
+
+        // Initialize sessions list, particles, and search listener
         renderSessionsList();
+        initParticles();
+
+        document.getElementById('history-search-input')?.addEventListener('input', (e) => {
+            filterSessions(e.target.value);
+        });
     </script>
 </body>
 </html>

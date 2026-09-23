@@ -37,3 +37,29 @@ def test_swarm_bridge_client_live():
         # Inspect Manager (Tier 2)
         manager = bridge.inspect_agent(1)
         assert manager["tier"] == 2
+
+
+def test_subagent_swarm_orchestration():
+    """Verify orchestrate_subagent_swarm executes 4-node DAG decomposition."""
+    from codex.subagents import orchestrate_subagent_swarm
+    from unittest.mock import MagicMock
+
+    mock_client = MagicMock()
+    mock_client.chat.return_value = "Mocked expert sub-agent output"
+
+    result = orchestrate_subagent_swarm(
+        mission="Build a high-performance distributed key-value store with raft consensus",
+        client=mock_client
+    )
+
+    assert result["mission"] == "Build a high-performance distributed key-value store with raft consensus"
+    assert result["status"] == "completed"
+    assert len(result["nodes"]) == 4
+    roles = [node["role"] for node in result["nodes"]]
+    assert "System Architect" in roles
+    assert "Core Backend Engineer" in roles
+    assert "Frontend & UI Stylist" in roles
+    assert "Security & Vulnerability Auditor" in roles
+    assert "synthesis" in result
+    assert "Mocked expert sub-agent output" in result["synthesis"]
+

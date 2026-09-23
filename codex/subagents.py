@@ -487,6 +487,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
 
     return {
         "ok": True,
+        "status": "completed",
         "mission": mission_clean,
         "elapsed_seconds": elapsed,
         "nodes": [
@@ -497,6 +498,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
                 "badge": "DAG-01",
                 "color": "purple",
                 "content": arch_output,
+                "output": arch_output,
             },
             {
                 "id": "node_2_backend",
@@ -505,6 +507,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
                 "badge": "DAG-02",
                 "color": "emerald",
                 "content": core_output,
+                "output": core_output,
             },
             {
                 "id": "node_3_frontend",
@@ -513,6 +516,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
                 "badge": "DAG-03",
                 "color": "cyan",
                 "content": ui_output,
+                "output": ui_output,
             },
             {
                 "id": "node_4_auditor",
@@ -521,6 +525,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
                 "badge": "DAG-04",
                 "color": "orange",
                 "content": audit_output,
+                "output": audit_output,
             },
         ],
         "synthesis": (
