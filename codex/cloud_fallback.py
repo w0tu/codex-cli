@@ -67,7 +67,9 @@ def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str
     """Resolve endpoint URL, bearer key, and model ID with strict zero-leakage cloaking."""
     req_model = model or DEFAULT_CLOAKED_MODEL
     # Map virtual or external model IDs to available Groq high-speed LPU models
-    if "120b" in req_model or "70b" in req_model or "pro" in req_model or "oss" in req_model:
+    if "minimax" in req_model.lower():
+        primary_groq_model = "minimax/minimax-m2.7"
+    elif "120b" in req_model or "70b" in req_model or "pro" in req_model or "oss" in req_model:
         primary_groq_model = "openai/gpt-oss-120b"
     elif "20b" in req_model:
         primary_groq_model = "openai/gpt-oss-20b"

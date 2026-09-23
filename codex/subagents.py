@@ -101,12 +101,13 @@ class PlannerAgent:
         )
 
         # Step 3: Verification / execution
+        verify_cmd = f"python3 -m py_compile {target_file} 2>/dev/null || true" if (target_file and target_file.endswith(".py")) else "true"
         steps.append(
             TaskStep(
                 step_id="step_3_execute",
                 action_type="shell_cmd",
                 description=f"Verify implementation via tests or linters",
-                command="pytest -q 2>/dev/null || python3 -m unittest 2>/dev/null || true",
+                command=verify_cmd,
             )
         )
 

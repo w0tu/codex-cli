@@ -144,6 +144,21 @@ class AgentRegistry:
         # Add specialized domain agents
         results.extend(self.static_agents)
 
+        # Add specialized personas
+        try:
+            from codex.personas import list_specialized_personas
+            for p in list_specialized_personas():
+                results.append({
+                    "id": f"persona-{p.get('name', '').lower()}",
+                    "name": p.get("name", ""),
+                    "role": p.get("role", ""),
+                    "category": p.get("category", "Specialist"),
+                    "description": p.get("description", ""),
+                    "system_prompt": p.get("system_prompt", ""),
+                })
+        except Exception:
+            pass
+
         if category:
             cat_clean = category.strip().lower()
             results = [a for a in results if a.get("category", "").lower() == cat_clean]

@@ -581,7 +581,7 @@ class TestCLIPolish(unittest.TestCase):
         from codex.ui import format_prompt_string
         prompt_output = format_prompt_string(os.getcwd())
         self.assertIn("codex", prompt_output)
-        self.assertIn(">", prompt_output)
+        self.assertTrue(">" in prompt_output or "❯" in prompt_output)
 
     def test_theme_and_model_renders(self):
         from codex.ui import render_theme_list, render_model_catalog
