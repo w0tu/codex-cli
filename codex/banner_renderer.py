@@ -190,7 +190,7 @@ def render_borderless_block_frame(
         f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255mENGINE:\033[0m {model_label}  \033[38;2;80;200;120mSTATUS:\033[0m {status_text}",
         f"\033[38;2;120;120;130m▌\033[0m \033[38;2;160;160;170mWORKSPACE:\033[0m {workspace}  \033[38;2;160;160;170mUSER:\033[0m {user}",
         f"\033[38;2;120;120;130m▌\033[0m \033[38;2;255;180;50mSYSTEM:\033[0m CPU: {cpu_str} │ RAM: {ram_str} │ OS: {os_info}",
-        f"\033[38;2;120;120;130m▌\033[0m \033[38;2;0;243;255mINFERENCE SERVER:\033[0m Direct Cloud Server Pipeline (Zero-Latency)",
+        f"\033[38;2;120;120;130m▌\033[0m \033[38;2;0;243;255mGROQ CONSOLE:\033[0m https://console.groq.com/home (500+ tok/s accelerated)",
         f"\033[38;2;90;90;100m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\033[0m",
     ]
     return "\n".join(lines)

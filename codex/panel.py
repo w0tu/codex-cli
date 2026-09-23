@@ -55,11 +55,11 @@ def generate_panel_layout(groq_tokens: int = 0, tok_sec: float = 500.0) -> Panel
 
     # 2. Live Groq Console & Cloud Token Matrix (https://console.groq.com/home)
     groq_t = Table(box=box.SIMPLE, show_header=True, header_style="bold cyan")
-    groq_t.add_column("Metric (Cloud Server Console)", style="bold white")
+    groq_t.add_column("Metric (Groq LPU Console)", style="bold white")
     groq_t.add_column("Live Telemetry", style="bold green")
 
-    groq_t.add_row("Console Endpoint", "Direct Cloud Server Pipeline")
-    groq_t.add_row("Primary Inference Engine", "Cloud Native (openai/gpt-oss-120b)")
+    groq_t.add_row("Console Endpoint", "https://console.groq.com/home")
+    groq_t.add_row("Primary Inference Engine", "Groq LPU (openai/gpt-oss-120b)")
     groq_t.add_row("Peak Throughput", f"{tok_sec:.1f} tok/s (100x Accelerated)")
     groq_t.add_row("Total Cloud Tokens Processed", f"{total_cloud:,} tokens")
     groq_t.add_row("Total Local / Offline Tokens", f"{total_local:,} tokens")

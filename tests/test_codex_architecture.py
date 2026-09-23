@@ -107,9 +107,9 @@ class TestCodexArchitecture(unittest.TestCase):
 
     def test_04_cloaking_requirements(self):
         """Verify strict cloaking: OSS-120B High-Precision label and zero vendor leakage."""
-        self.assertEqual(CLOAKED_ENGINE_LABEL, "Cloud Native (Zero-Latency)")
+        self.assertEqual(CLOAKED_ENGINE_LABEL, "OSS-120B High-Precision")
         client = CloakedCloudClient()
-        self.assertEqual(client.engine_label, "Cloud Native (Zero-Latency)")
+        self.assertEqual(client.engine_label, "OSS-120B High-Precision")
 
         # Test query complexity detection
         exceeds, reason = detect_query_complexity("Refactor architecture across main.py, utils.py and client.py")

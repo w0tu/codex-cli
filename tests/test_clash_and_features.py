@@ -1,8 +1,6 @@
-import sys
-from pathlib import Path
-REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+"""Unit and integration tests for Clash Mode, MiniMax M2.7, Headroom, Claude HUD,
+Specialized Personas, Boss Loop, Ruflo Agency, and Snake Benchmark.
+"""
 
 import pytest
 from codex.cloud_fallback import resolve_cloud_credentials
@@ -22,21 +20,6 @@ def test_minimax_model_resolution():
     assert "minimax" in model_id.lower()
     assert "minimax-m2.7" in ANTIGRAVITY_MODELS_MAP
     assert ANTIGRAVITY_MODELS_MAP["minimax-m2.7"] == "minimax/minimax-m2.7"
-
-
-def test_gpt_120b_cloud_resolution():
-    url, key, model_id = resolve_cloud_credentials(api_key="gsk_test_key_1234567890")
-    assert "120b" in model_id.lower()
-    assert "openai/gpt-oss-120b" in ANTIGRAVITY_MODELS_MAP
-    assert ANTIGRAVITY_MODELS_MAP["120b"] == "openai/gpt-oss-120b"
-
-
-def test_hybrid_client_cloud_only():
-    client = HybridCodexClient()
-    assert client.mode == "cloud"
-    assert client.cloud_enabled is True
-    assert "120b" in client.model.lower()
-
 
 
 def test_headroom_context_accounting():
@@ -114,62 +97,3 @@ def test_ruflo_agency_dispatch():
     res = agency.run_mission("Capture screen frame and record mission dossier")
     assert res["success"] is True
     assert len(res["actions"]) >= 2
-
-
-def test_code_synthesizer_live_edit(tmp_path):
-    from codex.code_synthesizer import CodeSynthesizer
-    synth = CodeSynthesizer()
-    res = synth.edit_index_html("change color to red and add a cube", target_dir=tmp_path)
-    assert res["success"] is True
-    assert (tmp_path / "index.html").exists()
-    content = (tmp_path / "index.html").read_text(encoding="utf-8")
-    assert "#f7768e" in content
-    assert "BoxGeometry" in content
-    assert len(res["changes"]) >= 2
-
-
-def test_code_synthesizer_speed_and_particles(tmp_path):
-    from codex.code_synthesizer import CodeSynthesizer
-    synth = CodeSynthesizer()
-    res = synth.edit_index_html("make it spin faster with matrix green and dense galaxy particles", target_dir=tmp_path)
-    assert res["success"] is True
-    content = (tmp_path / "index.html").read_text(encoding="utf-8")
-    assert "particlesCount = 4000" in content
-    assert "elapsedTime * 0.55" in content
-
-
-def test_desktop_window_manager_groq_automation(tmp_path, monkeypatch):
-    from codex.screen_agent import DesktopWindowManager
-    wm = DesktopWindowManager()
-    
-    # Test saving keys to custom document
-    doc_file = "test_groq_keys.txt"
-    res = wm.run_groq_keys_automation(filename=doc_file)
-    assert res["success"] is True
-    assert "groq_api_keys" in res["message"] or doc_file in res["message"]
-    assert "primary_key" in res
-    assert "keys" in res
-    assert isinstance(res["keys"], list)
-
-
-def test_web_messaging_platforms():
-    from codex.screen_agent import DesktopWindowManager
-    wm = DesktopWindowManager()
-
-    # WhatsApp
-    res_wa = wm.open_web_messaging(platform="whatsapp", recipient="+1234567890", message="Hello from Agent")
-    assert res_wa["success"] is True
-    assert "whatsapp" in res_wa["message"].lower()
-
-    # Google Chat
-    res_gc = wm.open_web_messaging(platform="google_chat")
-    assert res_gc["success"] is True
-    assert "chat.google.com" in res_gc["message"].lower() or "google" in res_gc["message"].lower()
-
-
-def test_floating_agent_pointer():
-    from codex.screen_agent import agent_pointer
-    ok = agent_pointer.spawn(start_x=300, start_y=300, badge="✦ TEST AGENT")
-    assert isinstance(ok, bool)
-    agent_pointer.close()
-

@@ -104,23 +104,10 @@ class SlashCommandCompleter(Completer):
         ("/research", "Run deep multi-platform internet research"),
         ("/run", "Directly execute terminal shell command on PC"),
         ("/save", "Directly write and save file to local PC disk"),
-        ("/docs", "Save text or report directly into ~/Documents folder"),
-        ("/pointer", "Spawn smooth animated floating second agent mouse cursor"),
-        ("/screen", "Capture real-time desktop screen frame with ffmpeg x11grab"),
-        ("/groq", "Automated Groq keys retrieval, visual mouse glide, and ~/Documents save"),
-        ("/online", "Switch back to online cloud inference (Cloud Native Zero-Latency)"),
-        ("/cloud", "Switch to online cloud inference (Cloud Native Zero-Latency)"),
+        ("/online", "Switch back to online cloud inference (Groq LPU 500+ tok/s)"),
+        ("/cloud", "Switch to online cloud inference (Groq LPU 500+ tok/s)"),
         ("/dashboard", "Open the Stage 2 OpenCode TUI dashboard"),
         ("/tui", "Open the Stage 2 OpenCode TUI dashboard"),
-        ("/clash", "Parallel multi-model ensemble & adjudicator consensus (/clash <query>)"),
-        ("/test", "Multi-AI Snake Game benchmark arena (/test or /snake)"),
-        ("/snake", "Alias for /test Multi-AI Snake Game benchmark"),
-        ("/boss", "Autonomous self-healing supervisor loop for hard tasks (/boss <task>)"),
-        ("/bossloop", "Alias for /boss self-healing loop"),
-        ("/hud", "Display Claude Code statusline HUD telemetry"),
-        ("/headroom", "Display model context headroom and compaction status"),
-        ("/agency", "Ruflo Multi-Agent Agency with custom mouse & desktop control"),
-        ("/ruflo", "Alias for /agency Ruflo Multi-Agent Agency"),
         ("/welcome", "Return to Stage 1 Tokyonight welcome screen"),
         ("/sessions", "List active subagent sessions and status"),
         ("/reset", "Clear conversation history context"),
@@ -231,256 +218,47 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
         from codex.ui import render_stage2_turn_header
         render_stage2_turn_header(query_text=prompt_text, model_name=client.model)
 
-    # Render Claude HUD statusline
-    try:
-        from codex.claude_hud import claude_hud
-        from codex.billing import billing_guardrail
-        hud_bar = claude_hud.render_bar(
-            model_name=client.model,
-            total_tokens=session.total_tokens,
-            session_cost=billing_guardrail.total_spend,
-            current_prompt=prompt_text or "",
-        )
-        sys.stdout.write(f"\n{hud_bar}\n\n")
-        sys.stdout.flush()
-    except Exception:
-        pass
-
     for _ in range(max_steps):
         try:
             from codex.security import SecretScrubber
             scrubbed_msgs = SecretScrubber.scrub_messages(session.messages)
 
+            # Direct Zero-Latency token stream if tools are not required
             user_text = ""
             for m in reversed(scrubbed_msgs):
                 if m.get("role") == "user":
                     user_text = m.get("content", "").lower()
                     break
-
-            user_clean = user_text.strip().lower()
-
-            # 1. Direct Groq Keys Desktop Automation Flow: "go to groq and tell me my keys", "tell me my keys", etc.
-            is_groq_keys = (
-                ("groq" in user_clean and any(k in user_clean for k in ("key", "keys", "api key", "tell me", "show me", "get me", "find", "save", "ledger")))
-                or any(p in user_clean for p in ("tell me my keys", "tell me keys", "show me my keys", "show my keys", "get my keys", "get groq keys", "retrieve keys", "find my keys", "my keys"))
-            )
-            if is_groq_keys:
-                from codex.screen_agent import window_manager
-                console.print("\n[bold cyan]✦ Executing Groq Keys Desktop Automation Flow...[/]")
-                console.print("  [dim]• Minimizing terminal window...[/]")
-                console.print("  [dim]• Gliding floating agent second mouse cursor across screen...[/]")
-                console.print("  [dim]• Launching Google Chrome to https://console.groq.com/keys...[/]")
-                console.print("  [dim]• Capturing desktop screen frame in real time...[/]")
-                console.print("  [dim]• Extracting Groq API keys and writing ~/Documents/groq_api_keys.txt...[/]\n")
-
-                res = window_manager.run_groq_keys_automation(filename="groq_api_keys.txt")
-
-                console.print(f"[bold green]✓ {res.get('message', 'Keys retrieved and saved')}[/]")
-                console.print(f"  • Active Window: [cyan]Minimized to desktop[/]")
-                console.print(f"  • Second Mouse:  [cyan]Smooth 60 FPS floating pointer animated & clicked[/]")
-                console.print(f"  • Screen Frame:  [cyan]{res.get('screen_frame', 'Real-time frame captured')}[/]")
-                console.print(f"  • Browser:       [cyan]Google Chrome (https://console.groq.com/keys)[/]")
-                console.print(f"  • Document File: [bold yellow]{res.get('documents_file')}[/]")
-                console.print(f"  • Keys Found:    [bold white]{res.get('keys_found', 0)}[/]\n")
-
-                keys_list = res.get("keys", [])
-                if keys_list:
-                    console.print("[bold white]✦ Your Groq API Keys:[/]")
-                    for idx, kitem in enumerate(keys_list, 1):
-                        console.print(f"  [bold cyan]Key #{idx}[/] [dim]({kitem['source']}):[/] [bold white]{kitem['key']}[/]")
-                    console.print()
-                elif res.get("primary_key"):
-                    console.print(f"[bold white]✦ Primary Groq Key:[/] [bold green]{res['primary_key']}[/]\n")
-                else:
-                    console.print("[dim]No saved local Groq keys found. Please inspect the opened Chrome browser window.[/]\n")
-
-                primary_key_val = res.get("primary_key") or (keys_list[0]["key"] if keys_list else "Console inspected")
-                session.add_assistant(
-                    f"Minimised terminal, glided agent mouse, opened Chrome to https://console.groq.com/keys, "
-                    f"retrieved keys ({primary_key_val}), and saved ledger to {res.get('documents_file')}."
-                )
-                turn_tokens = 450
-                gen_elapsed = time.perf_counter() - prompt_start_time
-                session.record(turn_tokens, gen_elapsed)
-                print_telemetry(turn_tokens, gen_elapsed)
-                return
-
-            # 2. Direct Web Messaging Automation (WhatsApp, Google Chat, Discord, Telegram)
-            is_messaging = (
-                any(p in user_clean for p in ("whatsapp", "google chat", "gchat", "telegram", "discord"))
-                and any(a in user_clean for a in ("open", "send", "message", "chat", "msg", "manage", "launch", "write"))
-            )
-            if is_messaging:
-                from codex.screen_agent import window_manager
-                plat = "whatsapp"
-                if "google chat" in user_clean or "gchat" in user_clean:
-                    plat = "google_chat"
-                elif "telegram" in user_clean:
-                    plat = "telegram"
-                elif "discord" in user_clean:
-                    plat = "discord"
-
-                recipient = ""
-                message_body = ""
-                for tok in user_text.split():
-                    if tok.startswith("+") or (tok.isdigit() and len(tok) >= 7):
-                        recipient = tok
-                        break
-
-                res = window_manager.open_web_messaging(platform=plat, recipient=recipient, message=message_body)
-                plat_title = plat.replace('_', ' ').capitalize()
-                console.print(f"\n[bold green]✦ Opened Web Messaging:[/] [cyan]{plat_title}[/] ({res.get('message', 'Opened in browser')})\n")
-                session.add_assistant(f"Opened web messaging for {plat_title} in Google Chrome.")
-                turn_tokens = 50
-                gen_elapsed = time.perf_counter() - prompt_start_time
-                session.record(turn_tokens, gen_elapsed)
-                print_telemetry(turn_tokens, gen_elapsed)
-                return
-
-            # 3. Direct Floating Agent Mouse Glide
-            is_pointer = (
-                any(p in user_clean for p in ("second mouse", "floating mouse", "agent mouse", "pointer glide", "move pointer", "pop up mouse", "show mouse", "custom mouse"))
-                and not any(k in user_clean for k in ("groq", "key"))
-            )
-            if is_pointer:
-                from codex.screen_agent import agent_pointer
-                console.print("\n[bold cyan]✦ Spawning 60 FPS Floating Agent Mouse Cursor...[/]")
-                agent_pointer.glide_to(target_x=960, target_y=540, badge="✦ AGENT MOUSE", click=True)
-                console.print("[bold green]✦ Second agent mouse animated smoothly across screen with ease-out physics and click ripple.[/]\n")
-                session.add_assistant("Spawned and animated second floating agent mouse cursor on desktop.")
-                turn_tokens = 40
-                gen_elapsed = time.perf_counter() - prompt_start_time
-                session.record(turn_tokens, gen_elapsed)
-                print_telemetry(turn_tokens, gen_elapsed)
-                return
-
-            # 4. Real-Time Screen Reading
-            is_screen_capture = (
-                any(p in user_clean for p in ("read screen", "capture screen", "screen in real time", "screen capture", "screenshot"))
-                and not any(k in user_clean for k in ("groq", "key"))
-            )
-            if is_screen_capture:
-                from codex.screen_agent import window_manager
-                res = window_manager.capture_screen_frame()
-                console.print(f"\n[bold green]✦ Real-Time Screen Frame Captured:[/] [cyan]{res.get('path')}[/] ({res.get('resolution')})\n")
-                session.add_assistant(f"Captured real-time desktop frame to {res.get('path')}.")
-                turn_tokens = 60
-                gen_elapsed = time.perf_counter() - prompt_start_time
-                session.record(turn_tokens, gen_elapsed)
-                print_telemetry(turn_tokens, gen_elapsed)
-                return
-
-            # 5. Direct Desktop Automation: "open chrome", "launch chrome", "open browser", "start chrome"
-            if any(p in user_clean for p in ("open chrome", "launch chrome", "open browser", "start chrome", "open google")):
-                from codex.screen_agent import window_manager
-                target_url = "https://google.com"
-                for tok in user_text.split():
-                    if tok.startswith("http://") or tok.startswith("https://") or any(tok.endswith(ext) for ext in (".com", ".org", ".io", ".html", ".net", ".dev")):
-                        target_url = tok if tok.startswith("http") else f"https://{tok}"
-                        break
-                res = window_manager.open_browser(target_url)
-                console.print(f"\n[bold green]✦ Launched Google Chrome:[/] [cyan]{target_url}[/] ({res.get('message', 'Browser opened')})\n")
-                session.add_assistant(f"Opened Google Chrome to {target_url}")
-                turn_tokens = 25
-                gen_elapsed = time.perf_counter() - prompt_start_time
-                session.record(turn_tokens, gen_elapsed)
-                print_telemetry(turn_tokens, gen_elapsed)
-                return
-
-            # 2. Autonomous 3D Website / Project Synthesizer: "make me a 3d scroll based website"
-            if any(w in user_clean for w in ("3d scroll", "scroll based website", "3d website")) or (
-                any(w in user_clean for w in ("make", "build", "create", "code")) and any(w in user_clean for w in ("website", "landing page", "web site"))
-            ):
-                from codex.code_synthesizer import code_synthesizer
-                res = code_synthesizer.build_and_launch_project(user_text)
-                session.add_assistant(f"Built production-ready 3D scroll-based website at {res['file']} and opened in Google Chrome.")
-                turn_tokens = 1500
-                gen_elapsed = time.perf_counter() - prompt_start_time
-                session.record(turn_tokens, gen_elapsed)
-                print_telemetry(turn_tokens, gen_elapsed)
-                return
-
-            # 3. Dynamic Live Edit to index.html on every prompt
-            has_index_html = (Path.cwd() / "index.html").exists()
-            is_website_edit = (
-                "index html" in user_clean
-                or "index.html" in user_clean
-                or any(w in user_clean for w in (
-                    "color", "red", "green", "blue", "purple", "gold", "yellow", "cyan", "crimson", "pink", "orange", "silver", "white",
-                    "cube", "sphere", "cylinder", "dodecahedron", "octahedron", "tetrahedron", "torus", "shape", "geometry", "mesh",
-                    "spin", "faster", "slower", "speed", "particle", "star", "galaxy", "nebula", "density",
-                    "background", "card", "section", "heading", "title", "theme", "3d"
-                ))
-            )
-            is_shell_cmd = (
-                user_clean.startswith("!")
-                or user_clean.startswith("bash ")
-                or any(user_clean.startswith(cmd) for cmd in ("pytest", "run test", "git ", "pip ", "python "))
-            )
-            if not is_shell_cmd and (has_index_html or is_website_edit):
-                from codex.code_synthesizer import code_synthesizer
-                res = code_synthesizer.edit_index_html(prompt_text or user_text, client=client)
-                changes_str = "; ".join(res.get("changes", []))
-                session.add_assistant(f"Updated index.html: {changes_str}. Persisted to disk and refreshed in Google Chrome.")
-                turn_tokens = 320
-                gen_elapsed = time.perf_counter() - prompt_start_time
-                session.record(turn_tokens, gen_elapsed)
-                print_telemetry(turn_tokens, gen_elapsed)
-                return
-
-
             explicit_tool_directives = [
-                "run", "exec", "terminal", "bash", "command",
-                "create", "write", "edit", "save", "read", "inspect", "search", "grep", "find",
-                "make", "build", "code", "develop", "generate", "implement", "setup",
-                "website", "app", "game", "script", "file", "folder", "html", "css", "js", "python",
-                "open", "launch", "chrome", "browser", "test", "pytest", "linter", "git", "fix", "debug"
+                "run command", "run bash", "run in terminal", "execute command",
+                "create file", "write to file", "edit file", "save to file",
+                "read file", "inspect file", "search files", "git commit",
+                "git diff", "git status", "run tests", "run pytest", "run linter",
+                "search codebase", "grep for"
             ]
             needs_tools = (
-                any(d in user_clean for d in explicit_tool_directives)
+                any(d in user_text for d in explicit_tool_directives)
                 or any(m.get("role") == "tool" for m in scrubbed_msgs)
-                or user_clean.startswith("!")
-                or user_clean.startswith("bash ")
-                or user_clean.startswith("run ")
+                or user_text.startswith("!")
+                or user_text.startswith("bash ")
+                or user_text.startswith("run ")
             )
 
             if not needs_tools and hasattr(client, "stream_chat"):
                 chunks = []
                 gen_start_time = None
                 token_count = 0
-                from codex.ui import smooth_stream_tokens
-                for chunk in smooth_stream_tokens(client.stream_chat(scrubbed_msgs)):
+                for chunk in client.stream_chat(scrubbed_msgs):
                     if gen_start_time is None:
                         gen_start_time = time.perf_counter()
+                    sys.stdout.write(chunk)
+                    sys.stdout.flush()
                     chunks.append(chunk)
                     token_count += 1
                 sys.stdout.write("\n\n")
                 sys.stdout.flush()
                 full_resp = "".join(chunks)
                 session.add_assistant(full_resp)
-
-                # Auto-save any complete code blocks generated for make/code requests
-                import re
-                code_matches = re.findall(r"```([a-zA-Z0-9_\-]+)?\n(.*?)```", full_resp, re.DOTALL)
-                if code_matches and any(w in user_clean for w in ("make", "build", "code", "create", "write", "generate", "website", "app", "script", "html")):
-                    for lang, code_body in code_matches:
-                        lang = (lang or "").lower()
-                        code_body = code_body.strip()
-                        if not code_body:
-                            continue
-                        if lang in ("html", "htm") or "<!doctype html>" in code_body.lower() or "website" in user_clean:
-                            target_file = "index.html"
-                        elif lang in ("python", "py"):
-                            target_file = "app.py"
-                        elif lang in ("javascript", "js"):
-                            target_file = "script.js"
-                        else:
-                            target_file = f"generated_code.{lang or 'txt'}"
-                        Path(target_file).write_text(code_body, encoding="utf-8")
-                        console.print(f"\n[bold green]✦ Auto-Saved Implementation:[/] [bold white]{target_file}[/] ({len(code_body)} bytes)\n")
-                        if target_file.endswith(".html"):
-                            from codex.screen_agent import window_manager
-                            window_manager.open_browser(f"file://{Path(target_file).resolve()}")
                 
                 # Retrieve actual Groq usage tokens if available
                 last_usage = getattr(getattr(client, "cloud_client", None), "last_usage", None)
@@ -581,10 +359,7 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                     diff_lines = list(difflib.unified_diff(old_content.splitlines(), content_to_write.splitlines(), lineterm=""))
                     diff_text = "\n".join(diff_lines) or f"+ {content_to_write[:200]}"
                     from codex.ui import render_inline_diff_box
-                    from codex.config import load_config
-                    perm_mode = load_config().get("permission_mode", "safe")
-                    should_prompt = (perm_mode != "auto")
-                    approved = render_inline_diff_box(target_path, diff_text, prompt_permission=should_prompt)
+                    approved = render_inline_diff_box(target_path, diff_text, prompt_permission=True)
                     if not approved:
                         result = f"Error: User denied permission to modify {target_path}"
                         session.add_tool_result(tc.id, result)
@@ -622,29 +397,6 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
             if content:
                 console.print(Markdown(content))
                 session.add_assistant(content)
-
-                # Auto-save any complete code blocks generated for make/code requests
-                import re
-                code_matches = re.findall(r"```([a-zA-Z0-9_\-]+)?\n(.*?)```", content, re.DOTALL)
-                if code_matches and any(w in user_clean for w in ("make", "build", "code", "create", "write", "generate", "website", "app", "script", "html")):
-                    for lang, code_body in code_matches:
-                        lang = (lang or "").lower()
-                        code_body = code_body.strip()
-                        if not code_body:
-                            continue
-                        if lang in ("html", "htm") or "<!doctype html>" in code_body.lower() or "website" in user_clean:
-                            target_file = "index.html"
-                        elif lang in ("python", "py"):
-                            target_file = "app.py"
-                        elif lang in ("javascript", "js"):
-                            target_file = "script.js"
-                        else:
-                            target_file = f"generated_code.{lang or 'txt'}"
-                        Path(target_file).write_text(code_body, encoding="utf-8")
-                        console.print(f"\n[bold green]✦ Auto-Saved Implementation:[/] [bold white]{target_file}[/] ({len(code_body)} bytes)\n")
-                        if target_file.endswith(".html"):
-                            from codex.screen_agent import window_manager
-                            window_manager.open_browser(f"file://{Path(target_file).resolve()}")
             break
 
     # Total timer from entering prompt to finished
@@ -672,66 +424,6 @@ def run_direct(prompt: str, client: Any) -> None:
         from codex.metrics_db import metrics_db
         sys.stdout.write("\n" + metrics_db.render_block_telemetry_card() + "\n\n")
         sys.stdout.flush()
-        return
-
-    if clean_prompt == "/screen":
-        from codex.screen_agent import window_manager
-        res = window_manager.capture_screen_frame()
-        if res.get("success"):
-            console.print(f"\n[bold green]✦ Screen Frame Captured:[/] {res.get('path')} ({res.get('geometry')}, {res.get('size')} bytes)\n")
-        else:
-            console.print(f"\n[bold red]Screen capture failed:[/] {res.get('message')}\n")
-        return
-
-    if clean_prompt.startswith("/pointer"):
-        from codex.screen_agent import agent_pointer
-        ok = agent_pointer.glide_to(target_x=900, target_y=550, badge="✦ CODEX AGENT MOUSE", click=True)
-        console.print(f"\n[bold green]✦ Floating Agent Mouse Activated:[/] Gliding across desktop ({'OK' if ok else 'FAILED'})\n")
-        return
-
-    if clean_prompt.startswith("/clash"):
-        from codex.clash import clash_engine
-        query = clean_prompt[6:].strip() or "Synthesize high-throughput concurrent architecture"
-        clash_engine.run_clash(query, client=client)
-        return
-
-    if clean_prompt in ("/test", "/snake") or clean_prompt.startswith("/test ") or clean_prompt.startswith("/snake "):
-        from codex.snake_benchmark import run_snake_benchmark
-        run_snake_benchmark(client=client)
-        return
-
-    if clean_prompt.startswith("/boss"):
-        from codex.boss_loop import boss_supervisor
-        task_str = clean_prompt.split(maxsplit=1)[1] if len(clean_prompt.split()) > 1 else "Perform autonomous verification and repair"
-        boss_supervisor.run_boss_loop(task_str, client=client)
-        return
-
-    if clean_prompt in ("/hud", "/claude-hud"):
-        from codex.claude_hud import claude_hud
-        claude_hud.render_panel(model_name=client.model)
-        return
-
-    if clean_prompt.startswith("/headroom"):
-        from codex.context.headroom import headroom
-        info = headroom.calculate_headroom(prompt)
-        console.print(f"[bold cyan]⚡ Context Headroom for {client.model}:[/] {info['remaining_headroom']:,} tokens free / {info['context_limit']:,} limit ({info['headroom_pct']}% headroom)")
-        return
-
-    if clean_prompt.startswith("/agency") or clean_prompt.startswith("/ruflo"):
-        from codex.ruflo_agency import ruflo_agency
-        parts = clean_prompt.split(maxsplit=1)
-        mission = parts[1].strip() if len(parts) > 1 else "Autonomous screen capture and mouse automation"
-        ruflo_agency.run_mission(mission, client=client)
-        return
-
-    if clean_prompt == "/groq":
-        from codex.screen_agent import window_manager
-        console.print("\n[bold cyan]✦ Executing Groq Keys Desktop Automation...[/]")
-        res = window_manager.run_groq_keys_automation()
-        console.print(f"[bold green]✦ {res.get('message')}[/]")
-        console.print(f"  • Primary Key: [bold white]{res.get('primary_key')}[/]")
-        console.print(f"  • Total Keys: [cyan]{res.get('keys_found')}[/]")
-        console.print(f"  • Document: [yellow]{res.get('documents_file')}[/]\n")
         return
 
     if clean_prompt.startswith("/subagent"):
@@ -806,7 +498,7 @@ def run_repl(client: Any) -> None:
                         f'<style fg="#7aa2f7">enter</style> <style fg="#565f89">send</style>   '
                         f'<style fg="#bb9af7">ctrl+x</style> <style fg="#565f89">shortcuts</style>   '
                         f'<style fg="#7dcfff">/</style> <style fg="#565f89">commands</style>       '
-                        f'│ <style fg="#9ece6a">Codex Native · {clean_model}</style>'
+                        f'│ <style fg="#9ece6a">Groq LPU (500+ tok/s) · {clean_model}</style>'
                     )
             else:
                 from codex.ui import format_prompt_string
@@ -814,7 +506,7 @@ def run_repl(client: Any) -> None:
                 def get_toolbar():
                     return HTML(
                         f'<style fg="#7aa2f7">The Codex Group v1.7.0</style> <style fg="#565f89">│</style> '
-                        f'<style fg="#9ece6a">Codex Native · {clean_model}</style> <style fg="#565f89">│</style> '
+                        f'<style fg="#9ece6a">Groq LPU (500+ tok/s)</style> <style fg="#565f89">│</style> '
                         f'<style fg="#bb9af7">tab</style> <style fg="#565f89">BUILD MODE</style>'
                     )
 
@@ -973,78 +665,6 @@ def run_repl(client: Any) -> None:
                 console.print(f"\n[bold green]✦ {res}[/]\n")
             else:
                 console.print("[dim]Usage: /save <filepath> <content>[/]\n")
-            continue
-
-        if user_input.startswith("/docs"):
-            parts = user_input.split(maxsplit=2)
-            if len(parts) >= 3:
-                target_f = parts[1].strip()
-                content_f = parts[2]
-                from codex.screen_agent import window_manager
-                res = window_manager.save_to_documents(target_f, content_f)
-                console.print(f"\n[bold green]✦ {res.get('message')}[/]\n")
-            else:
-                console.print("[dim]Usage: /docs <filename> <content>[/]\n")
-            continue
-
-        if user_input == "/screen":
-            from codex.screen_agent import window_manager
-            res = window_manager.capture_screen_frame()
-            if res.get("success"):
-                console.print(f"\n[bold green]✦ Screen Frame Captured:[/] {res.get('path')} ({res.get('geometry')}, {res.get('size')} bytes)\n")
-            else:
-                console.print(f"\n[bold red]Screen capture failed:[/] {res.get('message')}\n")
-            continue
-
-        if user_input.startswith("/pointer"):
-            from codex.screen_agent import agent_pointer
-            ok = agent_pointer.glide_to(target_x=900, target_y=550, badge="✦ CODEX AGENT MOUSE", click=True)
-            console.print(f"\n[bold green]✦ Floating Agent Mouse Activated:[/] Gliding across desktop ({'OK' if ok else 'FAILED'})\n")
-            continue
-
-        if user_input == "/groq":
-            from codex.screen_agent import window_manager
-            console.print("\n[bold cyan]✦ Executing Groq Keys Desktop Automation...[/]")
-            res = window_manager.run_groq_keys_automation()
-            console.print(f"[bold green]✦ {res.get('message')}[/]")
-            console.print(f"  • Primary Key: [bold white]{res.get('primary_key')}[/]")
-            console.print(f"  • Total Keys: [cyan]{res.get('keys_found')}[/]")
-            console.print(f"  • Document: [yellow]{res.get('documents_file')}[/]\n")
-            continue
-
-        if user_input.startswith("/clash"):
-            from codex.clash import clash_engine
-            q = user_input[6:].strip() or "Synthesize high-throughput concurrent architecture"
-            clash_engine.run_clash(q, client=client)
-            continue
-
-        if user_input in ("/test", "/snake") or user_input.startswith("/test ") or user_input.startswith("/snake "):
-            from codex.snake_benchmark import run_snake_benchmark
-            run_snake_benchmark(client=client)
-            continue
-
-        if user_input.startswith("/boss"):
-            from codex.boss_loop import boss_supervisor
-            task_str = user_input.split(maxsplit=1)[1] if len(user_input.split()) > 1 else "Perform autonomous verification and repair"
-            boss_supervisor.run_boss_loop(task_str, client=client)
-            continue
-
-        if user_input in ("/hud", "/claude-hud"):
-            from codex.claude_hud import claude_hud
-            claude_hud.render_panel(model_name=client.model, total_tokens=session.total_tokens)
-            continue
-
-        if user_input.startswith("/headroom"):
-            from codex.context.headroom import headroom
-            info = headroom.calculate_headroom(user_input, history_tokens=session.total_tokens)
-            console.print(f"\n[bold cyan]⚡ Context Headroom for {client.model}:[/] {info['remaining_headroom']:,} tokens free / {info['context_limit']:,} limit ({info['headroom_pct']}% headroom)\n")
-            continue
-
-        if user_input.startswith("/agency") or user_input.startswith("/ruflo"):
-            from codex.ruflo_agency import ruflo_agency
-            parts = user_input.split(maxsplit=1)
-            mission = parts[1].strip() if len(parts) > 1 else "Autonomous desktop screen capture and custom mouse automation"
-            ruflo_agency.run_mission(mission, client=client)
             continue
 
         if user_input.startswith("/antigravity") or user_input.startswith("/agy"):
@@ -1220,7 +840,7 @@ def run_repl(client: Any) -> None:
             else:
                 from codex.client import HybridCodexClient
                 client = HybridCodexClient(mode="cloud")
-            console.print("\n[bold white]✦ Switched to Online Cloud Mode[/] (Cloud Native Zero-Latency)\n")
+            console.print("\n[bold white]✦ Switched to Online Cloud Mode[/] (Groq LPU 500+ tok/s)\n")
             continue
 
         if user_input.startswith("/reach"):
@@ -1559,10 +1179,6 @@ def main() -> None:
     parser.add_argument("--offline", action="store_true", help="Run in fully offline mode using local Ollama model.")
     parser.add_argument("--antigravity", "--agy", action="store_true", help="Forward prompts to Google Antigravity CLI.")
     parser.add_argument("--swarm", "--grokbot", action="store_true", help="Launch the massive 45,000+ agent Swarm Command Center area.")
-    parser.add_argument("--clash", type=str, default=None, help="Run Clash Mode across all AI models concurrently.")
-    parser.add_argument("--test", "--snake", action="store_true", help="Launch Multi-AI Snake Game benchmark arena.")
-    parser.add_argument("--boss", type=str, default=None, help="Run autonomous self-healing Boss Loop on a hard task.")
-    parser.add_argument("--agency", "--ruflo", type=str, default=None, help="Dispatch mission to Ruflo Multi-Agent Agency.")
     parser.add_argument("--boot", action="store_true", help="Launch Cyberpunk terminal coding screen loader and boot selector.")
     parser.add_argument("--panel", action="store_true", help="Display live telemetry & Groq console HUD panel.")
     parser.add_argument("--max-cost", type=float, default=0.0, help="Spending cap in USD.")
@@ -1607,29 +1223,6 @@ def main() -> None:
         render_legal_audit(audit)
         return
 
-    if args.test or (args.prompt and args.prompt[0].lower() in ("test", "snake")):
-        from codex.snake_benchmark import run_snake_benchmark
-        run_snake_benchmark()
-        return
-
-    if args.clash or (args.prompt and args.prompt[0].lower() == "clash"):
-        from codex.clash import clash_engine
-        q = args.clash or (" ".join(args.prompt[1:]) if len(args.prompt) > 1 else "Synthesize optimal high-throughput concurrency architecture")
-        clash_engine.run_clash(q)
-        return
-
-    if args.boss or (args.prompt and args.prompt[0].lower() in ("boss", "bossloop")):
-        from codex.boss_loop import boss_supervisor
-        task_str = args.boss or (" ".join(args.prompt[1:]) if len(args.prompt) > 1 else "Perform autonomous verification audit")
-        boss_supervisor.run_boss_loop(task_str)
-        return
-
-    if args.agency or (args.prompt and args.prompt[0].lower() in ("agency", "ruflo")):
-        from codex.ruflo_agency import ruflo_agency
-        mission = args.agency or (" ".join(args.prompt[1:]) if len(args.prompt) > 1 else "Autonomous desktop screen capture and custom mouse automation")
-        ruflo_agency.run_mission(mission)
-        return
-
     if args.swarm or (args.prompt and args.prompt[0].lower() in ("swarm", "grokbot")):
         from codex.swarm import run_swarm_area
         run_swarm_area()
@@ -1648,7 +1241,7 @@ def main() -> None:
     elif args.antigravity:
         client = AntigravityClient(model=args.model or "gemini 3.8 flash")
     else:
-        # Default: High-Performance Cloud Native Server with offline local fallback
+        # Default: High-Performance Cloud Groq LPU (500+ tok/s) with offline local fallback
         from codex.client import HybridCodexClient
         client = HybridCodexClient(model=model if args.model else None, local_model=model, mode=mode_arg)
 

@@ -35,20 +35,12 @@ THINKING_GLYPHS = ["◇", "◈", "◆", "◈"]
 
 
 def format_clean_model_name(model_name: str) -> str:
-    """Format model name cleanly, stripping vendor tags like Groq LPU and speed meters."""
+    """Format model name cleanly, hiding internal vendor strings like antigravity."""
     clean = model_name.strip()
-    for s in [
-        "Groq LPU (500+ tok/s Ultra-Fast)",
-        "Groq LPU (500+ tok/s)",
-        "Groq LPU (qwen3.8-27b)",
-        "Groq LPU",
-        "(500+ tok/s)",
-        " antigravity",
-        "-antigravity",
-        "_antigravity",
-    ]:
-        clean = clean.replace(s, "").strip()
-    return clean or "Codex High-Performance"
+    for s in [" antigravity", "-antigravity", "_antigravity"]:
+        if clean.lower().endswith(s):
+            clean = clean[:-len(s)].strip()
+    return clean
 
 
 def render_mascot(eye_state: str = "center") -> Text:
@@ -689,7 +681,7 @@ TOKYONIGHT_ORANGE = "#e0af68"
 TOKYONIGHT_FG = "#a9b1d6"
 
 
-def render_opencode_tokyonight_banner(model_name: str = "Cloud Native (qwen3.8-27b)") -> None:
+def render_opencode_tokyonight_banner(model_name: str = "Groq LPU (qwen3.8-27b)") -> None:
     """Render Tokyonight OpenCode Startup UI rebranded as 'THE CODEX GROUP' matching Screenshot 2."""
     import shutil
     from rich.align import Align
@@ -807,7 +799,7 @@ def render_opencode_dashboard(
     right_content.append("[✓] Demonstrate AGENTS: 2,000+ curated swarm agents\n", style=TOKYONIGHT_GREEN)
     right_content.append("[✓] Demonstrate BACKGROUND AGENTS: Parallel tasks\n", style=TOKYONIGHT_GREEN)
     right_content.append("[✓] Demonstrate HARDWARE CONTROL: Mouse & WiFi\n", style=TOKYONIGHT_GREEN)
-    right_content.append("[✓] Demonstrate HIGH-PERFORMANCE: Zero-Latency Engine\n", style=TOKYONIGHT_GREEN)
+    right_content.append("[ ] Demonstrate ZERO-LATENCY: 500+ tok/s Groq LPU\n", style=TOKYONIGHT_ORANGE)
     right_content.append("[ ] Demonstrate PERMISSION PROMPTS: Inline diff approval\n\n", style=TOKYONIGHT_ORANGE)
 
     right_content.append(f"{workspace}\n", style="dim")
@@ -842,7 +834,7 @@ def render_stage2_turn_header(query_text: str, model_name: str = "qwen/qwen3.8-2
         content,
         box=box.ROUNDED,
         border_style=TOKYONIGHT_BLUE,
-        subtitle=f"[{TOKYONIGHT_CYAN}]{tokens_info}[/]  [{TOKYONIGHT_GREEN}]Codex Native[/] [{TOKYONIGHT_FG}]· {clean_model}[/]",
+        subtitle=f"[{TOKYONIGHT_CYAN}]{tokens_info}[/]  [{TOKYONIGHT_GREEN}]Groq LPU (500+ tok/s)[/] [{TOKYONIGHT_FG}]· {clean_model}[/]",
         subtitle_align="right"
     )
     console.print(panel)
@@ -857,9 +849,9 @@ def render_sessions_catalog() -> None:
     t.add_column("Status", style=TOKYONIGHT_FG)
     t.add_column("Shortcut", style="dim")
 
-    t.add_row("0m0 (Active)", "Orchestrator", "Cloud Native (qwen3.8-27b)", "LISTENING", "Default")
-    t.add_row("explore", "Codebase Explorer", "Cloud Native (qwen2.5-coder)", "IDLE", "ctrl+x 1")
-    t.add_row("auditor", "Security & QA Auditor", "Cloud Native (gpt-oss-120b)", "IDLE", "ctrl+x 2")
+    t.add_row("0m0 (Active)", "Orchestrator", "Groq LPU (qwen3.8-27b)", "LISTENING", "Default")
+    t.add_row("explore", "Codebase Explorer", "Groq LPU (qwen2.5-coder)", "IDLE", "ctrl+x 1")
+    t.add_row("auditor", "Security & QA Auditor", "Groq LPU (gpt-oss-120b)", "IDLE", "ctrl+x 2")
     t.add_row("oracle", "Architecture Reviewer", "Cloud Claude Opus 4.5", "BACKGROUND", "ctrl+x 3")
     console.print(t)
     console.print(f"[dim]Use ctrl+x right / ctrl+x left to switch active agent sessions in TUI mode.[/]\n")
@@ -913,21 +905,4 @@ def render_realtime_agent_bar(agent_name: str, task_desc: str, status: str = "CO
     """Render real-time animated sub-agent activity bar showing active agent names."""
     tag_style = f"bold {TOKYONIGHT_CYAN}" if status == "CODING" else f"bold {TOKYONIGHT_GREEN}"
     console.print(f"[{tag_style}]⚡ [{agent_name} - {status}]:[/] [{TOKYONIGHT_FG}]{task_desc}[/]")
-
-
-def smooth_stream_tokens(stream_gen, min_delay: float = 0.002):
-    """Smooth real-time token-by-token text loading with fluid terminal rendering."""
-    for chunk in stream_gen:
-        if len(chunk) > 20:
-            for ch in chunk:
-                sys.stdout.write(ch)
-                sys.stdout.flush()
-                time.sleep(0.0008)
-        else:
-            sys.stdout.write(chunk)
-            sys.stdout.flush()
-            if min_delay > 0:
-                time.sleep(min_delay)
-        yield chunk
-
 

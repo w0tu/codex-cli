@@ -1,7 +1,7 @@
 """10-Second Real-Time Token Monitor & Groq Console Synchronizer for Codex-CLI.
 
 Tracks:
-- Total tokens used from Cloud Native Server.
+- Total tokens used from Groq LPU (https://console.groq.com/home).
 - Rolling token generation rate (tok/s).
 - 5-hour rolling quota and $2.00 spend guardrail.
 - Emits formatted telemetry every 10 seconds.
@@ -64,7 +64,7 @@ class TenSecondTokenMonitor:
     def print_heartbeat(self):
         m = self.get_current_metrics()
         line = (
-            f"[dim]✦ [CLOUD TELEMETRY][/] "
+            f"[dim]✦ [GROQ LPU TELEMETRY][/] "
             f"[bold cyan]Total Tokens: {m['total_tokens']:,}[/] │ "
             f"[bold green]Spend: ${m['total_spend_usd']:.4f}/$2.00[/] │ "
             f"[dim underline green]{self.console_url}[/]"

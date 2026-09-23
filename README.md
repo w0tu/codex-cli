@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Autonomous AI Coding Assistant & Terminal Agent for Linux</strong><br />
-  <em>Hardware-accelerated Cloud Native · Real-time Tool Execution · Claude Code Aesthetic</em>
+  <em>Hardware-accelerated by Groq LPUs · Real-time Tool Execution · Claude Code Aesthetic</em>
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
 
 ## Overview
 
-**Codex** (`cdx`) is a terminal-native autonomous AI coding agent designed for Linux developers. Inspired by the ergonomics of Claude Code, Antigravity, and OpenAI Codex, it pairs ultra-fast Cloud Native cloud inference with autonomous local operating system execution.
+**Codex** (`cdx`) is a terminal-native autonomous AI coding agent designed for Linux developers. Inspired by the ergonomics of Claude Code, Antigravity, and OpenAI Codex, it pairs ultra-fast Groq LPU cloud inference with autonomous local operating system execution.
 
 It does not simply answer questions — it investigates codebases, writes and refactors files, executes shell commands, analyzes git trees, and validates solutions autonomously.
 
@@ -28,7 +28,7 @@ It does not simply answer questions — it investigates codebases, writes and re
 
 ## Key Features
 
-- **Ultra-Fast Cloud Native Inference**: Streams tokens with zero-latency using direct cloud endpoints.
+- **Ultra-Fast Groq LPU Inference**: Streams tokens at 150–300+ tok/s using the official `groq` SDK.
 - **Autonomous Agentic Tools**:
   - `bash`: Executes shell commands directly on your PC with timeout protection and output capture.
   - `read_file`: Line-numbered source code inspection with configurable windowing.

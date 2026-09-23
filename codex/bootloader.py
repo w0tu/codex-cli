@@ -22,7 +22,7 @@ CYBER_CODE_SNIPPETS = [
     "init_neural_mesh: sharding 45,000 sub-agents across 45 cluster matrices...",
     "[CUDA_KERNEL_0] <<<128, 512>>> stream_tensor_weights(dim=4096, dtype=fp16)",
     "crypt_verify: Merkle tree root hash = 0x9f8a32b1c4e85d9972a11b7d5e4f2038",
-    "cloud_engine_matrix: establishing high-throughput pipeline ➔ zero-latency streaming verified",
+    "groq_lpu_matrix: establishing cloaked pipeline ➔ 500+ tok/s throughput verified",
     "bubbling_state: leaf vectors bound to managers 0x00 through 0x2C (Depth: 3)",
     "instagram_flow_engine: compiling Google Flow / Veo 9:16 cinematography hooks",
     "legal_shield: liability disclaimer loaded, IP protection gates active",
@@ -54,7 +54,7 @@ def run_boot_selector(interactive: bool = True) -> str:
     selector_text = (
         "[bold cyan]SELECT SYSTEM BOOT ENVIRONMENT:[/]\n\n"
         "  [bold green][1][/] [bold white]45,000+ AGENT SWARM COMMAND CENTER[/]  [dim](Command Core, Clusters, 60 FPS Visualizer)[/]\n"
-        "  [bold green][2][/] [bold white]CODEX-CLI AUTONOMOUS CODING REPL[/]    [dim](Sub-second Cloud Native, 222 Personas, Local Mode)[/]\n"
+        "  [bold green][2][/] [bold white]CODEX-CLI AUTONOMOUS CODING REPL[/]    [dim](Sub-second Groq LPU, 222 Personas, Local Mode)[/]\n"
         "  [bold green][3][/] [bold white]INSTAGRAM & GOOGLE FLOW VIDEO STUDIO[/] [dim](Reels generation, Flow prompts, viral hooks)[/]\n"
         "  [bold green][4][/] [bold white]AUTONOMOUS LEGAL COUNSEL & AUDIT[/]    [dim](Contract auditor, IP copyright scan, TOS shield)[/]\n\n"
         "[dim]Press [1-4] or hit ENTER for default [2 CODEX-CLI]:[/]"

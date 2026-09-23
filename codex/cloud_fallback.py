@@ -15,9 +15,9 @@ from typing import Any, Generator, Optional, Tuple
 
 from codex.billing import billing_guardrail
 
-CLOAKED_ENGINE_LABEL = "Cloud Native (Zero-Latency)"
+CLOAKED_ENGINE_LABEL = "Groq LPU (500+ tok/s Ultra-Fast)"
 CLOAKED_CLOUD_URL = "https://api.groq.com/openai/v1/chat/completions"
-DEFAULT_CLOAKED_MODEL = "openai/gpt-oss-120b"
+DEFAULT_CLOAKED_MODEL = "qwen/qwen3.8-27b"
 
 
 def is_internet_available(host: str = "8.8.8.8", port: int = 53, timeout: float = 1.2) -> bool:
@@ -65,29 +65,18 @@ def detect_query_complexity(prompt: str, context_tokens: int = 0) -> Tuple[bool,
 
 def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str] = None) -> Tuple[str, str, str]:
     """Resolve endpoint URL, bearer key, and model ID with strict zero-leakage cloaking."""
-    req_model = (model or DEFAULT_CLOAKED_MODEL).lower()
-    # Map virtual or external model IDs to available Groq / Cloud endpoints
-    if "minimax" in req_model or "m2.7" in req_model:
-        primary_groq_model = "minimax/minimax-m2.7"
-    elif "120b" in req_model or "oss" in req_model or "gpt" in req_model or "pro" in req_model:
+    req_model = model or DEFAULT_CLOAKED_MODEL
+    # Map virtual or external model IDs to available Groq high-speed LPU models
+    if "120b" in req_model or "70b" in req_model or "pro" in req_model or "oss" in req_model:
         primary_groq_model = "openai/gpt-oss-120b"
     elif "20b" in req_model:
         primary_groq_model = "openai/gpt-oss-20b"
-    elif "qwen" in req_model:
-        primary_groq_model = "qwen/qwen3.8-27b"
     else:
-        primary_groq_model = "openai/gpt-oss-120b"  # Default flagship GPT 120B engine
-
-    # Check for direct MiniMax API key if minimax model requested
-    minimax_env = os.environ.get("MINIMAX_API_KEY", "").strip()
-    if ("minimax" in req_model or "m2.7" in req_model) and minimax_env:
-        return "https://api.minimax.chat/v1/text/chatcompletion_v2", minimax_env, "MiniMax-Text-01"
+        primary_groq_model = "qwen/qwen3.8-27b"  # 500+ tok/s ultra-fast primary model
 
     if api_key:
         key = api_key.strip()
-        if key.startswith("mm-") or key.startswith("minimax-"):
-            return "https://api.minimax.chat/v1/text/chatcompletion_v2", key, "MiniMax-Text-01"
-        elif key.startswith("gsk_"):
+        if key.startswith("gsk_"):
             return "https://api.groq.com/openai/v1/chat/completions", key, primary_groq_model
         elif key.startswith("xai-"):
             return "https://api.x.ai/v1/chat/completions", key, "grok-2-latest"
@@ -130,7 +119,7 @@ def is_cloud_available() -> bool:
 
 
 class CloakedCloudClient:
-    """Zero-leakage remote inference client labeled strictly as 'Cloud Native (Zero-Latency)'."""
+    """Zero-leakage remote inference client labeled strictly as 'Groq LPU (500+ tok/s)'."""
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get("GROQ_API_KEY") or os.environ.get("XAI_API_KEY") or os.environ.get("CODEX_CLOUD_KEY") or ""
@@ -170,7 +159,8 @@ class CloakedCloudClient:
             if not active_key:
                 raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
 
-            actual_max_tokens = max(max_tokens, 4096)
+            # Cap max_tokens to 800 on qwen models to satisfy Groq on-demand OTPM limit ceiling
+            actual_max_tokens = min(max_tokens, 800) if "qwen" in model_id.lower() else max_tokens
 
             headers = {
                 "Content-Type": "application/json",
@@ -245,13 +235,12 @@ class CloakedCloudClient:
             if not active_key:
                 raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
 
-            actual_max_tokens = max(max_tokens, 4096)
+            actual_max_tokens = min(max_tokens, 800) if "qwen" in model_id.lower() else max_tokens
 
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {active_key}",
             }
-            from codex.tools import TOOLS_SCHEMA
             payload = {
                 "model": model_id,
                 "messages": messages,
@@ -259,9 +248,6 @@ class CloakedCloudClient:
                 "temperature": temperature,
                 "stream": False,
             }
-            if TOOLS_SCHEMA:
-                payload["tools"] = TOOLS_SCHEMA
-                payload["tool_choice"] = "auto"
             if "gpt-oss" in model_id:
                 payload["include_reasoning"] = False
 
@@ -277,17 +263,6 @@ class CloakedCloudClient:
                     raise RuntimeError(f"Cloud escalation returned HTTP {resp.status_code}: {resp.text}")
                 data = resp.json()
                 break
-
-        class FuncObj:
-            def __init__(self, name, args):
-                self.name = name
-                self.arguments = args if isinstance(args, str) else json.dumps(args)
-
-        class ToolCallObj:
-            def __init__(self, id_val, name, args):
-                self.id = id_val
-                self.type = "function"
-                self.function = FuncObj(name, args)
 
         class MsgObj:
             def __init__(self, content, tc):
@@ -318,21 +293,7 @@ class CloakedCloudClient:
 
         c0 = data.get("choices", [{}])[0]
         msg = c0.get("message", {})
-        raw_tc = msg.get("tool_calls")
-        tc_objects = None
-        if raw_tc:
-            tc_objects = []
-            for item in raw_tc:
-                f = item.get("function", {})
-                tc_objects.append(
-                    ToolCallObj(
-                        item.get("id", f"call_{int(time.time()*1000)}"),
-                        f.get("name", ""),
-                        f.get("arguments", "{}")
-                    )
-                )
-
-        return RespObj(ChoiceObj(MsgObj(msg.get("content", ""), tc_objects)), UsageObj(pt, ct, tt))
+        return RespObj(ChoiceObj(MsgObj(msg.get("content", ""), msg.get("tool_calls"))), UsageObj(pt, ct, tt))
 
 
 # Global singleton instance

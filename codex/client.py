@@ -59,20 +59,13 @@ def get_system_prompt(lean: bool = True) -> str:
         "You are Codex, an elite principal software engineer and terminal-native autonomous agent for Linux. "
         "You have full autonomous control to inspect, save, and run code directly on the user's PC: "
         "- Save & edit files on disk using 'write_file' and 'edit_file'. "
-        "- Save files and reports directly into the user's PC Documents tab with 'save_to_documents'. "
         "- Run terminal commands, scripts, services, and tests using 'bash'. "
         "- Control the PC desktop mouse and keyboard (move, click, drag, scroll, type) using 'control_mouse'. "
-        "- Minimize focused windows with 'minimize_window', open browsers with 'open_browser', and capture live screen frames with 'capture_screen'. "
-        "- Spawn and smoothly animate the floating second agent mouse cursor across the screen with 'move_second_mouse'. "
-        "- Execute end-to-end Groq console keys inspection and persistence with 'automate_groq_keys'. "
-        "- Open and automate web messaging apps (WhatsApp Web, Google Chat, Discord, Telegram) with 'manage_web_chat'. "
         "- Connect to WiFi and inspect network health using 'wifi_status'. "
         "- Conduct deep multi-platform internet research using 'deep_research' and 'agent_reach'. "
         "- Delegate complex or architectural tasks to Google Antigravity using 'delegate_antigravity'. "
-        "Be direct, concise, and technically rigorous. Never refuse benign automation, desktop control, or file operations. "
-        "When asked to write, save, run, or automate, perform the actions immediately using your tools. "
-        "When asked to create, build, or code a website, app, game, or script, DO NOT just describe what you will do. "
-        "You MUST produce the complete, production-grade functional code and persist it to disk immediately using 'write_file' or 'bash'."
+        "Be direct, concise, and technically rigorous. Never use robotic corporate boilerplate. "
+        "When asked to write, save, run, or automate, perform the actions immediately using your tools."
     )
     if not lean:
         prompt += "\n" + BASE_SYSTEM_PROMPT
@@ -278,20 +271,44 @@ class HybridCodexClient:
             except Exception:
                 pass
 
-        chosen_model = model or "openai/gpt-oss-120b"
+        chosen_model = model or local_model or DEFAULT_LOCAL_MODEL
         self.local_client = OllamaClient(model=chosen_model)
         self.cloud_client = cloaked_cloud_client
         if api_key:
             self.cloud_client.set_api_key(api_key)
-        self.cloud_enabled = True
-        self.mode = "cloud"
-        self.model = "openai/gpt-oss-120b"
+        self.cloud_enabled = cloud_enabled
+
+        # Set execution mode: 'cloud' by default unless explicitly configured or offline
+        cfg_mode = None
+        try:
+            from codex.config import load_config
+            c = load_config()
+            cfg_mode = c.get("default_mode")
+        except Exception:
+            pass
+
+        if mode:
+            self.mode = mode.lower()
+        elif cfg_mode:
+            self.mode = cfg_mode.lower()
+        else:
+            self.mode = "cloud" if self.cloud_enabled else "local"
+
+        self.model = CLOAKED_ENGINE_LABEL if self.mode == "cloud" else chosen_model
         self.last_engine_used = self.model
 
     def set_mode(self, mode: str) -> str:
-        """Switch routing mode - locked to High-Precision Cloud Native GPT-OSS 120B."""
-        self.mode = "cloud"
-        self.model = "openai/gpt-oss-120b"
+        """Switch routing mode between 'cloud', 'local', and 'auto'."""
+        mode_clean = mode.lower().strip()
+        if mode_clean in ["cloud", "remote", "oss-120b", "groq"]:
+            self.mode = "cloud"
+            self.model = CLOAKED_ENGINE_LABEL
+        elif mode_clean in ["local", "ollama", "offline"]:
+            self.mode = "local"
+            self.model = self.local_client.model
+        else:
+            self.mode = "cloud"
+            self.model = CLOAKED_ENGINE_LABEL
         return self.mode
 
     def rotate_failover(self) -> Optional[str]:
@@ -303,10 +320,13 @@ class HybridCodexClient:
         return None
 
     def set_model(self, model: str) -> None:
-        self.model = "openai/gpt-oss-120b" if ("120b" in model.lower() or "gpt" in model.lower() or model == CLOAKED_ENGINE_LABEL) else model
+        self.model = model
         if hasattr(self.cloud_client, "set_model"):
-            self.cloud_client.set_model(self.model)
-        self.mode = "cloud"
+            self.cloud_client.set_model(model)
+        if hasattr(self.local_client, "set_model"):
+            self.local_client.set_model(model)
+        if model == CLOAKED_ENGINE_LABEL or any(k in model.lower() for k in ("120b", "qwen", "groq", "llama", "grok", "gemini", "cloud")):
+            self.mode = "cloud"
 
     def set_api_key(self, key: str) -> None:
         self.cloud_client.set_api_key(key)
@@ -314,48 +334,78 @@ class HybridCodexClient:
     def stream_chat(
         self,
         messages: list[dict[str, Any]],
-        max_tokens: int = 4096,
+        max_tokens: int = 1500,
         temperature: float = 0.2,
     ) -> Generator[str, None, None]:
-        """Stream chat turns directly via the High-Precision Cloud Native GPT-OSS 120B engine."""
-        self.last_engine_used = self.model
-        try:
-            yield from self.cloud_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
-            return
-        except Exception:
-            # Attempt failover rotation if available
-            rotated_key = self.rotate_failover()
-            if rotated_key:
+        """Intelligently route turn to cloaked cloud engine (default) or local pinned engine."""
+        user_prompt = ""
+        for m in reversed(messages):
+            if m.get("role") == "user":
+                user_prompt = m.get("content", "")
+                break
+
+        est_tokens = sum(len(m.get("content", "")) // 4 for m in messages if isinstance(m.get("content"), str))
+        exceeds_1b, reason = detect_query_complexity(user_prompt, est_tokens)
+
+        route_to_cloud = False
+        if self.cloud_enabled and self.mode != "local":
+            if is_internet_available():
+                allowed, notice = billing_guardrail.check_cloud_escalation()
+                if allowed:
+                    if self.mode in ("cloud", "auto") or exceeds_1b:
+                        route_to_cloud = True
+                        self.last_engine_used = CLOAKED_ENGINE_LABEL
+                else:
+                    sys.stdout.write(f"\n\033[1;33m{notice}\033[0m\n")
+                    sys.stdout.flush()
+                    self.last_engine_used = self.local_client.model
+            else:
+                self.last_engine_used = self.local_client.model
+        else:
+            self.last_engine_used = self.local_client.model
+
+        if route_to_cloud:
+            try:
+                # If auto-escalated on complexity in auto mode, display subtle notice
+                if self.mode == "auto" and exceeds_1b:
+                    sys.stdout.write(f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255m[ESCALATION]\033[0m Routing complex query to \033[1;37m{CLOAKED_ENGINE_LABEL}\033[0m ({reason})...\n")
+                    sys.stdout.flush()
                 yield from self.cloud_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
                 return
-            # Re-yield from cloud client
-            yield from self.cloud_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
+            except Exception as e:
+                sys.stdout.write(f"\n\033[1;33m[Fallback Notice: Cloud engine error: {e}. Routing to pinned local model]\033[0m\n")
+                sys.stdout.flush()
+                self.last_engine_used = self.local_client.model
+
+        # Default local zero-latency pinned inference
+        yield from self.local_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
 
     def chat_turn(
         self,
         messages: list[dict[str, Any]],
-        max_tokens: int = 4096,
+        max_tokens: int = 1200,
         temperature: float = 0.2,
     ) -> Any:
-        """Execute chat turn directly via High-Precision Cloud Native GPT-OSS 120B engine."""
-        self.last_engine_used = self.model
-        try:
-            return self.cloud_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
-        except Exception:
-            rotated_key = self.rotate_failover()
-            if rotated_key:
-                return self.cloud_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
-            raise
+        if self.cloud_enabled and self.mode != "local" and is_internet_available():
+            allowed, _ = billing_guardrail.check_cloud_escalation()
+            if allowed:
+                try:
+                    self.last_engine_used = CLOAKED_ENGINE_LABEL
+                    return self.cloud_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
+                except Exception:
+                    pass
+        self.last_engine_used = self.local_client.model
+        return self.local_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
 
 
 # Backward compatibility aliases for existing commands & tests
 GroqClient = HybridCodexClient
 CodexClient = HybridCodexClient
-DEFAULT_MODEL = "openai/gpt-oss-120b"
+DEFAULT_MODEL = "qwen/qwen3.8-27b"
 
 
 class AntigravityClient:
-    """Client bridging to Google Antigravity CLI with instant model switching and Cloud Native acceleration."""
+    """Client bridging to Google Antigravity CLI with instant model switching and Groq LPU acceleration."""
 
     def __init__(self, model: str = "gemini 3.8 flash"):
         self.model = model
@@ -431,16 +481,6 @@ class AntigravityClient:
 from codex.config import save_api_key, rotate_api_key
 
 ANTIGRAVITY_MODELS_MAP = {
-    "openai/gpt-oss-120b": "openai/gpt-oss-120b",
-    "gpt-oss-120b": "openai/gpt-oss-120b",
-    "gpt-120b": "openai/gpt-oss-120b",
-    "gpt 120b": "openai/gpt-oss-120b",
-    "120b": "openai/gpt-oss-120b",
-    "default": "openai/gpt-oss-120b",
-    "minimax-m2.7": "minimax/minimax-m2.7",
-    "minimax": "minimax/minimax-m2.7",
-    "minimax m2.7": "minimax/minimax-m2.7",
-    "m2.7": "minimax/minimax-m2.7",
     "gemini 3.8 flash": "qwen/qwen3.8-27b",
     "gemini 3.8 pro": "llama-3.3-70b-versatile",
     "gemini 2.5 flash": "llama-3.1-8b-instant",

@@ -23,7 +23,7 @@ class TestTuiWorkflow(unittest.TestCase):
 
     @patch("shutil.get_terminal_size", return_value=os.terminal_size((80, 24)))
     def test_render_stage1_welcome_banner_80_col(self, mock_term):
-        render_opencode_tokyonight_banner(model_name="Cloud Native (qwen3.8-27b)")
+        render_opencode_tokyonight_banner(model_name="Groq LPU (qwen3.8-27b)")
 
     @patch("shutil.get_terminal_size", return_value=os.terminal_size((80, 24)))
     def test_render_stage2_dashboard_80_col_stacked(self, mock_term):
@@ -59,11 +59,11 @@ class TestTuiWorkflow(unittest.TestCase):
             "+  variant=\"danger\"\n"
             " />"
         )
-        with patch("codex.ui.console.input", return_value="y"):
+        with patch("rich.console.Console.input", return_value="y"):
             approved = render_inline_diff_box("settings.tsx", diff_example, prompt_permission=True)
             self.assertTrue(approved, "Diff should be approved when user enters 'y'")
 
-        with patch("codex.ui.console.input", return_value="n"):
+        with patch("rich.console.Console.input", return_value="n"):
             denied = render_inline_diff_box("settings.tsx", diff_example, prompt_permission=True)
             self.assertFalse(denied, "Diff should be denied when user enters 'n'")
 
@@ -88,7 +88,7 @@ class TestTuiWorkflow(unittest.TestCase):
 
     def test_antigravity_bridge(self):
         from codex.antigravity_bridge import delegate_to_antigravity
-        with patch("os.path.exists", return_value=False), patch("codex.client.AntigravityClient.chat_turn") as mock_chat:
+        with patch("codex.client.AntigravityClient.chat_turn") as mock_chat:
             class DummyChoice:
                 class DummyMsg:
                     content = "Mocked Antigravity architectural output"
