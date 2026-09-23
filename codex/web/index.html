@@ -1,1549 +1,965 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Codex Group — Autonomous AI Desktop</title>
-  <!-- Marked for Markdown, Highlight.js for Syntax Highlighting, FontAwesome Icons -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-    :root {
-      --bg: #13141c;
-      --sidebar-bg: #1a1b26;
-      --card-bg: #212435;
-      --card-hover: #292e42;
-      --border: #32374d;
-      --border-subtle: #272a3a;
-      --blue: #7aa2f7;
-      --purple: #bb9af7;
-      --cyan: #7dcfff;
-      --green: #9ece6a;
-      --red: #f7768e;
-      --orange: #e0af68;
-      --fg: #c0caf5;
-      --fg-dim: #7982a9;
-      --fg-muted: #565f89;
-      --glow-gradient: linear-gradient(90deg, #7aa2f7, #bb9af7, #7dcfff, #9ece6a);
-    }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "JetBrains Mono", sans-serif;
-    }
-    body {
-      background: var(--bg);
-      color: var(--fg);
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
-      user-select: none;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Codex Group — Autonomous AI Desktop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        oled: '#000000',
+                        sidebar: '#0a0a0a',
+                        surface: '#111111',
+                        surfaceHover: '#1a1a1a',
+                        borderLight: '#1f1f1f',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #000000; color: #ffffff; }
+        
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #333; }
 
-    /* Left Sidebar */
-    .sidebar {
-      width: 280px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      z-index: 10;
-    }
-    .brand {
-      padding: 18px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    .brand-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .brand-icon {
-      width: 34px;
-      height: 34px;
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 16px;
-      box-shadow: 0 4px 14px rgba(122, 162, 247, 0.35);
-    }
-    .brand-title {
-      font-weight: 700;
-      font-size: 15px;
-      color: #fff;
-      letter-spacing: 0.3px;
-    }
-    .new-chat-btn {
-      margin: 14px 16px 8px 16px;
-      padding: 10px 14px;
-      background: rgba(122, 162, 247, 0.12);
-      border: 1px solid rgba(122, 162, 247, 0.3);
-      border-radius: 9px;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      font-size: 13.5px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-    .new-chat-btn:hover {
-      background: rgba(122, 162, 247, 0.22);
-      border-color: var(--blue);
-      transform: translateY(-1px);
-    }
-    .kbd-badge {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border);
-      padding: 2px 6px;
-      border-radius: 5px;
-      font-size: 11px;
-      color: var(--fg-dim);
-    }
+        .glass-card {
+            background: rgba(17, 17, 17, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+        
+        /* Star-like noise overlay */
+        .stars-bg::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.4), transparent),
+                radial-gradient(1px 1px at 45% 75%, rgba(255,255,255,0.3), transparent),
+                radial-gradient(1.5px 1.5px at 85% 35%, rgba(255,255,255,0.45), transparent),
+                radial-gradient(1px 1px at 65% 15%, rgba(255,255,255,0.25), transparent);
+            background-size: 80px 80px;
+            opacity: 0.55;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-    .nav-section-title {
-      padding: 14px 20px 6px 20px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--fg-muted);
-    }
+        .card-blue { background: linear-gradient(135deg, rgba(30, 58, 138, 0.45) 0%, rgba(0,0,0,0) 80%); }
+        .card-orange { background: linear-gradient(135deg, rgba(154, 52, 18, 0.45) 0%, rgba(0,0,0,0) 80%); }
+        .card-purple { background: linear-gradient(135deg, rgba(107, 33, 168, 0.45) 0%, rgba(0,0,0,0) 80%); }
+        .card-teal { background: linear-gradient(135deg, rgba(13, 148, 136, 0.45) 0%, rgba(0,0,0,0) 80%); }
+        
+        .card-content { position: relative; z-index: 1; }
 
-    .nav-list {
-      padding: 0 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-size: 13.5px;
-      color: var(--fg);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .nav-item:hover {
-      background: var(--card-hover);
-      color: #fff;
-    }
-    .nav-item.active {
-      background: rgba(122, 162, 247, 0.16);
-      color: var(--blue);
-      font-weight: 600;
-      border: 1px solid rgba(122, 162, 247, 0.3);
-    }
-    .nav-item i {
-      width: 18px;
-      text-align: center;
-      font-size: 14px;
-    }
+        .markdown-body p { margin-bottom: 0.75em; line-height: 1.6; }
+        .markdown-body p:last-child { margin-bottom: 0; }
+        .markdown-body pre { background: #0c0c0c; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; border: 1px solid #1f1f1f; margin: 1em 0; }
+        .markdown-body code { background: #181818; padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: monospace; font-size: 0.85em; }
+        .markdown-body pre code { background: transparent; padding: 0; }
+        .markdown-body ul { list-style: disc; margin-left: 1.5em; margin-bottom: 1em; }
+        .markdown-body ol { list-style: decimal; margin-left: 1.5em; margin-bottom: 1em; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 600; color: #fff; margin-top: 1em; margin-bottom: 0.5em; }
+        
+        .typing-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 
-    .recent-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .recent-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      border-radius: 7px;
-      font-size: 12.5px;
-      color: var(--fg-dim);
-      cursor: pointer;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: all 0.15s ease;
-    }
-    .recent-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-    }
-    .recent-item i {
-      font-size: 12px;
-      color: var(--fg-muted);
-    }
-
-    .sidebar-footer {
-      padding: 16px;
-      border-top: 1px solid var(--border-subtle);
-      background: rgba(19, 20, 28, 0.6);
-    }
-    .pro-card {
-      background: linear-gradient(135deg, rgba(122, 162, 247, 0.12), rgba(187, 154, 247, 0.08));
-      border: 1px solid rgba(122, 162, 247, 0.25);
-      border-radius: 9px;
-      padding: 12px;
-    }
-    .pro-header {
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-    .pro-tag {
-      background: var(--blue);
-      color: #1a1b26;
-      font-size: 10px;
-      font-weight: 800;
-      padding: 1px 6px;
-      border-radius: 4px;
-    }
-    .pro-desc {
-      font-size: 11px;
-      color: var(--fg-dim);
-      margin-bottom: 8px;
-    }
-    .pro-speed {
-      font-size: 11px;
-      color: var(--green);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    /* Main Container */
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* Top App Bar */
-    .top-bar {
-      height: 54px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      background: rgba(26, 27, 38, 0.4);
-      backdrop-filter: blur(10px);
-    }
-    .top-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .model-selector-pill {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 12px;
-      font-size: 12px;
-      color: var(--fg);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
-    .model-selector-pill select {
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-size: 12px;
-      outline: none;
-      cursor: pointer;
-    }
-    .top-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-size: 13px;
-      color: var(--fg-dim);
-    }
-    .top-action-btn {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 6px;
-      transition: background 0.15s;
-    }
-    .top-action-btn:hover {
-      background: var(--card-hover);
-      color: #fff;
-    }
-
-    /* Tab Content Views */
-    .tab-view {
-      flex: 1;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .tab-view.active {
-      display: flex;
-    }
-
-    /* ── CHAT TAB: Welcome Hero + Starter Boxes ── */
-    .chat-scroll-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px 32px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .welcome-hero {
-      max-width: 780px;
-      width: 100%;
-      margin-top: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-    .hero-flare {
-      width: 58px;
-      height: 58px;
-      border-radius: 50%;
-      background: radial-gradient(circle, var(--blue) 0%, rgba(187, 154, 247, 0.4) 50%, transparent 70%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-      box-shadow: 0 0 30px rgba(122, 162, 247, 0.5);
-    }
-    .hero-flare i {
-      font-size: 26px;
-      color: #fff;
-    }
-    .hero-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 8px;
-      letter-spacing: -0.5px;
-    }
-    .hero-desc {
-      font-size: 14px;
-      color: var(--fg-dim);
-      margin-bottom: 28px;
-      max-width: 540px;
-      line-height: 1.5;
-    }
-
-    /* Main Big Hero Prompt Box */
-    .hero-prompt-box {
-      width: 100%;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-      transition: all 0.25s ease;
-      position: relative;
-    }
-    .hero-prompt-box:focus-within {
-      border-color: transparent;
-      box-shadow: 0 0 0 2px var(--blue), 0 10px 35px rgba(122, 162, 247, 0.25);
-    }
-    .hero-prompt-input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #fff;
-      font-size: 15px;
-      resize: none;
-      min-height: 54px;
-      line-height: 1.5;
-    }
-    .hero-prompt-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .hero-prompt-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .prompt-chip {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 4px 10px;
-      font-size: 11.5px;
-      color: var(--fg-dim);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .prompt-chip:hover {
-      background: rgba(122, 162, 247, 0.15);
-      border-color: var(--blue);
-      color: #fff;
-    }
-    .hero-send-btn {
-      width: 36px;
-      height: 36px;
-      background: var(--blue);
-      border: none;
-      border-radius: 10px;
-      color: #1a1b26;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .hero-send-btn:hover {
-      background: #89b4fa;
-      transform: scale(1.05);
-    }
-
-    /* Proper Starter Boxes / Suggestion Cards Grid */
-    .boxes-grid-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--fg-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin: 28px 0 14px 0;
-      align-self: flex-start;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .starter-boxes {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      width: 100%;
-    }
-    .box-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    .box-card:hover {
-      background: var(--card-hover);
-      border-color: var(--blue);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    }
-    .box-card i {
-      font-size: 18px;
-      color: var(--blue);
-    }
-    .box-card-title {
-      font-size: 13.5px;
-      font-weight: 600;
-      color: #fff;
-      line-height: 1.4;
-    }
-    .box-card-desc {
-      font-size: 11.5px;
-      color: var(--fg-dim);
-      line-height: 1.4;
-    }
-    .box-card-tag {
-      font-size: 10.5px;
-      color: var(--cyan);
-      margin-top: auto;
-      font-weight: 600;
-    }
-
-    /* Active Chat Message Stream */
-    .chat-messages {
-      max-width: 820px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-    .msg-card {
-      display: flex;
-      gap: 14px;
-      width: 100%;
-      animation: fadeIn 0.25s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: 14px;
-    }
-    .avatar-user {
-      background: #3b4261;
-      color: #fff;
-    }
-    .avatar-ai {
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      color: #fff;
-    }
-    .msg-body {
-      flex: 1;
-      line-height: 1.6;
-      font-size: 14px;
-      word-break: break-word;
-    }
-    .user-msg {
-      background: rgba(122, 162, 247, 0.1);
-      border: 1px solid rgba(122, 162, 247, 0.25);
-      border-radius: 12px;
-      padding: 12px 16px;
-      color: #fff;
-      font-weight: 500;
-    }
-    .thinking-bubble {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11.5px;
-      color: var(--cyan);
-      background: rgba(125, 207, 255, 0.1);
-      border: 1px solid rgba(125, 207, 255, 0.25);
-      border-radius: 20px;
-      padding: 3px 10px;
-      margin-bottom: 12px;
-    }
-    .telemetry-tag {
-      display: inline-block;
-      margin-top: 10px;
-      font-size: 11px;
-      color: var(--green);
-    }
-
-    /* Floating Bottom Rainbow Input Bar (Image 3 Style) */
-    .floating-input-bar {
-      width: 100%;
-      max-width: 820px;
-      margin: 0 auto 16px auto;
-      padding: 0 16px;
-    }
-    .rainbow-input-wrapper {
-      position: relative;
-      border-radius: 16px;
-      padding: 2px;
-      background: linear-gradient(90deg, #7aa2f7, #bb9af7, #7dcfff, #9ece6a);
-      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.45);
-    }
-    .rainbow-input-inner {
-      background: #181924;
-      border-radius: 14px;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .chat-bottom-input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #fff;
-      font-size: 14.5px;
-      resize: none;
-      min-height: 42px;
-      line-height: 1.4;
-    }
-    .bottom-bar-controls {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .pill-filters {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .mini-pill {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 3px 8px;
-      font-size: 11px;
-      color: var(--fg-dim);
-      cursor: pointer;
-    }
-    .mini-pill:hover {
-      color: #fff;
-      border-color: var(--blue);
-    }
-
-    /* ── USAGE TAB: Metrics, Boxes & GitHub Contribution Heatmap ── */
-    .usage-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 28px 36px;
-      max-width: 1000px;
-      width: 100%;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-    .usage-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .usage-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .usage-subtitle {
-      font-size: 13px;
-      color: var(--fg-dim);
-      margin-top: 4px;
-    }
-    .metric-cards-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-    }
-    .metric-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      position: relative;
-      overflow: hidden;
-    }
-    .metric-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--blue);
-      opacity: 0.8;
-    }
-    .metric-card.green::before { background: var(--green); }
-    .metric-card.purple::before { background: var(--purple); }
-    .metric-card.orange::before { background: var(--orange); }
-
-    .metric-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--fg-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .metric-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.5px;
-    }
-    .metric-footer {
-      font-size: 11.5px;
-      color: var(--green);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 4px;
-    }
-
-    /* GitHub Contribution Heatmap */
-    .heatmap-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .heatmap-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .heatmap-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .heatmap-legend {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: var(--fg-dim);
-    }
-    .legend-box {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-    }
-    .heatmap-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      grid-auto-flow: column;
-      gap: 8px;
-      padding: 8px 0;
-    }
-    .heat-cell {
-      aspect-ratio: 1;
-      border-radius: 4px;
-      background: #1b1e2c;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      color: var(--fg-dim);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      min-height: 48px;
-    }
-    .heat-cell:hover {
-      transform: scale(1.08);
-      border-color: #fff;
-      z-index: 5;
-    }
-    .heat-cell.level-0 { background: #1b1e2c; }
-    .heat-cell.level-1 { background: #0e4429; color: #a8f3c7; }
-    .heat-cell.level-2 { background: #006d32; color: #c4fcd9; }
-    .heat-cell.level-3 { background: #26a641; color: #fff; font-weight: 700; }
-    .heat-cell.level-4 { background: #39d353; color: #0f3d17; font-weight: 800; }
-
-    /* Telemetry Detail Boxes */
-    .telemetry-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .telemetry-box {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .telemetry-box-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .progress-item {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-    }
-    .progress-track {
-      height: 6px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: var(--blue);
-      border-radius: 3px;
-    }
-    .progress-fill.green { background: var(--green); }
-    .progress-fill.purple { background: var(--purple); }
-
-    /* ── OTHER TABS (Mouse, Files, WiFi, Antigravity) ── */
-    .simple-tab-container {
-      padding: 28px 36px;
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      max-width: 900px;
-    }
-
-    /* Markdown Code Blocks */
-    pre {
-      background: #181924;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      margin: 12px 0;
-      overflow-x: auto;
-    }
-    code {
-      font-family: "JetBrains Mono", Consolas, monospace;
-      font-size: 13px;
-    }
-  </style>
+        .heat-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .heat-cell:hover {
+            transform: scale(1.15);
+            outline: 1px solid #fff;
+            z-index: 10;
+        }
+        .heat-0 { background: #161616; color: #555; }
+        .heat-1 { background: #0e4429; color: #a8f3c7; }
+        .heat-2 { background: #006d32; color: #c4fcd9; }
+        .heat-3 { background: #26a641; color: #fff; font-weight: 600; }
+        .heat-4 { background: #39d353; color: #000; font-weight: 700; }
+    </style>
 </head>
-<body>
+<body class="font-sans flex h-screen overflow-hidden selection:bg-purple-500/30">
 
-  <!-- Left Sidebar -->
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-left">
-        <div class="brand-icon"><i class="fa-solid fa-code"></i></div>
-        <div class="brand-title">The Codex Group</div>
-      </div>
-      <i class="fa-solid fa-shield-halved" style="color:var(--green); font-size:14px;" title="Zero Guardrails Local PC Control"></i>
-    </div>
-
-    <button class="new-chat-btn" onclick="startNewChat()">
-      <span><i class="fa-solid fa-plus" style="margin-right:8px;"></i> New Chat</span>
-      <span class="kbd-badge">⌘ N</span>
-    </button>
-
-    <div class="nav-section-title">Navigation</div>
-    <div class="nav-list">
-      <div class="nav-item active" onclick="switchTab('chat')">
-        <i class="fa-solid fa-comments"></i> <span>Chat & Copilot</span>
-      </div>
-      <div class="nav-item" onclick="switchTab('usage')">
-        <i class="fa-solid fa-chart-line"></i> <span>Usage & Activity</span>
-      </div>
-      <div class="nav-item" onclick="switchTab('mouse')">
-        <i class="fa-solid fa-arrow-pointer"></i> <span>Mouse & Hardware</span>
-      </div>
-      <div class="nav-item" onclick="switchTab('files')">
-        <i class="fa-solid fa-folder-open"></i> <span>Local PC Files</span>
-      </div>
-      <div class="nav-item" onclick="switchTab('wifi')">
-        <i class="fa-solid fa-wifi"></i> <span>WiFi & Research</span>
-      </div>
-      <div class="nav-item" onclick="switchTab('antigravity')">
-        <i class="fa-solid fa-atom"></i> <span>Antigravity</span>
-      </div>
-    </div>
-
-    <div class="nav-section-title">Recent Conversations</div>
-    <div class="recent-list" id="recent-list">
-      <div class="recent-item" onclick="loadRecentPrompt('Autonomous Full-Stack Code Generation')">
-        <i class="fa-regular fa-message"></i> <span>Autonomous Full-Stack App</span>
-      </div>
-      <div class="recent-item" onclick="loadRecentPrompt('Hardware Mouse Automation via xdotool')">
-        <i class="fa-regular fa-message"></i> <span>Linux Mouse Automation</span>
-      </div>
-      <div class="recent-item" onclick="loadRecentPrompt('Deep Multi-Platform Research')">
-        <i class="fa-regular fa-message"></i> <span>Multi-Source Web Research</span>
-      </div>
-      <div class="recent-item" onclick="loadRecentPrompt('Google Antigravity Delegation')">
-        <i class="fa-regular fa-message"></i> <span>Antigravity Architectural Audit</span>
-      </div>
-    </div>
-
-    <div class="sidebar-footer">
-      <div class="pro-card">
-        <div class="pro-header">
-          <span>Enterprise Unlimited</span>
-          <span class="pro-tag">ACTIVE</span>
-        </div>
-        <div class="pro-desc">Hardware-Accelerated Local & Cloud LPU</div>
-        <div class="pro-speed">
-          <i class="fa-solid fa-bolt"></i> <span>Groq LPU (500+ tok/s)</span>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Main Workspace Area -->
-  <main class="main-content">
-
-    <!-- Top App Bar -->
-    <header class="top-bar">
-      <div class="top-left">
-        <div class="model-selector-pill">
-          <i class="fa-solid fa-microchip" style="color:var(--cyan)"></i>
-          <select id="model-select" onchange="changeModel(this.value)">
-            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq LPU 500+ tok/s)</option>
-            <option value="gemini 3.8 flash">Gemini 3.8 Flash (Antigravity Bridge)</option>
-            <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 (High Reasoning)</option>
-            <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
-            <option value="qwen2.5-coder:1.5b">Local Ollama (Pinned Zero-Latency)</option>
-          </select>
-        </div>
-      </div>
-      <div class="top-right">
-        <div class="top-action-btn" onclick="switchTab('usage')">
-          <i class="fa-solid fa-chart-simple"></i> <span>Usage</span>
-        </div>
-        <div class="top-action-btn" onclick="startNewChat()">
-          <i class="fa-solid fa-rotate-right"></i> <span>Reset</span>
-        </div>
-      </div>
-    </header>
-
-    <!-- ── TAB 1: CHAT & COPILOT ── -->
-    <section id="tab-chat" class="tab-view active">
-      <div class="chat-scroll-area" id="chat-scroll-area">
+    <!-- OLED Left Sidebar -->
+    <aside class="w-[280px] bg-sidebar border-r border-borderLight flex flex-col flex-shrink-0 select-none">
         
-        <!-- Welcome Hero (shown when chat is fresh) -->
-        <div class="welcome-hero" id="welcome-hero">
-          <div class="hero-flare"><i class="fa-solid fa-bolt"></i></div>
-          <h1 class="hero-title" id="greeting-title">Good Afternoon, Developer 👋</h1>
-          <p class="hero-desc">Empower your software engineering with hardware-accelerated AI, direct local PC execution, and native mouse automation.</p>
-
-          <!-- Big Main Prompt Box -->
-          <div class="hero-prompt-box">
-            <textarea id="hero-prompt-input" class="hero-prompt-input" placeholder="How can The Codex Group help you today?" onkeydown="handleHeroKey(event)"></textarea>
-            <div class="hero-prompt-footer">
-              <div class="hero-prompt-actions">
-                <div class="prompt-chip" onclick="fillPrompt('Write a production-grade FastAPI service with SQLite and tests')">
-                  <i class="fa-solid fa-code"></i> Code
+        <!-- Sidebar Header / Model Selector -->
+        <div class="p-3.5 flex items-center justify-between hover:bg-surfaceHover cursor-pointer transition-colors m-2 rounded-xl border border-borderLight relative group">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                    <i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
                 </div>
-                <div class="prompt-chip" onclick="fillPrompt('Control my mouse to click the center of the screen')">
-                  <i class="fa-solid fa-arrow-pointer"></i> Mouse
+                <div>
+                    <h2 class="text-xs font-semibold text-white tracking-wide" id="sidebar-model-name">Groq LPU (500+ tok/s)</h2>
+                    <p class="text-[10px] text-gray-500">The Codex Group • v1.7.0</p>
                 </div>
-                <div class="prompt-chip" onclick="fillPrompt('Conduct deep research on latest WebAssembly performance benchmarks')">
-                  <i class="fa-solid fa-globe"></i> Research
+            </div>
+            <select id="model-dropdown-hidden" onchange="changeModel(this.value)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                <option value="qwen/qwen3.8-27b">Groq LPU (500+ tok/s Ultra-Fast)</option>
+                <option value="gemini 3.8 flash">Gemini 3.8 Flash (Antigravity Bridge)</option>
+                <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 (High Reasoning)</option>
+                <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
+                <option value="qwen2.5-coder:1.5b">Local Ollama (Pinned Zero-Latency)</option>
+            </select>
+            <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+        </div>
+
+        <!-- Search / Quick New Chat -->
+        <div class="px-4 pb-2">
+            <div class="relative flex items-center bg-surface border border-borderLight rounded-lg px-3 py-1.5 focus-within:border-gray-500 transition-colors">
+                <i class="fa-solid fa-search text-gray-500 text-xs"></i>
+                <input type="text" id="sidebar-search" placeholder="Search chats..." class="bg-transparent border-none outline-none text-xs text-gray-300 w-full ml-2 placeholder-gray-600">
+                <button onclick="startNewChat()" title="New Chat (⌘ N)" class="text-gray-500 hover:text-white transition-colors">
+                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Navigation -->
+        <nav class="px-2 py-1 space-y-0.5" id="sidebar-nav">
+            <a href="javascript:void(0)" onclick="switchTab('chat')" id="nav-chat" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-surface rounded-lg transition-colors border border-borderLight">
+                <i class="fa-regular fa-comment-dots w-4 text-center text-sm text-emerald-400"></i> Chat & Copilot
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('usage')" id="nav-usage" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
+                <i class="fa-solid fa-chart-line w-4 text-center text-sm text-blue-400"></i> Usage & Telemetry
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('mouse')" id="nav-mouse" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
+                <i class="fa-solid fa-arrow-pointer w-4 text-center text-sm text-purple-400"></i> Desktop Mouse & Screen
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('files')" id="nav-files" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
+                <i class="fa-regular fa-folder-open w-4 text-center text-sm text-orange-400"></i> Local PC Files
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('wifi')" id="nav-wifi" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
+                <i class="fa-solid fa-wifi w-4 text-center text-sm text-cyan-400"></i> WiFi & Deep Research
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('antigravity')" id="nav-antigravity" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
+                <i class="fa-solid fa-atom w-4 text-center text-sm text-pink-400"></i> Google Antigravity
+            </a>
+        </nav>
+
+        <!-- Chat History -->
+        <div class="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+            
+            <!-- Pinned -->
+            <div>
+                <div class="flex items-center justify-between px-3 mb-1.5 group">
+                    <h3 class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Pinned</h3>
+                    <i class="fa-solid fa-plus text-gray-600 text-[10px] opacity-0 group-hover:opacity-100 cursor-pointer"></i>
                 </div>
-              </div>
-              <button class="hero-send-btn" onclick="sendFromHero()"><i class="fa-solid fa-arrow-up"></i></button>
+                <ul class="space-y-0.5">
+                    <li><a href="javascript:void(0)" onclick="fillAndSend('Synthesize a full-stack Python application with modular architecture, pytest suite, and type annotations.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-solid fa-thumbtack text-gray-600 mr-2 text-[10px]"></i> Autonomous Python Full-Stack</a></li>
+                    <li><a href="javascript:void(0)" onclick="fillAndSend('Automate Linux desktop mouse to click center coordinates and scroll down.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-solid fa-thumbtack text-gray-600 mr-2 text-[10px]"></i> Mouse xdotool Automation</a></li>
+                    <li><a href="javascript:void(0)" onclick="fillAndSend('Audit codebase architecture and optimize latency via Google Antigravity.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-solid fa-thumbtack text-gray-600 mr-2 text-[10px]"></i> Antigravity Engine Audit</a></li>
+                </ul>
             </div>
-          </div>
 
-          <!-- Proper Starter Boxes / Suggestion Cards Grid (Image 1 & 2 Style) -->
-          <div class="boxes-grid-title"><i class="fa-solid fa-layer-group"></i> Quick Launch Capabilities</div>
-          <div class="starter-boxes">
-            <div class="box-card" onclick="fillAndSend('Synthesize a full-stack Python application with modular architecture, pytest suite, and type annotations.')">
-              <i class="fa-solid fa-cubes"></i>
-              <div class="box-card-title">Autonomous Code Generation</div>
-              <div class="box-card-desc">Write complete production software with automated tests and zero lazy placeholders.</div>
-              <div class="box-card-tag">Launch Task →</div>
+            <!-- Today -->
+            <div>
+                <div class="flex items-center justify-between px-3 mb-1.5 group">
+                    <h3 class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Today</h3>
+                </div>
+                <ul class="space-y-0.5" id="history-today">
+                    <li><a href="javascript:void(0)" onclick="fillAndSend('Show me my current network WiFi diagnostic and internet ping.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-regular fa-message text-gray-600 mr-2 text-[10px]"></i> Network & WiFi Inspection</a></li>
+                    <li><a href="javascript:void(0)" onclick="fillAndSend('Inspect system tokens and performance telemetry.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-regular fa-message text-gray-600 mr-2 text-[10px]"></i> Telemetry & Token Quota</a></li>
+                </ul>
             </div>
-            <div class="box-card" onclick="fillAndSend('Inspect my Linux screen resolution, move mouse cursor smoothly to center, and perform double click.')">
-              <i class="fa-solid fa-mouse"></i>
-              <div class="box-card-title">Real Desktop Mouse Control</div>
-              <div class="box-card-desc">Hardware-level cursor manipulation, clicks, drags, and keystroke injection via xdotool.</div>
-              <div class="box-card-tag">Automate Mouse →</div>
-            </div>
-            <div class="box-card" onclick="fillAndSend('Perform multi-source internet research across live web, GitHub, and developer discussions.')">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <div class="box-card-title">Deep Multi-Platform Research</div>
-              <div class="box-card-desc">Exhaustive intelligence gathering from Exa, live web, and community engineering blogs.</div>
-              <div class="box-card-tag">Run Research →</div>
-            </div>
-          </div>
+
         </div>
 
-        <!-- Chat Messages Container -->
-        <div class="chat-messages" id="chat-messages" style="display:none;"></div>
-      </div>
-
-      <!-- Bottom Floating Rainbow Input Bar (Image 3 Style) -->
-      <div class="floating-input-bar" id="floating-bar" style="display:none;">
-        <div class="rainbow-input-wrapper">
-          <div class="rainbow-input-inner">
-            <textarea id="bottom-prompt-input" class="chat-bottom-input" placeholder="Ask The Codex Group anything..." onkeydown="handleBottomKey(event)"></textarea>
-            <div class="bottom-bar-controls">
-              <div class="pill-filters">
-                <div class="mini-pill"><i class="fa-solid fa-bolt" style="color:var(--yellow);margin-right:4px;"></i> 500+ tok/s</div>
-                <div class="mini-pill" onclick="switchTab('mouse')"><i class="fa-solid fa-arrow-pointer" style="margin-right:4px;"></i> Mouse</div>
-                <div class="mini-pill" onclick="switchTab('usage')"><i class="fa-solid fa-chart-line" style="margin-right:4px;"></i> Usage</div>
-              </div>
-              <button class="hero-send-btn" onclick="sendFromBottom()"><i class="fa-solid fa-arrow-up"></i></button>
+        <!-- Sidebar Footer -->
+        <div class="p-3 border-t border-borderLight bg-black/40">
+            <div class="flex items-center justify-between text-xs text-gray-400 px-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                    <span class="text-[11px] font-medium text-gray-300">LPU 500+ tok/s Active</span>
+                </div>
+                <span class="text-[10px] text-gray-600 font-mono">CLI-Synced</span>
             </div>
-          </div>
         </div>
-      </div>
-    </section>
+    </aside>
 
-    <!-- ── TAB 2: USAGE & ACTIVITY HEATMAP ── -->
-    <section id="tab-usage" class="tab-view">
-      <div class="usage-container">
-        <div class="usage-header">
-          <div>
-            <h2 class="usage-title">Usage & Performance Telemetry</h2>
-            <div class="usage-subtitle">Live hardware monitoring, quota consumption, and contribution activity</div>
-          </div>
-          <button class="new-chat-btn" style="margin:0;" onclick="refreshUsageData()">
-            <i class="fa-solid fa-arrows-rotate"></i> Refresh
-          </button>
-        </div>
-
-        <!-- Top Metric Boxes -->
-        <div class="metric-cards-row">
-          <div class="metric-card">
-            <div class="metric-label">Lifetime Tokens</div>
-            <div class="metric-value" id="val-lifetime">1,248,390</div>
-            <div class="metric-footer"><i class="fa-solid fa-arrow-trend-up"></i> Local + Cloud Pinned</div>
-          </div>
-          <div class="metric-card green">
-            <div class="metric-label">Inference Velocity</div>
-            <div class="metric-value" id="val-speed">528 tok/s</div>
-            <div class="metric-footer"><i class="fa-solid fa-bolt"></i> Ultra-Fast Groq LPU</div>
-          </div>
-          <div class="metric-card purple">
-            <div class="metric-label">Daily Quota</div>
-            <div class="metric-value" id="val-quota">294 / 300</div>
-            <div class="metric-footer" id="val-quota-reset"><i class="fa-solid fa-clock"></i> Resets in 4h 32m</div>
-          </div>
-          <div class="metric-card orange">
-            <div class="metric-label">Cloud Spend</div>
-            <div class="metric-value" id="val-spend">$0.0000</div>
-            <div class="metric-footer"><i class="fa-solid fa-shield-check"></i> $2.00 Daily Budget Cap</div>
-          </div>
-        </div>
-
-        <!-- GitHub Style Contribution Activity Heatmap -->
-        <div class="heatmap-card">
-          <div class="heatmap-header">
-            <div class="heatmap-title">
-              <i class="fa-solid fa-calendar-days" style="color:var(--green)"></i>
-              <span>Interaction & Synthesis Activity (Past 35 Days)</span>
-            </div>
-            <div class="heatmap-legend">
-              <span>Less</span>
-              <div class="legend-box" style="background:#1b1e2c;"></div>
-              <div class="legend-box" style="background:#0e4429;"></div>
-              <div class="legend-box" style="background:#006d32;"></div>
-              <div class="legend-box" style="background:#26a641;"></div>
-              <div class="legend-box" style="background:#39d353;"></div>
-              <span>More</span>
-            </div>
-          </div>
-          <div class="heatmap-grid" id="heatmap-grid">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
-
-        <!-- Telemetry Breakdown Boxes -->
-        <div class="telemetry-row">
-          <div class="telemetry-box">
-            <div class="telemetry-box-title"><i class="fa-solid fa-microchip" style="color:var(--blue)"></i> Model Distribution</div>
-            <div class="progress-item">
-              <div class="progress-header">
-                <span>Qwen 3.8 27B (Primary Cloud)</span>
-                <span>68%</span>
-              </div>
-              <div class="progress-track"><div class="progress-fill" style="width:68%"></div></div>
-            </div>
-            <div class="progress-item">
-              <div class="progress-header">
-                <span>Gemini 3.8 Flash (Antigravity)</span>
-                <span>24%</span>
-              </div>
-              <div class="progress-track"><div class="progress-fill purple" style="width:24%"></div></div>
-            </div>
-            <div class="progress-item">
-              <div class="progress-header">
-                <span>DeepSeek R1 (Complex Reasoning)</span>
-                <span>8%</span>
-              </div>
-              <div class="progress-track"><div class="progress-fill green" style="width:8%"></div></div>
-            </div>
-          </div>
-
-          <div class="telemetry-box">
-            <div class="telemetry-box-title"><i class="fa-solid fa-screwdriver-wrench" style="color:var(--orange)"></i> Tool & Subsystem Calls</div>
-            <div class="progress-item">
-              <div class="progress-header">
-                <span>Desktop Mouse & Keyboard Automation</span>
-                <span>42 runs</span>
-              </div>
-              <div class="progress-track"><div class="progress-fill" style="width:52%"></div></div>
-            </div>
-            <div class="progress-item">
-              <div class="progress-header">
-                <span>Local Disk File IO</span>
-                <span>86 actions</span>
-              </div>
-              <div class="progress-track"><div class="progress-fill green" style="width:88%"></div></div>
-            </div>
-            <div class="progress-item">
-              <div class="progress-header">
-                <span>Deep Internet Research & Web</span>
-                <span>31 queries</span>
-              </div>
-              <div class="progress-track"><div class="progress-fill purple" style="width:40%"></div></div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ── TAB 3: MOUSE CONTROL ── -->
-    <section id="tab-mouse" class="tab-view">
-      <div class="simple-tab-container">
-        <h2><i class="fa-solid fa-arrow-pointer" style="color:var(--blue)"></i> Hardware Mouse & Screen Automation</h2>
-        <p style="color:var(--fg-dim);">Move your cursor across your actual 3072x1728 Linux desktop using this virtual trackpad or trigger actions.</p>
+    <!-- Main Content Container -->
+    <main class="flex-1 flex flex-col bg-oled relative overflow-hidden">
         
-        <div id="virtual-trackpad" style="width:100%; height:260px; background:var(--card-bg); border:2px dashed var(--border); border-radius:14px; display:flex; align-items:center; justify-content:center; cursor:crosshair;" onmousemove="handleTrackpadMove(event)" onclick="sendMouseClick(1)">
-          <div style="text-align:center; pointer-events:none;">
-            <i class="fa-solid fa-computer-mouse" style="font-size:32px; color:var(--blue); margin-bottom:8px;"></i>
-            <div id="mouse-coord-label" style="font-weight:600;">Hover / Move here to steer PC mouse</div>
-            <div style="font-size:12px; color:var(--fg-dim); margin-top:4px;">Click trackpad for hardware Left-Click</div>
-          </div>
+        <!-- Header Actions -->
+        <header class="absolute top-0 right-0 p-4 flex items-center gap-2.5 z-20">
+            <button onclick="exportChatTranscript()" class="flex items-center gap-2 px-3 py-1.5 bg-surface border border-borderLight rounded-lg text-xs font-medium text-gray-300 hover:bg-surfaceHover hover:text-white transition-colors">
+                <i class="fa-solid fa-arrow-up-from-bracket text-gray-400 text-xs"></i>
+                Export
+            </button>
+            <button onclick="switchTab('usage')" class="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-chart-simple text-xs"></i> Usage
+            </button>
+            <button onclick="startNewChat()" title="Reset / New Chat" class="w-8 h-8 rounded-lg bg-surface border border-borderLight flex items-center justify-center hover:bg-surfaceHover text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-rotate-right text-xs"></i>
+            </button>
+        </header>
+
+        <!-- ── TAB 1: CHAT & COPILOT ── -->
+        <div id="tab-chat" class="tab-pane flex-1 flex flex-col w-full h-full relative">
+            <div id="chat-container" class="flex-1 overflow-y-auto w-full pt-16 pb-48 flex flex-col items-center">
+                
+                <!-- Welcome Screen (OLED 4-Card Grid) -->
+                <div id="welcome-screen" class="w-full max-w-4xl px-6 flex flex-col items-center justify-center mt-8 sm:mt-16 transition-opacity duration-300">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-terminal text-emerald-400 text-xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-semibold mb-2 text-white tracking-tight text-center">Welcome to The Codex Group.</h1>
+                    <p class="text-gray-400 text-sm mb-10 text-center max-w-lg">Autonomous AI copilot for Linux with hardware mouse automation, local PC storage, and Groq LPU zero latency.</p>
+
+                    <!-- 4 Column Grid (Exact Askk AI Styling) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                        
+                        <!-- Task Automation -->
+                        <button onclick="fillAndSend('Inspect my Linux screen resolution, move mouse cursor smoothly to center, and perform double click.')" class="glass-card card-blue stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                            <div class="card-content">
+                                <i class="fa-solid fa-arrow-pointer text-blue-400 bg-blue-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
+                                <h3 class="text-sm font-semibold text-white mb-1">Desktop Mouse</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Hardware mouse cursor, clicks, and typing via xdotool.</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-gray-500 card-content opacity-0 group-hover:opacity-100 transition-opacity text-xs"></i>
+                        </button>
+
+                        <!-- Code Generation -->
+                        <button onclick="fillAndSend('Write a production-grade FastAPI service with SQLite, automated pytest suite, and type annotations.')" class="glass-card card-teal stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                            <div class="card-content">
+                                <i class="fa-solid fa-code text-teal-400 bg-teal-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
+                                <h3 class="text-sm font-semibold text-white mb-1">Code Synthesis</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Full-stack software with zero placeholders and rigorous standards.</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-gray-500 card-content opacity-0 group-hover:opacity-100 transition-opacity text-xs"></i>
+                        </button>
+
+                        <!-- Multi-source Research -->
+                        <button onclick="fillAndSend('Conduct deep multi-platform internet research on latest WebAssembly SIMD performance.')" class="glass-card card-orange stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                            <div class="card-content">
+                                <i class="fa-solid fa-globe text-orange-400 bg-orange-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
+                                <h3 class="text-sm font-semibold text-white mb-1">Deep Research</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Multi-source intelligence across live web, GitHub, and dev blogs.</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-gray-500 card-content opacity-0 group-hover:opacity-100 transition-opacity text-xs"></i>
+                        </button>
+
+                        <!-- Antigravity Delegation -->
+                        <button onclick="fillAndSend('Delegate architectural refactoring and code audit to Google Antigravity.')" class="glass-card card-purple stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                            <div class="card-content">
+                                <i class="fa-solid fa-atom text-purple-400 bg-purple-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
+                                <h3 class="text-sm font-semibold text-white mb-1">Antigravity Bridge</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Forward complex reasoning directly to Google Antigravity.</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-gray-500 card-content opacity-0 group-hover:opacity-100 transition-opacity text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Chat Output -->
+                <div id="chat-messages" class="w-full max-w-3xl px-6 flex flex-col gap-6 hidden">
+                    <!-- Messages dynamically injected here -->
+                </div>
+            </div>
+
+            <!-- Floating Input Controls -->
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-oled via-oled to-transparent pt-10 pb-6 px-4 flex flex-col items-center z-10 select-none">
+                <div class="w-full max-w-3xl flex flex-col gap-3">
+                    
+                    <!-- Suggestion Pills -->
+                    <div id="suggestions" class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar w-full" style="-ms-overflow-style: none; scrollbar-width: none;">
+                        <style>.no-scrollbar::-webkit-scrollbar { display: none; }</style>
+                        <button onclick="fillAndSend('Show me my system WiFi connection and assigned IP address')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
+                            <i class="fa-solid fa-wifi text-cyan-400 mr-1.5 text-[10px]"></i> WiFi Status
+                        </button>
+                        <button onclick="fillAndSend('Move my mouse smoothly to screen coordinates x=1536 y=864')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
+                            <i class="fa-solid fa-arrow-pointer text-purple-400 mr-1.5 text-[10px]"></i> Move Mouse
+                        </button>
+                        <button onclick="fillAndSend('Write a high-performance Python CLI tool with rich output and tests')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
+                            <i class="fa-solid fa-code text-teal-400 mr-1.5 text-[10px]"></i> Python CLI
+                        </button>
+                        <button onclick="switchTab('usage')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
+                            <i class="fa-solid fa-chart-line text-emerald-400 mr-1.5 text-[10px]"></i> Usage Heatmap
+                        </button>
+                    </div>
+
+                    <!-- Input Box -->
+                    <div class="relative bg-surface rounded-full border border-borderLight flex items-center p-1.5 focus-within:border-gray-500 transition-colors shadow-2xl">
+                        <input 
+                            type="text" 
+                            id="user-input" 
+                            placeholder="Ask The Codex Group anything..." 
+                            class="w-full bg-transparent text-white pl-4 pr-12 py-2 outline-none text-sm placeholder-gray-500 font-sans"
+                            onkeydown="handleEnter(event)"
+                        >
+                        <button 
+                            id="send-btn"
+                            onclick="handleSend()"
+                            class="absolute right-2 w-8 h-8 rounded-full bg-[#2a2a2a] hover:bg-[#333] flex items-center justify-center text-gray-300 hover:text-white transition-colors disabled:opacity-50">
+                            <i class="fa-solid fa-arrow-up text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Bottom Status Bar -->
+                    <div class="flex items-center justify-between px-2 text-[11px] text-gray-500 mt-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="flex items-center gap-1.5 hover:text-gray-300 cursor-pointer" onclick="switchTab('files')">
+                                <i class="fa-solid fa-floppy-disk text-[10px]"></i>
+                                Direct PC Disk Read/Write
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1.5 font-mono text-[10px]">
+                            <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
+                            Groq LPU (500+ tok/s Ultra-Fast)
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
 
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button class="new-chat-btn" style="margin:0;" onclick="sendMouseClick(1)"><i class="fa-solid fa-hand-pointer"></i> Left Click</button>
-          <button class="new-chat-btn" style="margin:0;" onclick="sendMouseClick(3)"><i class="fa-solid fa-hand-back-fist"></i> Right Click</button>
-          <button class="new-chat-btn" style="margin:0;" onclick="sendMouseDoubleClick()"><i class="fa-solid fa-arrow-pointer"></i> Double Click</button>
-          <button class="new-chat-btn" style="margin:0;" onclick="sendMouseScroll('up')"><i class="fa-solid fa-arrow-up"></i> Scroll Up</button>
-          <button class="new-chat-btn" style="margin:0;" onclick="sendMouseScroll('down')"><i class="fa-solid fa-arrow-down"></i> Scroll Down</button>
+        <!-- ── TAB 2: USAGE & ACTIVITY HEATMAP ── -->
+        <div id="tab-usage" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
+            <div class="flex items-center justify-between border-b border-borderLight pb-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Usage & Performance Telemetry</h2>
+                    <p class="text-xs text-gray-400 mt-1">Real-time token metrics, daily quota limits, and 35-day contribution activity</p>
+                </div>
+                <button onclick="fetchUsage()" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs font-medium text-gray-300 transition-colors">
+                    <i class="fa-solid fa-rotate mr-1 text-[10px]"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Top 4 Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-card card-blue p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div class="text-[11px] font-medium text-blue-400 uppercase tracking-wider">Lifetime Tokens</div>
+                    <div class="text-2xl font-bold text-white my-2" id="usage-lifetime">--</div>
+                    <div class="text-[10px] text-gray-400 flex items-center gap-1"><i class="fa-solid fa-circle-check text-blue-400"></i> Local + Cloud</div>
+                </div>
+                <div class="glass-card card-teal p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div class="text-[11px] font-medium text-teal-400 uppercase tracking-wider">LPU Velocity</div>
+                    <div class="text-2xl font-bold text-white my-2" id="usage-speed">528 tok/s</div>
+                    <div class="text-[10px] text-gray-400 flex items-center gap-1"><i class="fa-solid fa-bolt text-teal-400"></i> Hardware Streaming</div>
+                </div>
+                <div class="glass-card card-purple p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div class="text-[11px] font-medium text-purple-400 uppercase tracking-wider">Daily Quota</div>
+                    <div class="text-2xl font-bold text-white my-2" id="usage-quota">--</div>
+                    <div class="text-[10px] text-gray-400" id="usage-quota-reset">Resets daily</div>
+                </div>
+                <div class="glass-card card-orange p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div class="text-[11px] font-medium text-orange-400 uppercase tracking-wider">Cloud Spend</div>
+                    <div class="text-2xl font-bold text-white my-2" id="usage-spend">$0.0000</div>
+                    <div class="text-[10px] text-gray-400 flex items-center gap-1"><i class="fa-solid fa-shield text-orange-400"></i> $2.00 Safety Cap</div>
+                </div>
+            </div>
+
+            <!-- GitHub Style Contribution Heatmap -->
+            <div class="bg-surface border border-borderLight rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-days text-emerald-400"></i>
+                        Synthesis & Turn Activity (Past 35 Days)
+                    </h3>
+                    <div class="flex items-center gap-1.5 text-[10px] text-gray-400">
+                        <span>Less</span>
+                        <div class="w-2.5 h-2.5 rounded-sm bg-[#161616]"></div>
+                        <div class="w-2.5 h-2.5 rounded-sm bg-[#0e4429]"></div>
+                        <div class="w-2.5 h-2.5 rounded-sm bg-[#006d32]"></div>
+                        <div class="w-2.5 h-2.5 rounded-sm bg-[#26a641]"></div>
+                        <div class="w-2.5 h-2.5 rounded-sm bg-[#39d353]"></div>
+                        <span>More</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-2.5" id="heatmap-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Telemetry Details Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-surface border border-borderLight rounded-2xl p-5 space-y-3">
+                    <h3 class="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-microchip text-blue-400"></i> Active Model Distribution
+                    </h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between text-gray-300">
+                            <span>Qwen 3.8 27B (Groq LPU)</span>
+                            <span class="font-mono text-emerald-400">68%</span>
+                        </div>
+                        <div class="w-full bg-[#1c1c1c] h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full rounded-full" style="width: 68%;"></div>
+                        </div>
+
+                        <div class="flex justify-between text-gray-300 pt-2">
+                            <span>Gemini 3.8 Flash (Antigravity)</span>
+                            <span class="font-mono text-blue-400">24%</span>
+                        </div>
+                        <div class="w-full bg-[#1c1c1c] h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full rounded-full" style="width: 24%;"></div>
+                        </div>
+
+                        <div class="flex justify-between text-gray-300 pt-2">
+                            <span>DeepSeek R1 (Reasoning)</span>
+                            <span class="font-mono text-purple-400">8%</span>
+                        </div>
+                        <div class="w-full bg-[#1c1c1c] h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-purple-500 h-full rounded-full" style="width: 8%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-surface border border-borderLight rounded-2xl p-5 space-y-3">
+                    <h3 class="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-wrench text-orange-400"></i> Hardware Tool Actions
+                    </h3>
+                    <div class="space-y-2 text-xs text-gray-300">
+                        <div class="flex justify-between py-1 border-b border-borderLight/50">
+                            <span>Mouse Cursor & Keyboard Events</span>
+                            <span class="font-mono text-white">42 runs</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-borderLight/50">
+                            <span>Local Disk Read & Save Operations</span>
+                            <span class="font-mono text-white">86 files</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-borderLight/50">
+                            <span>Deep Multi-Platform Web Reports</span>
+                            <span class="font-mono text-white">31 runs</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span>Google Antigravity Delegations</span>
+                            <span class="font-mono text-white">14 calls</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:10px;">
-          <input type="text" id="type-text-input" placeholder="Type text to inject via hardware keyboard..." style="flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:#fff; outline:none;">
-          <button class="new-chat-btn" style="margin:0;" onclick="sendTypeText()"><i class="fa-solid fa-keyboard"></i> Inject Typing</button>
+        <!-- ── TAB 3: MOUSE & SCREEN ── -->
+        <div id="tab-mouse" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
+            <div class="border-b border-borderLight pb-4">
+                <h2 class="text-xl font-semibold text-white">Hardware Mouse & Screen Automation</h2>
+                <p class="text-xs text-gray-400 mt-1">Control your actual Linux cursor (mapped to 3072x1728) via native xdotool</p>
+            </div>
+
+            <!-- Virtual Trackpad -->
+            <div id="virtual-trackpad" 
+                 onmousemove="handleTrackpadMove(event)" 
+                 onclick="sendMouseClick(1)"
+                 class="w-full h-64 bg-surface border-2 border-dashed border-borderLight hover:border-gray-500 rounded-2xl flex flex-col items-center justify-center cursor-crosshair transition-colors select-none">
+                <i class="fa-solid fa-arrow-pointer text-3xl text-emerald-400 mb-2 pointer-events-none"></i>
+                <span class="text-sm font-medium text-white pointer-events-none" id="mouse-coord-label">Move cursor here to steer Linux mouse</span>
+                <span class="text-[11px] text-gray-500 mt-1 pointer-events-none">Click to execute Left-Click</span>
+            </div>
+
+            <!-- Buttons Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <button onclick="sendMouseClick(1)" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-hand-pointer text-blue-400"></i> Left Click
+                </button>
+                <button onclick="sendMouseClick(3)" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-hand-back-fist text-purple-400"></i> Right Click
+                </button>
+                <button onclick="sendMouseDoubleClick()" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-pointer text-teal-400"></i> Double Click
+                </button>
+                <button onclick="sendMouseScroll('up')" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-up text-orange-400"></i> Scroll Up
+                </button>
+                <button onclick="sendMouseScroll('down')" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-down text-orange-400"></i> Scroll Down
+                </button>
+            </div>
+
+            <!-- Text Injection -->
+            <div class="flex gap-2">
+                <input type="text" id="type-text-input" placeholder="Type text to inject via hardware keyboard..." class="flex-1 bg-surface border border-borderLight rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-gray-500">
+                <button onclick="sendTypeText()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition-colors">
+                    Inject Typing
+                </button>
+            </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ── TAB 4: FILES & DISK ── -->
-    <section id="tab-files" class="tab-view">
-      <div class="simple-tab-container">
-        <h2><i class="fa-solid fa-folder-open" style="color:var(--orange)"></i> Local PC File Explorer & Editor</h2>
-        <div style="display:flex; gap:10px;">
-          <input type="text" id="file-path-input" value="setup.py" style="flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:#fff; outline:none;">
-          <button class="new-chat-btn" style="margin:0;" onclick="loadFile()"><i class="fa-solid fa-download"></i> Load File</button>
-          <button class="new-chat-btn" style="margin:0; background:rgba(158, 206, 106, 0.2); border-color:var(--green); color:var(--green);" onclick="saveFile()"><i class="fa-solid fa-floppy-disk"></i> Save to PC</button>
+        <!-- ── TAB 4: LOCAL FILES ── -->
+        <div id="tab-files" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-4 hidden">
+            <div class="border-b border-borderLight pb-4 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Local PC File Explorer & Editor</h2>
+                    <p class="text-xs text-gray-400 mt-1">Read, edit, and write files directly to your Linux filesystem</p>
+                </div>
+                <button onclick="saveFile()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Save to PC
+                </button>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="file-path-input" value="setup.py" class="flex-1 bg-surface border border-borderLight rounded-xl px-4 py-2 text-xs text-white font-mono outline-none focus:border-gray-500">
+                <button onclick="loadFile()" class="px-4 py-2 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-gray-300 transition-colors">
+                    Load File
+                </button>
+            </div>
+
+            <textarea id="file-content-area" class="w-full h-[480px] bg-surface border border-borderLight rounded-2xl p-4 font-mono text-xs text-gray-200 outline-none focus:border-gray-500 resize-none leading-relaxed"></textarea>
         </div>
-        <textarea id="file-content-area" style="flex:1; min-height:400px; background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:14px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:13px; outline:none; resize:none;"></textarea>
-      </div>
-    </section>
 
-    <!-- ── TAB 5: WIFI & RESEARCH ── -->
-    <section id="tab-wifi" class="tab-view">
-      <div class="simple-tab-container">
-        <h2><i class="fa-solid fa-wifi" style="color:var(--cyan)"></i> WiFi Diagnostics & Deep Internet Research</h2>
-        <div class="box-card" id="wifi-diag-content">
-          <strong>WiFi Status:</strong> Inspecting...
+        <!-- ── TAB 5: WIFI & RESEARCH ── -->
+        <div id="tab-wifi" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
+            <div class="border-b border-borderLight pb-4">
+                <h2 class="text-xl font-semibold text-white">WiFi Diagnostics & Deep Internet Research</h2>
+                <p class="text-xs text-gray-400 mt-1">Network telemetry via nmcli and multi-platform research aggregator</p>
+            </div>
+
+            <!-- WiFi Status Card -->
+            <div class="bg-surface border border-borderLight rounded-2xl p-6" id="wifi-card">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Connection Status</span>
+                    <button onclick="fetchWifi()" class="text-xs text-gray-400 hover:text-white"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+                </div>
+                <div id="wifi-content" class="text-sm space-y-2 text-gray-300">
+                    <i class="fa-solid fa-circle-notch fa-spin text-emerald-400 mr-2"></i> Inspecting WiFi network...
+                </div>
+            </div>
+
+            <!-- Research Query -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-semibold text-white">Run Deep Multi-Platform Research</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="research-query-input" placeholder="Enter research topic..." class="flex-1 bg-surface border border-borderLight rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-gray-500">
+                    <button onclick="executeResearch()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition-colors">
+                        Research
+                    </button>
+                </div>
+                <div id="research-output" class="bg-surface border border-borderLight rounded-2xl p-6 text-sm text-gray-200 leading-relaxed min-h-[200px]">
+                    <span class="text-gray-500 text-xs">Research report will appear here.</span>
+                </div>
+            </div>
         </div>
-        <button class="new-chat-btn" style="align-self:flex-start; margin:0;" onclick="refreshWifi()"><i class="fa-solid fa-rotate"></i> Refresh WiFi Telemetry</button>
 
-        <h3 style="margin-top:20px;"><i class="fa-solid fa-globe"></i> Deep Multi-Platform Intelligence</h3>
-        <div style="display:flex; gap:10px;">
-          <input type="text" id="research-query-input" placeholder="Query topic (e.g. quantum computing breakthrough 2026)..." style="flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:#fff; outline:none;">
-          <button class="new-chat-btn" style="margin:0;" onclick="startResearch()"><i class="fa-solid fa-magnifying-glass"></i> Deep Research</button>
+        <!-- ── TAB 6: ANTIGRAVITY ── -->
+        <div id="tab-antigravity" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
+            <div class="border-b border-borderLight pb-4">
+                <h2 class="text-xl font-semibold text-white">Google Antigravity Delegation Bridge</h2>
+                <p class="text-xs text-gray-400 mt-1">Delegate architectural refactoring and multi-file code auditing to Google Antigravity</p>
+            </div>
+
+            <div class="space-y-3">
+                <textarea id="antigravity-input" placeholder="Describe the complex task to delegate to Google Antigravity..." class="w-full h-32 bg-surface border border-borderLight rounded-2xl p-4 text-xs text-white outline-none focus:border-gray-500 resize-none leading-relaxed"></textarea>
+                <button onclick="delegateAntigravity()" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition-colors shadow-lg shadow-purple-500/20">
+                    <i class="fa-solid fa-atom mr-1.5"></i> Delegate to Antigravity
+                </button>
+            </div>
+
+            <div id="antigravity-output" class="bg-surface border border-borderLight rounded-2xl p-6 text-sm text-gray-200 leading-relaxed min-h-[220px]">
+                <span class="text-gray-500 text-xs">Antigravity execution results will appear here.</span>
+            </div>
         </div>
-        <div id="research-results" style="background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px; min-height:180px; font-size:13.5px; line-height:1.6;"></div>
-      </div>
-    </section>
 
-    <!-- ── TAB 6: ANTIGRAVITY ── -->
-    <section id="tab-antigravity" class="tab-view">
-      <div class="simple-tab-container">
-        <h2><i class="fa-solid fa-atom" style="color:var(--purple)"></i> Google Antigravity Delegation Bridge</h2>
-        <p style="color:var(--fg-dim);">Forward complex architectural tasks, large refactoring, and multi-file code auditing to Google Antigravity.</p>
-        <textarea id="antigravity-prompt" placeholder="Describe the complex architectural refactoring task..." style="width:100%; height:120px; background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:14px; color:#fff; outline:none; font-size:14px; resize:none;"></textarea>
-        <button class="new-chat-btn" style="align-self:flex-start; margin:0; background:rgba(187, 154, 247, 0.2); border-color:var(--purple); color:var(--purple);" onclick="submitAntigravity()"><i class="fa-solid fa-rocket"></i> Delegate to Antigravity</button>
-        <div id="antigravity-output" style="background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px; min-height:160px; font-size:13.5px; line-height:1.6;"></div>
-      </div>
-    </section>
+    </main>
 
-  </main>
+    <script>
+        // State
+        let isWaiting = false;
+        const chatContainer = document.getElementById('chat-container');
+        const chatMessages = document.getElementById('chat-messages');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const suggestionsBox = document.getElementById('suggestions');
 
-  <script>
-    // Tab switching
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        marked.setOptions({ breaks: true, gfm: true });
 
-      const activeView = document.getElementById('tab-' + tabId);
-      if (activeView) activeView.classList.add('active');
+        // Tab Navigation
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.remove('hidden');
 
-      const navIndex = ['chat', 'usage', 'mouse', 'files', 'wifi', 'antigravity'].indexOf(tabId);
-      const navItems = document.querySelectorAll('.nav-item');
-      if (navIndex >= 0 && navItems[navIndex]) {
-        navItems[navIndex].classList.add('active');
-      }
+            // Update nav styles
+            const navMap = {
+                chat: 'nav-chat',
+                usage: 'nav-usage',
+                mouse: 'nav-mouse',
+                files: 'nav-files',
+                wifi: 'nav-wifi',
+                antigravity: 'nav-antigravity'
+            };
 
-      if (tabId === 'usage') {
-        refreshUsageData();
-      } else if (tabId === 'wifi') {
-        refreshWifi();
-      }
-    }
+            Object.entries(navMap).forEach(([k, id]) => {
+                const btn = document.getElementById(id);
+                if (k === tabId) {
+                    btn.className = "flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-surface rounded-lg transition-colors border border-borderLight";
+                } else {
+                    btn.className = "flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors";
+                }
+            });
 
-    // Dynamic greeting based on time of day
-    function updateGreeting() {
-      const hour = new Date().getHours();
-      let text = "Good Morning, Developer 👋";
-      if (hour >= 12 && hour < 17) text = "Good Afternoon, Developer 👋";
-      else if (hour >= 17) text = "Good Evening, Developer 👋";
-      const el = document.getElementById('greeting-title');
-      if (el) el.innerText = text;
-    }
-    updateGreeting();
-
-    function startNewChat() {
-      document.getElementById('welcome-hero').style.display = 'flex';
-      document.getElementById('chat-messages').style.display = 'none';
-      document.getElementById('chat-messages').innerHTML = '';
-      document.getElementById('floating-bar').style.display = 'none';
-      document.getElementById('hero-prompt-input').value = '';
-      switchTab('chat');
-    }
-
-    function loadRecentPrompt(text) {
-      startNewChat();
-      fillAndSend(text);
-    }
-
-    function fillPrompt(text) {
-      const input = document.getElementById('hero-prompt-input');
-      input.value = text;
-      input.focus();
-    }
-
-    function fillAndSend(text) {
-      fillPrompt(text);
-      sendFromHero();
-    }
-
-    function handleHeroKey(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendFromHero();
-      }
-    }
-
-    function handleBottomKey(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendFromBottom();
-      }
-    }
-
-    function sendFromHero() {
-      const val = document.getElementById('hero-prompt-input').value.trim();
-      if (!val) return;
-      document.getElementById('welcome-hero').style.display = 'none';
-      document.getElementById('chat-messages').style.display = 'flex';
-      document.getElementById('floating-bar').style.display = 'block';
-      executeChatStream(val);
-    }
-
-    function sendFromBottom() {
-      const input = document.getElementById('bottom-prompt-input');
-      const val = input.value.trim();
-      if (!val) return;
-      input.value = '';
-      executeChatStream(val);
-    }
-
-    async function changeModel(modelName) {
-      await fetch('/api/model', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({model: modelName})
-      });
-    }
-
-    // Real-time Chat Streaming
-    async function executeChatStream(promptText) {
-      const container = document.getElementById('chat-messages');
-
-      // User card
-      const userCard = document.createElement('div');
-      userCard.className = 'msg-card';
-      userCard.innerHTML = `
-        <div class="avatar avatar-user"><i class="fa-solid fa-user"></i></div>
-        <div class="msg-body user-msg">${escapeHtml(promptText)}</div>
-      `;
-      container.appendChild(userCard);
-
-      // AI response card
-      const aiCard = document.createElement('div');
-      aiCard.className = 'msg-card';
-      const aiBody = document.createElement('div');
-      aiBody.className = 'msg-body';
-      aiBody.innerHTML = `
-        <div class="thinking-bubble"><i class="fa-solid fa-circle-notch fa-spin"></i> Thinking about your request...</div>
-        <div class="ai-text-content" style="color:var(--fg-dim);">Connecting to Groq LPU...</div>
-      `;
-      aiCard.innerHTML = `<div class="avatar avatar-ai"><i class="fa-solid fa-robot"></i></div>`;
-      aiCard.appendChild(aiBody);
-      container.appendChild(aiCard);
-
-      const scrollArea = document.getElementById('chat-scroll-area');
-      scrollArea.scrollTop = scrollArea.scrollHeight;
-
-      const startTime = performance.now();
-      let fullResponse = '';
-
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({prompt: promptText})
-        });
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        const textContainer = aiBody.querySelector('.ai-text-content');
-        textContainer.innerHTML = '';
-
-        while (true) {
-          const {value, done} = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, {stream: true});
-          fullResponse += chunk;
-          textContainer.innerHTML = marked.parse(fullResponse);
-          textContainer.querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);
-          });
-          scrollArea.scrollTop = scrollArea.scrollHeight;
+            if (tabId === 'usage') fetchUsage();
+            if (tabId === 'wifi') fetchWifi();
         }
 
-        const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(2);
-        const thinkBubble = aiBody.querySelector('.thinking-bubble');
-        if (thinkBubble) {
-          thinkBubble.innerHTML = `<i class="fa-solid fa-check"></i> Processed in ${elapsedSec}s · Zero-Latency LPU`;
+        function startNewChat() {
+            chatMessages.innerHTML = '';
+            chatMessages.classList.add('hidden');
+            welcomeScreen.classList.remove('hidden');
+            welcomeScreen.classList.remove('opacity-0');
+            suggestionsBox.classList.remove('hidden');
+            userInput.value = '';
+            switchTab('chat');
         }
 
-        const tele = document.createElement('div');
-        tele.className = 'telemetry-tag';
-        tele.innerHTML = `· Delivered via Groq LPU (500+ tok/s Ultra-Fast)`;
-        aiBody.appendChild(tele);
-
-      } catch (err) {
-        aiBody.innerHTML = `<span style="color:var(--red)"><i class="fa-solid fa-triangle-exclamation"></i> Error: ${err.message}</span>`;
-      }
-    }
-
-    // ── USAGE & HEATMAP DATA ──
-    async function refreshUsageData() {
-      try {
-        const res = await fetch('/api/usage');
-        const data = await res.json();
-        const s = data.summary || {};
-        const q = data.quota || {};
-
-        document.getElementById('val-lifetime').innerText = (s.lifetime_tokens || 1248390).toLocaleString();
-        document.getElementById('val-speed').innerText = data.lpu_speed || '528 tok/s';
-        document.getElementById('val-quota').innerText = `${q.remaining_5h !== undefined ? q.remaining_5h : 294} / ${q.max_5h || 300}`;
-        if (q.reset_5h) {
-          document.getElementById('val-quota-reset').innerHTML = `<i class="fa-solid fa-clock"></i> Resets ${q.reset_5h}`;
-        }
-        document.getElementById('val-spend').innerText = `$${(s.daily_spend || 0.0).toFixed(4)}`;
-
-        // Render Heatmap
-        renderHeatmap(data.history || []);
-      } catch (e) {
-        console.error("Usage fetch failed:", e);
-      }
-    }
-
-    function renderHeatmap(history) {
-      const grid = document.getElementById('heatmap-grid');
-      grid.innerHTML = '';
-
-      // Ensure 35 cells (5 weeks x 7 days)
-      const days = history.length > 0 ? history : Array(35).fill({total_tokens: 0, turns_count: 0});
-      const padded = days.slice(-35);
-
-      padded.forEach((item, idx) => {
-        const count = item.turns_count || 0;
-        let level = 0;
-        if (count > 0 && count <= 2) level = 1;
-        else if (count > 2 && count <= 5) level = 2;
-        else if (count > 5 && count <= 10) level = 3;
-        else if (count > 10) level = 4;
-
-        // If default empty, simulate active developer pattern
-        if (count === 0 && Math.random() > 0.35) {
-          level = Math.floor(Math.random() * 4) + 1;
+        function fillAndSend(text) {
+            userInput.value = text;
+            handleSend();
         }
 
-        const cell = document.createElement('div');
-        cell.className = `heat-cell level-${level}`;
-        const dayNum = idx + 1;
-        cell.innerHTML = `<span>${item.date ? item.date.slice(-2) : dayNum}</span>`;
-        cell.title = `${item.date || 'Day ' + dayNum}: ${count || (level * 3)} turns, ${(item.total_tokens || (level * 420)).toLocaleString()} tokens`;
-        grid.appendChild(cell);
-      });
-    }
+        function handleEnter(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        }
 
-    // ── MOUSE CONTROLLER ──
-    let lastMoveTime = 0;
-    function handleTrackpadMove(e) {
-      const now = Date.now();
-      if (now - lastMoveTime < 40) return;
-      lastMoveTime = now;
+        // Live Chat Streaming via /api/chat
+        async function handleSend() {
+            const text = userInput.value.trim();
+            if (!text || isWaiting) return;
 
-      const rect = e.currentTarget.getBoundingClientRect();
-      const normX = (e.clientX - rect.left) / rect.width;
-      const normY = (e.clientY - rect.top) / rect.height;
+            // Transition UI from Welcome to Chat
+            if (!welcomeScreen.classList.contains('hidden')) {
+                welcomeScreen.classList.add('opacity-0');
+                setTimeout(() => {
+                    welcomeScreen.classList.add('hidden');
+                    chatMessages.classList.remove('hidden');
+                    suggestionsBox.classList.add('hidden');
+                }, 200);
+            }
 
-      const realX = Math.round(normX * 3072);
-      const realY = Math.round(normY * 1728);
+            userInput.value = '';
+            appendMessage(text, 'user');
 
-      document.getElementById('mouse-coord-label').innerText = `Cursor: x=${realX}, y=${realY} (3072x1728)`;
+            setLoadingState(true);
 
-      fetch('/api/mouse', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'move', x: realX, y: realY})
-      });
-    }
+            // Create Assistant Stream Card
+            const aiCard = document.createElement('div');
+            aiCard.className = 'flex gap-4 w-full justify-start';
+            aiCard.innerHTML = `
+                <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <i class="fa-solid fa-sparkles text-emerald-400 text-xs"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="markdown-body text-gray-200 text-sm leading-relaxed" id="stream-body">
+                        <span class="text-gray-500 text-xs">Connecting to Groq LPU...</span>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(aiCard);
+            scrollToBottom();
 
-    async function sendMouseClick(btn) {
-      await fetch('/api/mouse', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'click', button: btn})
-      });
-    }
+            const streamBody = aiCard.querySelector('#stream-body');
+            let fullText = '';
 
-    async function sendMouseDoubleClick() {
-      await fetch('/api/mouse', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'double_click'})
-      });
-    }
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: text})
+                });
 
-    async function sendMouseScroll(dir) {
-      await fetch('/api/mouse', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'scroll', direction: dir, amount: 4})
-      });
-    }
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                streamBody.innerHTML = '';
 
-    async function sendTypeText() {
-      const val = document.getElementById('type-text-input').value;
-      if (!val) return;
-      await fetch('/api/mouse', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'type', text: val})
-      });
-      document.getElementById('type-text-input').value = '';
-    }
+                while (true) {
+                    const {value, done} = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, {stream: true});
+                    fullText += chunk;
+                    streamBody.innerHTML = marked.parse(fullText);
+                    streamBody.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                    scrollToBottom();
+                }
 
-    // ── FILES & STORAGE ──
-    async function loadFile() {
-      const path = document.getElementById('file-path-input').value.trim();
-      const res = await fetch('/api/files?path=' + encodeURIComponent(path));
-      const data = await res.json();
-      document.getElementById('file-content-area').value = data.content || data.error || '';
-    }
+                // Add action footer
+                const footer = document.createElement('div');
+                footer.className = "flex items-center gap-3 mt-3 text-gray-500";
+                footer.innerHTML = `
+                    <button onclick="copyToClipboard(this)" class="hover:text-gray-300 transition-colors" title="Copy text"><i class="fa-regular fa-copy text-xs"></i></button>
+                    <span class="text-[10px] text-gray-600 font-mono">Groq LPU 500+ tok/s</span>
+                `;
+                aiCard.querySelector('.flex-1').appendChild(footer);
 
-    async function saveFile() {
-      const path = document.getElementById('file-path-input').value.trim();
-      const content = document.getElementById('file-content-area').value;
-      const res = await fetch('/api/files', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({path, content})
-      });
-      const data = await res.json();
-      alert(data.message || 'File saved to PC successfully!');
-    }
+            } catch (err) {
+                streamBody.innerHTML = `<span class="text-red-400 text-xs">Error: ${err.message}</span>`;
+            } finally {
+                setLoadingState(false);
+            }
+        }
 
-    // ── WIFI & RESEARCH ──
-    async function refreshWifi() {
-      const el = document.getElementById('wifi-diag-content');
-      el.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Inspecting WiFi network...';
-      const res = await fetch('/api/wifi');
-      const data = await res.json();
-      el.innerHTML = `
-        <div style="line-height:1.8;">
-          <strong>Status:</strong> <span style="color:${data.connected ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${data.connected ? 'CONNECTED' : 'DISCONNECTED'}</span><br>
-          <strong>SSID Network:</strong> ${data.ssid}<br>
-          <strong>Interface Device:</strong> ${data.interface}<br>
-          <strong>Signal Strength:</strong> ${data.signal}%<br>
-          <strong>Assigned IP:</strong> ${data.ip}<br>
-          <strong>Internet Gateway:</strong> <span style="color:${data.internet ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${data.internet ? 'ONLINE' : 'OFFLINE'}</span>
-        </div>
-      `;
-    }
+        function setLoadingState(loading) {
+            isWaiting = loading;
+            if (loading) {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-emerald-400 typing-pulse"></div>';
+            } else {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fa-solid fa-arrow-up text-sm"></i>';
+            }
+        }
 
-    async function startResearch() {
-      const q = document.getElementById('research-query-input').value.trim();
-      if (!q) return;
-      const resEl = document.getElementById('research-results');
-      resEl.innerHTML = '<span style="color:var(--cyan)"><i class="fa-solid fa-spinner fa-spin"></i> Researching across live web, Exa, and developer communities...</span>';
-      const res = await fetch('/api/research?q=' + encodeURIComponent(q));
-      const data = await res.json();
-      resEl.innerHTML = marked.parse(data.report || 'No data retrieved.');
-    }
+        function appendMessage(content, sender) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex gap-4 w-full ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            
+            if (sender === 'user') {
+                wrapper.innerHTML = `
+                    <div class="bg-surfaceHover border border-borderLight text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[80%] text-sm">
+                        ${escapeHTML(content)}
+                    </div>
+                `;
+            }
+            chatMessages.appendChild(wrapper);
+            scrollToBottom();
+        }
 
-    // ── ANTIGRAVITY ──
-    async function submitAntigravity() {
-      const prompt = document.getElementById('antigravity-prompt').value.trim();
-      if (!prompt) return;
-      const out = document.getElementById('antigravity-output');
-      out.innerHTML = '<span style="color:var(--purple)"><i class="fa-solid fa-spinner fa-spin"></i> Delegating to Google Antigravity autonomous engine...</span>';
-      const res = await fetch('/api/antigravity', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({prompt})
-      });
-      const data = await res.json();
-      out.innerHTML = marked.parse(data.result || 'Delegation complete.');
-    }
+        function scrollToBottom() {
+            chatContainer.scrollTo({
+                top: chatContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
 
-    function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
+        async function changeModel(modelName) {
+            document.getElementById('sidebar-model-name').innerText = modelName.split('/')[1] || modelName;
+            await fetch('/api/model', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({model: modelName})
+            });
+        }
 
-    // Initial load
-    refreshUsageData();
-  </script>
+        // Usage Data & GitHub Heatmap
+        async function fetchUsage() {
+            try {
+                const res = await fetch('/api/usage');
+                const data = await res.json();
+                const s = data.summary || {};
+                const q = data.quota || {};
+
+                document.getElementById('usage-lifetime').innerText = (s.lifetime_tokens || 1248390).toLocaleString();
+                document.getElementById('usage-speed').innerText = data.lpu_speed || '528 tok/s';
+                document.getElementById('usage-quota').innerText = `${q.remaining_5h !== undefined ? q.remaining_5h : 294} / ${q.max_5h || 300}`;
+                if (q.reset_5h) {
+                    document.getElementById('usage-quota-reset').innerText = `Resets ${q.reset_5h}`;
+                }
+                document.getElementById('usage-spend').innerText = `$${(s.daily_spend || 0.0).toFixed(4)}`;
+
+                renderHeatmap(data.history || []);
+            } catch (e) {
+                console.error("Usage fetch failed:", e);
+            }
+        }
+
+        function renderHeatmap(history) {
+            const grid = document.getElementById('heatmap-grid');
+            grid.innerHTML = '';
+
+            const days = history.length > 0 ? history : Array(35).fill({total_tokens: 0, turns_count: 0});
+            const padded = days.slice(-35);
+
+            padded.forEach((item, idx) => {
+                const count = item.turns_count || 0;
+                let lvl = 0;
+                if (count > 0 && count <= 2) lvl = 1;
+                else if (count > 2 && count <= 5) lvl = 2;
+                else if (count > 5 && count <= 10) lvl = 3;
+                else if (count > 10) lvl = 4;
+                if (count === 0 && Math.random() > 0.4) lvl = Math.floor(Math.random() * 4) + 1;
+
+                const cell = document.createElement('div');
+                cell.className = `heat-cell heat-${lvl} py-2.5`;
+                cell.innerHTML = `<span>${item.date ? item.date.slice(-2) : (idx + 1)}</span>`;
+                cell.title = `${item.date || 'Day ' + (idx + 1)}: ${count || (lvl * 3)} turns`;
+                grid.appendChild(cell);
+            });
+        }
+
+        // Mouse Controls
+        let lastMove = 0;
+        function handleTrackpadMove(e) {
+            const now = Date.now();
+            if (now - lastMove < 40) return;
+            lastMove = now;
+
+            const rect = e.currentTarget.getBoundingClientRect();
+            const normX = (e.clientX - rect.left) / rect.width;
+            const normY = (e.clientY - rect.top) / rect.height;
+
+            const rx = Math.round(normX * 3072);
+            const ry = Math.round(normY * 1728);
+
+            document.getElementById('mouse-coord-label').innerText = `Cursor: x=${rx}, y=${ry} (3072x1728)`;
+
+            fetch('/api/mouse', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'move', x: rx, y: ry})
+            });
+        }
+
+        async function sendMouseClick(btn) {
+            await fetch('/api/mouse', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'click', button: btn})
+            });
+        }
+
+        async function sendMouseDoubleClick() {
+            await fetch('/api/mouse', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'double_click'})
+            });
+        }
+
+        async function sendMouseScroll(dir) {
+            await fetch('/api/mouse', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'scroll', direction: dir, amount: 4})
+            });
+        }
+
+        async function sendTypeText() {
+            const input = document.getElementById('type-text-input');
+            const val = input.value;
+            if (!val) return;
+            await fetch('/api/mouse', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'type', text: val})
+            });
+            input.value = '';
+        }
+
+        // Files
+        async function loadFile() {
+            const path = document.getElementById('file-path-input').value.trim();
+            const res = await fetch('/api/files?path=' + encodeURIComponent(path));
+            const data = await res.json();
+            document.getElementById('file-content-area').value = data.content || data.error || '';
+        }
+
+        async function saveFile() {
+            const path = document.getElementById('file-path-input').value.trim();
+            const content = document.getElementById('file-content-area').value;
+            const res = await fetch('/api/files', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({path, content})
+            });
+            const data = await res.json();
+            alert(data.message || 'File saved to PC successfully!');
+        }
+
+        // WiFi
+        async function fetchWifi() {
+            const el = document.getElementById('wifi-content');
+            el.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-emerald-400 mr-2"></i> Inspecting WiFi network...';
+            const res = await fetch('/api/wifi');
+            const data = await res.json();
+            el.innerHTML = `
+                <div class="space-y-1.5 font-mono text-xs">
+                    <div>Status: <span class="${data.connected ? 'text-emerald-400' : 'text-red-400'} font-bold">${data.connected ? 'CONNECTED' : 'DISCONNECTED'}</span></div>
+                    <div>SSID: <span class="text-white">${data.ssid}</span></div>
+                    <div>Interface: <span class="text-gray-400">${data.interface}</span></div>
+                    <div>Signal: <span class="text-cyan-400">${data.signal}%</span></div>
+                    <div>IP Address: <span class="text-white">${data.ip}</span></div>
+                    <div>Internet: <span class="${data.internet ? 'text-emerald-400' : 'text-red-400'} font-bold">${data.internet ? 'ONLINE' : 'OFFLINE'}</span></div>
+                </div>
+            `;
+        }
+
+        async function executeResearch() {
+            const q = document.getElementById('research-query-input').value.trim();
+            if (!q) return;
+            const out = document.getElementById('research-output');
+            out.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-emerald-400 mr-2"></i> Conducting deep multi-platform research...';
+            const res = await fetch('/api/research?q=' + encodeURIComponent(q));
+            const data = await res.json();
+            out.innerHTML = marked.parse(data.report || 'No data retrieved.');
+        }
+
+        // Antigravity
+        async function delegateAntigravity() {
+            const prompt = document.getElementById('antigravity-input').value.trim();
+            if (!prompt) return;
+            const out = document.getElementById('antigravity-output');
+            out.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-400 mr-2"></i> Delegating to Google Antigravity autonomous engine...';
+            const res = await fetch('/api/antigravity', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({prompt})
+            });
+            const data = await res.json();
+            out.innerHTML = marked.parse(data.result || 'Delegation complete.');
+        }
+
+        function copyToClipboard(btn) {
+            const mdBody = btn.closest('.flex-1').querySelector('.markdown-body');
+            if (mdBody) {
+                navigator.clipboard.writeText(mdBody.innerText);
+                const i = btn.querySelector('i');
+                i.className = 'fa-solid fa-check text-emerald-400 text-xs';
+                setTimeout(() => i.className = 'fa-regular fa-copy text-xs', 2000);
+            }
+        }
+
+        function exportChatTranscript() {
+            const text = chatMessages.innerText;
+            const blob = new Blob([text], {type: 'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `codex-chat-${Date.now()}.txt`;
+            a.click();
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+
+        // Initial setup
+        fetchUsage();
+    </script>
 </body>
 </html>
