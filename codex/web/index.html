@@ -20,10 +20,12 @@
                     },
                     colors: {
                         oled: '#000000',
-                        sidebar: '#0a0a0a',
+                        sidebar: '#080808',
                         surface: '#111111',
-                        surfaceHover: '#1a1a1a',
+                        surfaceHover: '#181818',
+                        surfaceActive: '#222222',
                         borderLight: '#1f1f1f',
+                        borderHover: '#333333',
                     }
                 }
             }
@@ -38,20 +40,19 @@
         ::-webkit-scrollbar-thumb:hover { background: #333; }
 
         .glass-card {
-            background: rgba(17, 17, 17, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(14, 14, 14, 0.7);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             position: relative;
             overflow: hidden;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .glass-card:hover {
             transform: translateY(-2px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
         }
         
-        /* Star-like noise overlay */
         .stars-bg::before {
             content: '';
             position: absolute;
@@ -71,6 +72,7 @@
         .card-orange { background: linear-gradient(135deg, rgba(154, 52, 18, 0.45) 0%, rgba(0,0,0,0) 80%); }
         .card-purple { background: linear-gradient(135deg, rgba(107, 33, 168, 0.45) 0%, rgba(0,0,0,0) 80%); }
         .card-teal { background: linear-gradient(135deg, rgba(13, 148, 136, 0.45) 0%, rgba(0,0,0,0) 80%); }
+        .card-emerald { background: linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(0,0,0,0) 80%); }
         
         .card-content { position: relative; z-index: 1; }
 
@@ -85,6 +87,41 @@
         
         .typing-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+        /* Custom High-Contrast Dropdown Menu */
+        .custom-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8);
+            z-index: 50;
+            overflow: hidden;
+            display: none;
+        }
+        .custom-dropdown-menu.show { display: block; }
+        .dropdown-opt {
+            padding: 9px 12px;
+            font-size: 12px;
+            color: #d1d5db;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.15s;
+        }
+        .dropdown-opt:hover {
+            background: #202020;
+            color: #ffffff;
+        }
+        .dropdown-opt.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            font-weight: 600;
+        }
 
         .heat-cell {
             aspect-ratio: 1;
@@ -108,92 +145,104 @@
         .heat-4 { background: #39d353; color: #000; font-weight: 700; }
     </style>
 </head>
-<body class="font-sans flex h-screen overflow-hidden selection:bg-purple-500/30">
+<body class="font-sans flex h-screen overflow-hidden selection:bg-emerald-500/30">
 
     <!-- OLED Left Sidebar -->
     <aside class="w-[280px] bg-sidebar border-r border-borderLight flex flex-col flex-shrink-0 select-none">
         
-        <!-- Sidebar Header / Model Selector -->
-        <div class="p-3.5 flex items-center justify-between hover:bg-surfaceHover cursor-pointer transition-colors m-2 rounded-xl border border-borderLight relative group">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                    <i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
+        <!-- Sidebar Header / Custom Model Selector (High-Contrast & Easy to See) -->
+        <div class="relative m-2">
+            <div onclick="toggleModelDropdown(event)" class="p-3 flex items-center justify-between bg-surface hover:bg-surfaceHover cursor-pointer transition-colors rounded-xl border border-borderLight hover:border-gray-500">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                        <i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-semibold text-white tracking-wide" id="active-model-title">cdx 3.2 LPU Ultra</h2>
+                        <p class="text-[10px] text-gray-400 font-mono">By Saad Kashif</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-xs font-semibold text-white tracking-wide" id="sidebar-model-name">Groq LPU (500+ tok/s)</h2>
-                    <p class="text-[10px] text-gray-500">The Codex Group • v1.7.0</p>
+                <i class="fa-solid fa-chevron-down text-gray-400 text-xs" id="dropdown-chevron"></i>
+            </div>
+
+            <!-- Custom High-Contrast Dropdown Menu (No more invisible white-on-white!) -->
+            <div id="custom-model-dropdown" class="custom-dropdown-menu">
+                <div class="dropdown-opt active" onclick="selectModel('cdx 3.2', 'cdx 3.2 LPU Ultra')">
+                    <div>
+                        <div class="font-semibold">cdx 3.2 LPU Ultra</div>
+                        <div class="text-[10px] text-gray-400">Primary • 500+ tok/s Ultra-Fast</div>
+                    </div>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-mono">LPU</span>
+                </div>
+                <div class="dropdown-opt" onclick="selectModel('cdx 3.6', 'cdx 3.6 Max (Thinking)')">
+                    <div>
+                        <div class="font-semibold">cdx 3.6 Max</div>
+                        <div class="text-[10px] text-gray-400">Deep Reasoning • 70B CoT</div>
+                    </div>
+                    <span class="text-[10px] bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded font-mono">MAX</span>
+                </div>
+                <div class="dropdown-opt" onclick="selectModel('cdx 3.5', 'cdx 3.5 Pro (Architecture)')">
+                    <div>
+                        <div class="font-semibold">cdx 3.5 Pro</div>
+                        <div class="text-[10px] text-gray-400">Antigravity Architecture Bridge</div>
+                    </div>
+                    <span class="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-mono">PRO</span>
+                </div>
+                <div class="dropdown-opt" onclick="selectModel('cdx 3.0', 'cdx 3.0 Turbo (Fast)')">
+                    <div>
+                        <div class="font-semibold">cdx 3.0 Turbo</div>
+                        <div class="text-[10px] text-gray-400">Lightweight • Instant Latency</div>
+                    </div>
+                    <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded font-mono">FAST</span>
+                </div>
+                <div class="dropdown-opt" onclick="selectModel('cdx 2.7', 'cdx 2.7 Instant (Local)')">
+                    <div>
+                        <div class="font-semibold">cdx 2.7 Instant</div>
+                        <div class="text-[10px] text-gray-400">Offline Pinned • Local Ollama</div>
+                    </div>
+                    <span class="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded font-mono">LOCAL</span>
                 </div>
             </div>
-            <select id="model-dropdown-hidden" onchange="changeModel(this.value)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
-                <option value="qwen/qwen3.8-27b">Groq LPU (500+ tok/s Ultra-Fast)</option>
-                <option value="gemini 3.8 flash">Gemini 3.8 Flash (Antigravity Bridge)</option>
-                <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 (High Reasoning)</option>
-                <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
-                <option value="qwen2.5-coder:1.5b">Local Ollama (Pinned Zero-Latency)</option>
-            </select>
-            <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
         </div>
 
-        <!-- Search / Quick New Chat -->
-        <div class="px-4 pb-2">
-            <div class="relative flex items-center bg-surface border border-borderLight rounded-lg px-3 py-1.5 focus-within:border-gray-500 transition-colors">
-                <i class="fa-solid fa-search text-gray-500 text-xs"></i>
-                <input type="text" id="sidebar-search" placeholder="Search chats..." class="bg-transparent border-none outline-none text-xs text-gray-300 w-full ml-2 placeholder-gray-600">
-                <button onclick="startNewChat()" title="New Chat (⌘ N)" class="text-gray-500 hover:text-white transition-colors">
-                    <i class="fa-solid fa-pen-to-square text-xs"></i>
-                </button>
-            </div>
+        <!-- Redesigned High-Contrast New Chat Button -->
+        <div class="px-2 pb-2">
+            <button onclick="createNewChatSession()" class="w-full flex items-center justify-between px-3.5 py-2.5 bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/40 hover:border-emerald-400 text-white rounded-xl text-xs font-semibold transition-all shadow-md group">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-emerald-400 text-xs group-hover:rotate-90 transition-transform"></i>
+                    New Chat
+                </span>
+                <span class="text-[10px] text-emerald-300 font-mono bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30">⌘ N</span>
+            </button>
         </div>
 
-        <!-- Main Navigation -->
+        <!-- Clean Core Navigation (Clutter removed, Agents & CLI added!) -->
         <nav class="px-2 py-1 space-y-0.5" id="sidebar-nav">
             <a href="javascript:void(0)" onclick="switchTab('chat')" id="nav-chat" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-surface rounded-lg transition-colors border border-borderLight">
                 <i class="fa-regular fa-comment-dots w-4 text-center text-sm text-emerald-400"></i> Chat & Copilot
             </a>
+            <a href="javascript:void(0)" onclick="switchTab('agents')" id="nav-agents" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
+                <i class="fa-solid fa-users-gear w-4 text-center text-sm text-purple-400"></i> Agents Hub
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('terminal')" id="nav-terminal" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
+                <i class="fa-solid fa-terminal w-4 text-center text-sm text-cyan-400"></i> CLI Terminal
+            </a>
             <a href="javascript:void(0)" onclick="switchTab('usage')" id="nav-usage" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
-                <i class="fa-solid fa-chart-line w-4 text-center text-sm text-blue-400"></i> Usage & Telemetry
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('mouse')" id="nav-mouse" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
-                <i class="fa-solid fa-arrow-pointer w-4 text-center text-sm text-purple-400"></i> Desktop Mouse & Screen
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('files')" id="nav-files" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
-                <i class="fa-regular fa-folder-open w-4 text-center text-sm text-orange-400"></i> Local PC Files
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('wifi')" id="nav-wifi" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
-                <i class="fa-solid fa-wifi w-4 text-center text-sm text-cyan-400"></i> WiFi & Deep Research
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('antigravity')" id="nav-antigravity" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors">
-                <i class="fa-solid fa-atom w-4 text-center text-sm text-pink-400"></i> Google Antigravity
+                <i class="fa-solid fa-chart-line w-4 text-center text-sm text-blue-400"></i> Usage & Activity
             </a>
         </nav>
 
-        <!-- Chat History -->
+        <!-- Chat History Sessions List -->
         <div class="flex-1 overflow-y-auto px-2 py-3 space-y-4">
-            
-            <!-- Pinned -->
             <div>
-                <div class="flex items-center justify-between px-3 mb-1.5 group">
-                    <h3 class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Pinned</h3>
-                    <i class="fa-solid fa-plus text-gray-600 text-[10px] opacity-0 group-hover:opacity-100 cursor-pointer"></i>
+                <div class="flex items-center justify-between px-3 mb-1.5">
+                    <h3 class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Conversations</h3>
+                    <span class="text-[9px] text-gray-600 font-mono" id="session-count-label">1 chat</span>
                 </div>
-                <ul class="space-y-0.5">
-                    <li><a href="javascript:void(0)" onclick="fillAndSend('Synthesize a full-stack Python application with modular architecture, pytest suite, and type annotations.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-solid fa-thumbtack text-gray-600 mr-2 text-[10px]"></i> Autonomous Python Full-Stack</a></li>
-                    <li><a href="javascript:void(0)" onclick="fillAndSend('Automate Linux desktop mouse to click center coordinates and scroll down.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-solid fa-thumbtack text-gray-600 mr-2 text-[10px]"></i> Mouse xdotool Automation</a></li>
-                    <li><a href="javascript:void(0)" onclick="fillAndSend('Audit codebase architecture and optimize latency via Google Antigravity.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-solid fa-thumbtack text-gray-600 mr-2 text-[10px]"></i> Antigravity Engine Audit</a></li>
+                <ul class="space-y-0.5" id="history-sessions-list">
+                    <!-- Populated dynamically with active sessions -->
                 </ul>
             </div>
-
-            <!-- Today -->
-            <div>
-                <div class="flex items-center justify-between px-3 mb-1.5 group">
-                    <h3 class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Today</h3>
-                </div>
-                <ul class="space-y-0.5" id="history-today">
-                    <li><a href="javascript:void(0)" onclick="fillAndSend('Show me my current network WiFi diagnostic and internet ping.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-regular fa-message text-gray-600 mr-2 text-[10px]"></i> Network & WiFi Inspection</a></li>
-                    <li><a href="javascript:void(0)" onclick="fillAndSend('Inspect system tokens and performance telemetry.')" class="block px-3 py-1.5 text-[12px] text-gray-400 hover:text-gray-200 hover:bg-surface rounded-lg truncate"><i class="fa-regular fa-message text-gray-600 mr-2 text-[10px]"></i> Telemetry & Token Quota</a></li>
-                </ul>
-            </div>
-
         </div>
 
         <!-- Sidebar Footer -->
@@ -201,9 +250,9 @@
             <div class="flex items-center justify-between text-xs text-gray-400 px-2">
                 <div class="flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                    <span class="text-[11px] font-medium text-gray-300">LPU 500+ tok/s Active</span>
+                    <span class="text-[11px] font-medium text-gray-300">CDX Autonomous Core</span>
                 </div>
-                <span class="text-[10px] text-gray-600 font-mono">CLI-Synced</span>
+                <span class="text-[10px] text-gray-600 font-mono">Saad Kashif</span>
             </div>
         </div>
     </aside>
@@ -217,11 +266,11 @@
                 <i class="fa-solid fa-arrow-up-from-bracket text-gray-400 text-xs"></i>
                 Export
             </button>
-            <button onclick="switchTab('usage')" class="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors shadow-lg shadow-emerald-500/20">
-                <i class="fa-solid fa-chart-simple text-xs"></i> Usage
+            <button onclick="switchTab('terminal')" class="flex items-center gap-2 px-3.5 py-1.5 bg-surface border border-borderLight hover:border-cyan-500/50 text-white rounded-lg text-xs font-semibold transition-colors">
+                <i class="fa-solid fa-terminal text-cyan-400 text-xs"></i> CLI
             </button>
-            <button onclick="startNewChat()" title="Reset / New Chat" class="w-8 h-8 rounded-lg bg-surface border border-borderLight flex items-center justify-center hover:bg-surfaceHover text-gray-400 hover:text-white transition-colors">
-                <i class="fa-solid fa-rotate-right text-xs"></i>
+            <button onclick="createNewChatSession()" title="New Chat (⌘ N)" class="w-8 h-8 rounded-lg bg-surface border border-borderLight flex items-center justify-center hover:bg-surfaceHover text-emerald-400 transition-colors">
+                <i class="fa-solid fa-plus text-xs"></i>
             </button>
         </header>
 
@@ -229,53 +278,53 @@
         <div id="tab-chat" class="tab-pane flex-1 flex flex-col w-full h-full relative">
             <div id="chat-container" class="flex-1 overflow-y-auto w-full pt-16 pb-48 flex flex-col items-center">
                 
-                <!-- Welcome Screen (OLED 4-Card Grid) -->
+                <!-- Welcome Screen -->
                 <div id="welcome-screen" class="w-full max-w-4xl px-6 flex flex-col items-center justify-center mt-8 sm:mt-16 transition-opacity duration-300">
                     <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-4">
-                        <i class="fa-solid fa-terminal text-emerald-400 text-xl"></i>
+                        <i class="fa-solid fa-code text-emerald-400 text-xl"></i>
                     </div>
-                    <h1 class="text-3xl font-semibold mb-2 text-white tracking-tight text-center">Welcome to The Codex Group.</h1>
-                    <p class="text-gray-400 text-sm mb-10 text-center max-w-lg">Autonomous AI copilot for Linux with hardware mouse automation, local PC storage, and Groq LPU zero latency.</p>
+                    <h1 class="text-3xl font-semibold mb-2 text-white tracking-tight text-center">What are we building today?</h1>
+                    <p class="text-gray-400 text-sm mb-10 text-center max-w-lg">Autonomous AI created by Saad Kashif. Complete memory across turns with instant, production-grade code synthesis.</p>
 
-                    <!-- 4 Column Grid (Exact Askk AI Styling) -->
+                    <!-- 4 Column Grid -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                         
-                        <!-- Task Automation -->
-                        <button onclick="fillAndSend('Inspect my Linux screen resolution, move mouse cursor smoothly to center, and perform double click.')" class="glass-card card-blue stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                        <!-- Build Portfolio / Website -->
+                        <button onclick="fillAndSend('Build me a stunning, responsive portfolio website with hero section, project showcase, interactive dark mode, and contact form in modern HTML/CSS/Tailwind.')" class="glass-card card-emerald stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
                             <div class="card-content">
-                                <i class="fa-solid fa-arrow-pointer text-blue-400 bg-blue-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
-                                <h3 class="text-sm font-semibold text-white mb-1">Desktop Mouse</h3>
-                                <p class="text-xs text-gray-400 leading-relaxed">Hardware mouse cursor, clicks, and typing via xdotool.</p>
+                                <i class="fa-solid fa-laptop-code text-emerald-400 bg-emerald-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
+                                <h3 class="text-sm font-semibold text-white mb-1">Build Website / Portfolio</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Instant generation of complete, beautiful websites with ready-to-run code.</p>
                             </div>
                             <i class="fa-solid fa-arrow-right text-gray-500 card-content opacity-0 group-hover:opacity-100 transition-opacity text-xs"></i>
                         </button>
 
-                        <!-- Code Generation -->
+                        <!-- Code Synthesis -->
                         <button onclick="fillAndSend('Write a production-grade FastAPI service with SQLite, automated pytest suite, and type annotations.')" class="glass-card card-teal stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
                             <div class="card-content">
                                 <i class="fa-solid fa-code text-teal-400 bg-teal-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
-                                <h3 class="text-sm font-semibold text-white mb-1">Code Synthesis</h3>
-                                <p class="text-xs text-gray-400 leading-relaxed">Full-stack software with zero placeholders and rigorous standards.</p>
+                                <h3 class="text-sm font-semibold text-white mb-1">Full-Stack Backend</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">FastAPI, Express, or Go services with automated tests and zero placeholders.</p>
                             </div>
                             <i class="fa-solid fa-arrow-right text-gray-500 card-content opacity-0 group-hover:opacity-100 transition-opacity text-xs"></i>
                         </button>
 
-                        <!-- Multi-source Research -->
-                        <button onclick="fillAndSend('Conduct deep multi-platform internet research on latest WebAssembly SIMD performance.')" class="glass-card card-orange stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                        <!-- CLI in GUI -->
+                        <button onclick="switchTab('terminal')" class="glass-card card-blue stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
                             <div class="card-content">
-                                <i class="fa-solid fa-globe text-orange-400 bg-orange-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
-                                <h3 class="text-sm font-semibold text-white mb-1">Deep Research</h3>
-                                <p class="text-xs text-gray-400 leading-relaxed">Multi-source intelligence across live web, GitHub, and dev blogs.</p>
+                                <i class="fa-solid fa-terminal text-blue-400 bg-blue-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
+                                <h3 class="text-sm font-semibold text-white mb-1">GUI Terminal Shell</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Execute live bash commands, build scripts, and see formatted output.</p>
                             </div>
                             <i class="fa-solid fa-arrow-right text-gray-500 card-content opacity-0 group-hover:opacity-100 transition-opacity text-xs"></i>
                         </button>
 
-                        <!-- Antigravity Delegation -->
-                        <button onclick="fillAndSend('Delegate architectural refactoring and code audit to Google Antigravity.')" class="glass-card card-purple stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                        <!-- Specialized Agents -->
+                        <button onclick="switchTab('agents')" class="glass-card card-purple stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
                             <div class="card-content">
-                                <i class="fa-solid fa-atom text-purple-400 bg-purple-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
-                                <h3 class="text-sm font-semibold text-white mb-1">Antigravity Bridge</h3>
-                                <p class="text-xs text-gray-400 leading-relaxed">Forward complex reasoning directly to Google Antigravity.</p>
+                                <i class="fa-solid fa-users-gear text-purple-400 bg-purple-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
+                                <h3 class="text-sm font-semibold text-white mb-1">Specialized Agents</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">Deploy Architect, Auditor, Full-Stack, and Research subagents.</p>
                             </div>
                             <i class="fa-solid fa-arrow-right text-gray-500 card-content opacity-0 group-hover:opacity-100 transition-opacity text-xs"></i>
                         </button>
@@ -283,9 +332,7 @@
                 </div>
 
                 <!-- Dynamic Chat Output -->
-                <div id="chat-messages" class="w-full max-w-3xl px-6 flex flex-col gap-6 hidden">
-                    <!-- Messages dynamically injected here -->
-                </div>
+                <div id="chat-messages" class="w-full max-w-3xl px-6 flex flex-col gap-6 hidden"></div>
             </div>
 
             <!-- Floating Input Controls -->
@@ -294,34 +341,33 @@
                     
                     <!-- Suggestion Pills -->
                     <div id="suggestions" class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar w-full" style="-ms-overflow-style: none; scrollbar-width: none;">
-                        <style>.no-scrollbar::-webkit-scrollbar { display: none; }</style>
-                        <button onclick="fillAndSend('Show me my system WiFi connection and assigned IP address')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
-                            <i class="fa-solid fa-wifi text-cyan-400 mr-1.5 text-[10px]"></i> WiFi Status
+                        <button onclick="fillAndSend('Build me a modern dark mode personal portfolio website with interactive projects and contact form')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
+                            <i class="fa-solid fa-wand-magic-sparkles text-emerald-400 mr-1.5 text-[10px]"></i> Create Portfolio Website
                         </button>
-                        <button onclick="fillAndSend('Move my mouse smoothly to screen coordinates x=1536 y=864')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
-                            <i class="fa-solid fa-arrow-pointer text-purple-400 mr-1.5 text-[10px]"></i> Move Mouse
+                        <button onclick="fillAndSend('Write a Python script that analyzes my system performance and saves a report to ~/system_report.md')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
+                            <i class="fa-solid fa-file-code text-teal-400 mr-1.5 text-[10px]"></i> System Report Script
                         </button>
-                        <button onclick="fillAndSend('Write a high-performance Python CLI tool with rich output and tests')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
-                            <i class="fa-solid fa-code text-teal-400 mr-1.5 text-[10px]"></i> Python CLI
+                        <button onclick="switchTab('terminal')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
+                            <i class="fa-solid fa-terminal text-cyan-400 mr-1.5 text-[10px]"></i> Run CLI Command
                         </button>
-                        <button onclick="switchTab('usage')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
-                            <i class="fa-solid fa-chart-line text-emerald-400 mr-1.5 text-[10px]"></i> Usage Heatmap
+                        <button onclick="switchTab('agents')" class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface border border-borderLight text-xs text-gray-300 hover:text-white hover:bg-surfaceHover transition-colors">
+                            <i class="fa-solid fa-users-gear text-purple-400 mr-1.5 text-[10px]"></i> Deploy Agents
                         </button>
                     </div>
 
                     <!-- Input Box -->
-                    <div class="relative bg-surface rounded-full border border-borderLight flex items-center p-1.5 focus-within:border-gray-500 transition-colors shadow-2xl">
+                    <div class="relative bg-surface rounded-full border border-borderLight flex items-center p-1.5 focus-within:border-emerald-500/70 transition-colors shadow-2xl">
                         <input 
                             type="text" 
                             id="user-input" 
-                            placeholder="Ask The Codex Group anything..." 
+                            placeholder="Ask CDX anything or tell it to build a website/tool..." 
                             class="w-full bg-transparent text-white pl-4 pr-12 py-2 outline-none text-sm placeholder-gray-500 font-sans"
                             onkeydown="handleEnter(event)"
                         >
                         <button 
                             id="send-btn"
                             onclick="handleSend()"
-                            class="absolute right-2 w-8 h-8 rounded-full bg-[#2a2a2a] hover:bg-[#333] flex items-center justify-center text-gray-300 hover:text-white transition-colors disabled:opacity-50">
+                            class="absolute right-2 w-8 h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-white transition-colors disabled:opacity-50">
                             <i class="fa-solid fa-arrow-up text-sm"></i>
                         </button>
                     </div>
@@ -329,13 +375,12 @@
                     <!-- Bottom Status Bar -->
                     <div class="flex items-center justify-between px-2 text-[11px] text-gray-500 mt-0.5">
                         <div class="flex items-center gap-2">
-                            <span class="flex items-center gap-1.5 hover:text-gray-300 cursor-pointer" onclick="switchTab('files')">
-                                <i class="fa-solid fa-floppy-disk text-[10px]"></i>
-                                Direct PC Disk Read/Write
+                            <span class="text-[10px] text-gray-400 font-mono">
+                                Created by Saad Kashif • Zero-Latency Memory
                             </span>
                         </div>
-                        <div class="flex items-center gap-1.5 font-mono text-[10px]">
-                            <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
+                        <div class="flex items-center gap-1.5 font-mono text-[10px] text-emerald-400">
+                            <i class="fa-solid fa-bolt text-[10px]"></i>
                             Groq LPU (500+ tok/s Ultra-Fast)
                         </div>
                     </div>
@@ -344,11 +389,125 @@
             </div>
         </div>
 
-        <!-- ── TAB 2: USAGE & ACTIVITY HEATMAP ── -->
+        <!-- ── TAB 2: AGENTS HUB (NEW!) ── -->
+        <div id="tab-agents" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
+            <div class="border-b border-borderLight pb-4 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Autonomous Agents Hub</h2>
+                    <p class="text-xs text-gray-400 mt-1">Talk to specialized subagents configured with targeted domain expertise</p>
+                </div>
+                <span class="text-xs px-2.5 py-1 bg-purple-500/15 border border-purple-500/30 text-purple-300 rounded-full font-mono">
+                    5 Autonomous Specialists
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Architect Agent -->
+                <div class="glass-card card-purple p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-cubes text-purple-400"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-white mb-1">CDX-Architect</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">Principal system designer. Specializes in distributed microservices, database schemas, API specs, and clean scalable architecture.</p>
+                    </div>
+                    <button onclick="startAgentChat('CDX-Architect', 'You are CDX-Architect, a principal systems architect created by Saad Kashif. Focus strictly on clean modular architecture, API designs, scalability, and database modeling.', 'Design scalable architecture for: ')" class="w-full py-2 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-semibold text-purple-300 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-regular fa-comment text-xs"></i> Consult Architect
+                    </button>
+                </div>
+
+                <!-- Full-Stack Web Agent -->
+                <div class="glass-card card-emerald p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-laptop-code text-emerald-400"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-white mb-1">CDX-FullStack</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">Production website & app builder. Writes complete HTML/CSS/Tailwind sites, React/Vue frontends, and Python/Node backends instantly without asking questions.</p>
+                    </div>
+                    <button onclick="startAgentChat('CDX-FullStack', 'You are CDX-FullStack, an elite web builder created by Saad Kashif. Immediately write complete, stunning, single-page or multi-component websites and web apps with zero placeholders.', 'Build a complete website for: ')" class="w-full py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-xs font-semibold text-emerald-300 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Deploy Web Builder
+                    </button>
+                </div>
+
+                <!-- Security Auditor Agent -->
+                <div class="glass-card card-orange p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-shield-halved text-orange-400"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-white mb-1">CDX-Auditor</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">Security & penetration auditor. Inspects code for injection vulnerabilities, secret leaks, CORS bugs, and memory vulnerabilities.</p>
+                    </div>
+                    <button onclick="startAgentChat('CDX-Auditor', 'You are CDX-Auditor, an elite cybersecurity engineer created by Saad Kashif. Audit code, detect vulnerabilities, and provide patched secure code implementations.', 'Perform security audit on: ')" class="w-full py-2 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-shield text-xs"></i> Run Security Audit
+                    </button>
+                </div>
+
+                <!-- Deep Research Agent -->
+                <div class="glass-card card-blue p-5 rounded-2xl border border-borderLight flex flex-col justify-between">
+                    <div>
+                        <div class="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-globe text-blue-400"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-white mb-1">CDX-Research</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">Multi-platform intelligence aggregator. Queries live web, GitHub repositories, and developer documentation to deliver comprehensive synthesis reports.</p>
+                    </div>
+                    <button onclick="startAgentChat('CDX-Research', 'You are CDX-Research, a multi-source intelligence agent created by Saad Kashif. Conduct deep research and synthesize structured analytical reports.', 'Research the topic: ')" class="w-full py-2 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-semibold text-blue-300 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i> Consult Researcher
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB 3: CLI TERMINAL (CLI IN GUI FORMAT!) ── -->
+        <div id="tab-terminal" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-4 hidden">
+            <div class="border-b border-borderLight pb-4 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">CLI in GUI Format</h2>
+                    <p class="text-xs text-gray-400 mt-1">Execute live bash commands directly on your Linux PC with real-time output</p>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-[11px] text-gray-400">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span>Bash Connected</span>
+                </div>
+            </div>
+
+            <!-- Quick Action Toolbar -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="runCliCommand('uname -a')" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs font-mono text-gray-300 transition-colors">uname -a</button>
+                <button onclick="runCliCommand('pwd && ls -la')" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs font-mono text-gray-300 transition-colors">ls -la</button>
+                <button onclick="runCliCommand('git status -s')" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs font-mono text-gray-300 transition-colors">git status</button>
+                <button onclick="runCliCommand('python3 --version')" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs font-mono text-gray-300 transition-colors">python3 --version</button>
+                <button onclick="clearCliTerminal()" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs font-mono text-red-400 transition-colors ml-auto">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Clear
+                </button>
+            </div>
+
+            <!-- Terminal Output Window -->
+            <div id="terminal-screen" class="w-full h-[420px] bg-black border border-borderLight rounded-2xl p-4 font-mono text-xs text-gray-200 overflow-y-auto space-y-2 select-text">
+                <div class="text-emerald-400">The Codex Group [Version 1.7.0] — Linux CLI GUI Shell</div>
+                <div class="text-gray-500">Created by Saad Kashif. Type any command below to execute directly on your PC.</div>
+                <div class="text-gray-600">--------------------------------------------------------------------------------</div>
+            </div>
+
+            <!-- Terminal Input -->
+            <div class="flex gap-2">
+                <div class="flex-1 bg-surface border border-borderLight rounded-xl px-4 py-2.5 flex items-center gap-2 focus-within:border-cyan-500 transition-colors">
+                    <span class="text-cyan-400 font-mono text-xs select-none">cdx@linux:~$</span>
+                    <input type="text" id="cli-input" placeholder="Type bash command (e.g. ls -la, git log, pytest)..." class="flex-1 bg-transparent text-white font-mono text-xs outline-none" onkeydown="handleCliKey(event)">
+                </div>
+                <button onclick="executeCliFromInput()" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition-colors shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-play mr-1.5"></i> Run
+                </button>
+            </div>
+        </div>
+
+        <!-- ── TAB 4: USAGE & ACTIVITY ── -->
         <div id="tab-usage" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
             <div class="flex items-center justify-between border-b border-borderLight pb-4">
                 <div>
-                    <h2 class="text-xl font-semibold text-white">Usage & Performance Telemetry</h2>
+                    <h2 class="text-xl font-semibold text-white">Usage & Telemetry</h2>
                     <p class="text-xs text-gray-400 mt-1">Real-time token metrics, daily quota limits, and 35-day contribution activity</p>
                 </div>
                 <button onclick="fetchUsage()" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs font-medium text-gray-300 transition-colors">
@@ -397,194 +556,27 @@
                         <span>More</span>
                     </div>
                 </div>
-                <div class="grid grid-cols-7 gap-2.5" id="heatmap-grid">
-                    <!-- Populated dynamically -->
-                </div>
-            </div>
-
-            <!-- Telemetry Details Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-surface border border-borderLight rounded-2xl p-5 space-y-3">
-                    <h3 class="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-microchip text-blue-400"></i> Active Model Distribution
-                    </h3>
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between text-gray-300">
-                            <span>Qwen 3.8 27B (Groq LPU)</span>
-                            <span class="font-mono text-emerald-400">68%</span>
-                        </div>
-                        <div class="w-full bg-[#1c1c1c] h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-emerald-500 h-full rounded-full" style="width: 68%;"></div>
-                        </div>
-
-                        <div class="flex justify-between text-gray-300 pt-2">
-                            <span>Gemini 3.8 Flash (Antigravity)</span>
-                            <span class="font-mono text-blue-400">24%</span>
-                        </div>
-                        <div class="w-full bg-[#1c1c1c] h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-blue-500 h-full rounded-full" style="width: 24%;"></div>
-                        </div>
-
-                        <div class="flex justify-between text-gray-300 pt-2">
-                            <span>DeepSeek R1 (Reasoning)</span>
-                            <span class="font-mono text-purple-400">8%</span>
-                        </div>
-                        <div class="w-full bg-[#1c1c1c] h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-purple-500 h-full rounded-full" style="width: 8%;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-surface border border-borderLight rounded-2xl p-5 space-y-3">
-                    <h3 class="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-wrench text-orange-400"></i> Hardware Tool Actions
-                    </h3>
-                    <div class="space-y-2 text-xs text-gray-300">
-                        <div class="flex justify-between py-1 border-b border-borderLight/50">
-                            <span>Mouse Cursor & Keyboard Events</span>
-                            <span class="font-mono text-white">42 runs</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-borderLight/50">
-                            <span>Local Disk Read & Save Operations</span>
-                            <span class="font-mono text-white">86 files</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-borderLight/50">
-                            <span>Deep Multi-Platform Web Reports</span>
-                            <span class="font-mono text-white">31 runs</span>
-                        </div>
-                        <div class="flex justify-between py-1">
-                            <span>Google Antigravity Delegations</span>
-                            <span class="font-mono text-white">14 calls</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── TAB 3: MOUSE & SCREEN ── -->
-        <div id="tab-mouse" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
-            <div class="border-b border-borderLight pb-4">
-                <h2 class="text-xl font-semibold text-white">Hardware Mouse & Screen Automation</h2>
-                <p class="text-xs text-gray-400 mt-1">Control your actual Linux cursor (mapped to 3072x1728) via native xdotool</p>
-            </div>
-
-            <!-- Virtual Trackpad -->
-            <div id="virtual-trackpad" 
-                 onmousemove="handleTrackpadMove(event)" 
-                 onclick="sendMouseClick(1)"
-                 class="w-full h-64 bg-surface border-2 border-dashed border-borderLight hover:border-gray-500 rounded-2xl flex flex-col items-center justify-center cursor-crosshair transition-colors select-none">
-                <i class="fa-solid fa-arrow-pointer text-3xl text-emerald-400 mb-2 pointer-events-none"></i>
-                <span class="text-sm font-medium text-white pointer-events-none" id="mouse-coord-label">Move cursor here to steer Linux mouse</span>
-                <span class="text-[11px] text-gray-500 mt-1 pointer-events-none">Click to execute Left-Click</span>
-            </div>
-
-            <!-- Buttons Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                <button onclick="sendMouseClick(1)" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-hand-pointer text-blue-400"></i> Left Click
-                </button>
-                <button onclick="sendMouseClick(3)" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-hand-back-fist text-purple-400"></i> Right Click
-                </button>
-                <button onclick="sendMouseDoubleClick()" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-pointer text-teal-400"></i> Double Click
-                </button>
-                <button onclick="sendMouseScroll('up')" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-up text-orange-400"></i> Scroll Up
-                </button>
-                <button onclick="sendMouseScroll('down')" class="px-4 py-2.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-white transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-down text-orange-400"></i> Scroll Down
-                </button>
-            </div>
-
-            <!-- Text Injection -->
-            <div class="flex gap-2">
-                <input type="text" id="type-text-input" placeholder="Type text to inject via hardware keyboard..." class="flex-1 bg-surface border border-borderLight rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-gray-500">
-                <button onclick="sendTypeText()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition-colors">
-                    Inject Typing
-                </button>
-            </div>
-        </div>
-
-        <!-- ── TAB 4: LOCAL FILES ── -->
-        <div id="tab-files" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-4 hidden">
-            <div class="border-b border-borderLight pb-4 flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold text-white">Local PC File Explorer & Editor</h2>
-                    <p class="text-xs text-gray-400 mt-1">Read, edit, and write files directly to your Linux filesystem</p>
-                </div>
-                <button onclick="saveFile()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors shadow-lg shadow-emerald-500/20">
-                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Save to PC
-                </button>
-            </div>
-
-            <div class="flex gap-2">
-                <input type="text" id="file-path-input" value="setup.py" class="flex-1 bg-surface border border-borderLight rounded-xl px-4 py-2 text-xs text-white font-mono outline-none focus:border-gray-500">
-                <button onclick="loadFile()" class="px-4 py-2 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-medium text-gray-300 transition-colors">
-                    Load File
-                </button>
-            </div>
-
-            <textarea id="file-content-area" class="w-full h-[480px] bg-surface border border-borderLight rounded-2xl p-4 font-mono text-xs text-gray-200 outline-none focus:border-gray-500 resize-none leading-relaxed"></textarea>
-        </div>
-
-        <!-- ── TAB 5: WIFI & RESEARCH ── -->
-        <div id="tab-wifi" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
-            <div class="border-b border-borderLight pb-4">
-                <h2 class="text-xl font-semibold text-white">WiFi Diagnostics & Deep Internet Research</h2>
-                <p class="text-xs text-gray-400 mt-1">Network telemetry via nmcli and multi-platform research aggregator</p>
-            </div>
-
-            <!-- WiFi Status Card -->
-            <div class="bg-surface border border-borderLight rounded-2xl p-6" id="wifi-card">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Connection Status</span>
-                    <button onclick="fetchWifi()" class="text-xs text-gray-400 hover:text-white"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
-                </div>
-                <div id="wifi-content" class="text-sm space-y-2 text-gray-300">
-                    <i class="fa-solid fa-circle-notch fa-spin text-emerald-400 mr-2"></i> Inspecting WiFi network...
-                </div>
-            </div>
-
-            <!-- Research Query -->
-            <div class="space-y-3">
-                <h3 class="text-sm font-semibold text-white">Run Deep Multi-Platform Research</h3>
-                <div class="flex gap-2">
-                    <input type="text" id="research-query-input" placeholder="Enter research topic..." class="flex-1 bg-surface border border-borderLight rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-gray-500">
-                    <button onclick="executeResearch()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition-colors">
-                        Research
-                    </button>
-                </div>
-                <div id="research-output" class="bg-surface border border-borderLight rounded-2xl p-6 text-sm text-gray-200 leading-relaxed min-h-[200px]">
-                    <span class="text-gray-500 text-xs">Research report will appear here.</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── TAB 6: ANTIGRAVITY ── -->
-        <div id="tab-antigravity" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
-            <div class="border-b border-borderLight pb-4">
-                <h2 class="text-xl font-semibold text-white">Google Antigravity Delegation Bridge</h2>
-                <p class="text-xs text-gray-400 mt-1">Delegate architectural refactoring and multi-file code auditing to Google Antigravity</p>
-            </div>
-
-            <div class="space-y-3">
-                <textarea id="antigravity-input" placeholder="Describe the complex task to delegate to Google Antigravity..." class="w-full h-32 bg-surface border border-borderLight rounded-2xl p-4 text-xs text-white outline-none focus:border-gray-500 resize-none leading-relaxed"></textarea>
-                <button onclick="delegateAntigravity()" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition-colors shadow-lg shadow-purple-500/20">
-                    <i class="fa-solid fa-atom mr-1.5"></i> Delegate to Antigravity
-                </button>
-            </div>
-
-            <div id="antigravity-output" class="bg-surface border border-borderLight rounded-2xl p-6 text-sm text-gray-200 leading-relaxed min-h-[220px]">
-                <span class="text-gray-500 text-xs">Antigravity execution results will appear here.</span>
+                <div class="grid grid-cols-7 gap-2.5" id="heatmap-grid"></div>
             </div>
         </div>
 
     </main>
 
     <script>
-        // State
+        // State & Multi-Session Management (Full Memory across turns!)
+        let currentModel = 'cdx 3.2';
+        let currentSystemPrompt = '';
         let isWaiting = false;
+
+        let sessions = [
+            {
+                id: 'sess_' + Date.now(),
+                title: 'New Conversation',
+                messages: [] // Array of {role: 'user'|'assistant', content: string}
+            }
+        ];
+        let activeSessionIndex = 0;
+
         const chatContainer = document.getElementById('chat-container');
         const chatMessages = document.getElementById('chat-messages');
         const welcomeScreen = document.getElementById('welcome-screen');
@@ -600,37 +592,122 @@
             const target = document.getElementById('tab-' + tabId);
             if (target) target.classList.remove('hidden');
 
-            // Update nav styles
             const navMap = {
                 chat: 'nav-chat',
-                usage: 'nav-usage',
-                mouse: 'nav-mouse',
-                files: 'nav-files',
-                wifi: 'nav-wifi',
-                antigravity: 'nav-antigravity'
+                agents: 'nav-agents',
+                terminal: 'nav-terminal',
+                usage: 'nav-usage'
             };
 
             Object.entries(navMap).forEach(([k, id]) => {
                 const btn = document.getElementById(id);
-                if (k === tabId) {
-                    btn.className = "flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-surface rounded-lg transition-colors border border-borderLight";
-                } else {
-                    btn.className = "flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors";
+                if (btn) {
+                    if (k === tabId) {
+                        btn.className = "flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-surface rounded-lg transition-colors border border-borderLight";
+                    } else {
+                        btn.className = "flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-surface rounded-lg transition-colors";
+                    }
                 }
             });
 
             if (tabId === 'usage') fetchUsage();
-            if (tabId === 'wifi') fetchWifi();
         }
 
-        function startNewChat() {
-            chatMessages.innerHTML = '';
-            chatMessages.classList.add('hidden');
-            welcomeScreen.classList.remove('hidden');
-            welcomeScreen.classList.remove('opacity-0');
-            suggestionsBox.classList.remove('hidden');
-            userInput.value = '';
+        // Dropdown Toggle (High Contrast & Visible!)
+        function toggleModelDropdown(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('custom-model-dropdown');
+            dd.classList.toggle('show');
+        }
+
+        window.addEventListener('click', () => {
+            const dd = document.getElementById('custom-model-dropdown');
+            if (dd) dd.classList.remove('show');
+        });
+
+        async function selectModel(modelKey, label) {
+            currentModel = modelKey;
+            document.getElementById('active-model-title').innerText = label;
+            document.querySelectorAll('.dropdown-opt').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            await fetch('/api/model', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({model: modelKey})
+            });
+        }
+
+        // Session Management
+        function createNewChatSession() {
+            const newSess = {
+                id: 'sess_' + Date.now(),
+                title: 'New Conversation',
+                messages: []
+            };
+            sessions.unshift(newSess);
+            activeSessionIndex = 0;
+            currentSystemPrompt = '';
+            renderSessionsList();
+            renderActiveSessionMessages();
             switchTab('chat');
+        }
+
+        function switchSession(idx) {
+            activeSessionIndex = idx;
+            renderSessionsList();
+            renderActiveSessionMessages();
+            switchTab('chat');
+        }
+
+        function renderSessionsList() {
+            const list = document.getElementById('history-sessions-list');
+            list.innerHTML = '';
+            document.getElementById('session-count-label').innerText = `${sessions.length} chat${sessions.length > 1 ? 's' : ''}`;
+
+            sessions.forEach((sess, idx) => {
+                const li = document.createElement('li');
+                const isActive = idx === activeSessionIndex;
+                li.innerHTML = `
+                    <a href="javascript:void(0)" onclick="switchSession(${idx})" class="flex items-center justify-between px-3 py-1.5 text-[12px] ${isActive ? 'text-white bg-surface font-semibold border border-borderLight' : 'text-gray-400 hover:text-gray-200 hover:bg-surface'} rounded-lg truncate group">
+                        <span class="truncate"><i class="fa-regular fa-message mr-2 text-[10px] ${isActive ? 'text-emerald-400' : 'text-gray-600'}"></i> ${escapeHTML(sess.title)}</span>
+                        ${sessions.length > 1 ? `<button onclick="deleteSession(event, ${idx})" class="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity ml-2"><i class="fa-solid fa-xmark text-[10px]"></i></button>` : ''}
+                    </a>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function deleteSession(e, idx) {
+            e.stopPropagation();
+            if (sessions.length <= 1) return;
+            sessions.splice(idx, 1);
+            if (activeSessionIndex >= sessions.length) activeSessionIndex = sessions.length - 1;
+            renderSessionsList();
+            renderActiveSessionMessages();
+        }
+
+        function renderActiveSessionMessages() {
+            const sess = sessions[activeSessionIndex];
+            chatMessages.innerHTML = '';
+
+            if (sess.messages.length === 0) {
+                welcomeScreen.classList.remove('hidden');
+                welcomeScreen.classList.remove('opacity-0');
+                chatMessages.classList.add('hidden');
+                suggestionsBox.classList.remove('hidden');
+            } else {
+                welcomeScreen.classList.add('hidden');
+                chatMessages.classList.remove('hidden');
+                suggestionsBox.classList.add('hidden');
+
+                sess.messages.forEach(msg => {
+                    appendMessageDOM(msg.content, msg.role);
+                });
+            }
+            scrollToBottom();
         }
 
         function fillAndSend(text) {
@@ -645,27 +722,38 @@
             }
         }
 
-        // Live Chat Streaming via /api/chat
+        // Live Chat Streaming with Complete Memory!
         async function handleSend() {
             const text = userInput.value.trim();
             if (!text || isWaiting) return;
 
-            // Transition UI from Welcome to Chat
+            const sess = sessions[activeSessionIndex];
+
+            // Transition UI
             if (!welcomeScreen.classList.contains('hidden')) {
                 welcomeScreen.classList.add('opacity-0');
                 setTimeout(() => {
                     welcomeScreen.classList.add('hidden');
                     chatMessages.classList.remove('hidden');
                     suggestionsBox.classList.add('hidden');
-                }, 200);
+                }, 150);
             }
 
             userInput.value = '';
-            appendMessage(text, 'user');
+
+            // Update title if first message
+            if (sess.messages.length === 0) {
+                sess.title = text.length > 28 ? text.slice(0, 28) + '...' : text;
+                renderSessionsList();
+            }
+
+            // Append user message to DOM and to session memory
+            appendMessageDOM(text, 'user');
+            sess.messages.push({ role: 'user', content: text });
 
             setLoadingState(true);
 
-            // Create Assistant Stream Card
+            // Assistant Stream Card
             const aiCard = document.createElement('div');
             aiCard.className = 'flex gap-4 w-full justify-start';
             aiCard.innerHTML = `
@@ -673,22 +761,28 @@
                     <i class="fa-solid fa-sparkles text-emerald-400 text-xs"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="markdown-body text-gray-200 text-sm leading-relaxed" id="stream-body">
-                        <span class="text-gray-500 text-xs">Connecting to Groq LPU...</span>
+                    <div class="markdown-body text-gray-200 text-sm leading-relaxed" id="current-stream-text">
+                        <span class="text-gray-500 text-xs">Thinking...</span>
                     </div>
                 </div>
             `;
             chatMessages.appendChild(aiCard);
             scrollToBottom();
 
-            const streamBody = aiCard.querySelector('#stream-body');
+            const streamBody = aiCard.querySelector('#current-stream-text');
             let fullText = '';
 
             try {
+                // Send the entire conversation history so the model NEVER forgets context!
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({prompt: text})
+                    body: JSON.stringify({
+                        prompt: text,
+                        messages: sess.messages, // Complete history array passed!
+                        model: currentModel,
+                        system_prompt: currentSystemPrompt
+                    })
                 });
 
                 const reader = response.body.getReader();
@@ -707,12 +801,15 @@
                     scrollToBottom();
                 }
 
-                // Add action footer
+                // Save assistant message to session memory!
+                sess.messages.push({ role: 'assistant', content: fullText });
+
+                // Add action footer with copy button
                 const footer = document.createElement('div');
                 footer.className = "flex items-center gap-3 mt-3 text-gray-500";
                 footer.innerHTML = `
                     <button onclick="copyToClipboard(this)" class="hover:text-gray-300 transition-colors" title="Copy text"><i class="fa-regular fa-copy text-xs"></i></button>
-                    <span class="text-[10px] text-gray-600 font-mono">Groq LPU 500+ tok/s</span>
+                    <span class="text-[10px] text-gray-600 font-mono">${currentModel.toUpperCase()} • 500+ tok/s</span>
                 `;
                 aiCard.querySelector('.flex-1').appendChild(footer);
 
@@ -734,7 +831,7 @@
             }
         }
 
-        function appendMessage(content, sender) {
+        function appendMessageDOM(content, sender) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex gap-4 w-full ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
             
@@ -742,6 +839,20 @@
                 wrapper.innerHTML = `
                     <div class="bg-surfaceHover border border-borderLight text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[80%] text-sm">
                         ${escapeHTML(content)}
+                    </div>
+                `;
+            } else {
+                wrapper.innerHTML = `
+                    <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fa-solid fa-sparkles text-emerald-400 text-xs"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="markdown-body text-gray-200 text-sm leading-relaxed">
+                            ${marked.parse(content)}
+                        </div>
+                        <div class="flex items-center gap-3 mt-3 text-gray-500">
+                            <button onclick="copyToClipboard(this)" class="hover:text-gray-300 transition-colors" title="Copy text"><i class="fa-regular fa-copy text-xs"></i></button>
+                        </div>
                     </div>
                 `;
             }
@@ -756,16 +867,74 @@
             });
         }
 
-        async function changeModel(modelName) {
-            document.getElementById('sidebar-model-name').innerText = modelName.split('/')[1] || modelName;
-            await fetch('/api/model', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({model: modelName})
-            });
+        // Start Chat with a Specialized Agent
+        function startAgentChat(agentName, systemPrompt, initialPrompt) {
+            createNewChatSession();
+            currentSystemPrompt = systemPrompt;
+            sessions[activeSessionIndex].title = agentName;
+            renderSessionsList();
+            switchTab('chat');
+            userInput.value = initialPrompt;
+            userInput.focus();
         }
 
-        // Usage Data & GitHub Heatmap
+        // ── CLI TERMINAL IN GUI FORMAT ──
+        async function runCliCommand(cmd) {
+            const screen = document.getElementById('terminal-screen');
+            screen.innerHTML += `
+                <div class="text-cyan-400 mt-2 font-semibold">cdx@linux:~$ ${escapeHTML(cmd)}</div>
+                <div class="text-gray-500 text-[11px]"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Running...</div>
+            `;
+            screen.scrollTop = screen.scrollHeight;
+
+            try {
+                const res = await fetch('/api/terminal', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({command: cmd})
+                });
+                const data = await res.json();
+                
+                // Remove the "Running..." indicator
+                screen.removeChild(screen.lastElementChild);
+
+                if (data.stdout) {
+                    screen.innerHTML += `<pre class="text-gray-200 bg-transparent p-0 m-0 border-none font-mono whitespace-pre-wrap">${escapeHTML(data.stdout)}</pre>`;
+                }
+                if (data.stderr) {
+                    screen.innerHTML += `<pre class="text-red-400 bg-transparent p-0 m-0 border-none font-mono whitespace-pre-wrap">${escapeHTML(data.stderr)}</pre>`;
+                }
+                screen.innerHTML += `<div class="text-[10px] text-gray-600 font-mono mb-2">[Exit code: ${data.exit_code}]</div>`;
+            } catch (err) {
+                screen.innerHTML += `<div class="text-red-400 font-mono">Error: ${err.message}</div>`;
+            }
+            screen.scrollTop = screen.scrollHeight;
+        }
+
+        function executeCliFromInput() {
+            const input = document.getElementById('cli-input');
+            const cmd = input.value.trim();
+            if (!cmd) return;
+            input.value = '';
+            runCliCommand(cmd);
+        }
+
+        function handleCliKey(e) {
+            if (e.key === 'Enter') {
+                executeCliFromInput();
+            }
+        }
+
+        function clearCliTerminal() {
+            const screen = document.getElementById('terminal-screen');
+            screen.innerHTML = `
+                <div class="text-emerald-400">The Codex Group [Version 1.7.0] — Linux CLI GUI Shell</div>
+                <div class="text-gray-500">Created by Saad Kashif. Type any command below to execute directly on your PC.</div>
+                <div class="text-gray-600">--------------------------------------------------------------------------------</div>
+            `;
+        }
+
+        // Usage Data & Heatmap
         async function fetchUsage() {
             try {
                 const res = await fetch('/api/usage');
@@ -811,128 +980,6 @@
             });
         }
 
-        // Mouse Controls
-        let lastMove = 0;
-        function handleTrackpadMove(e) {
-            const now = Date.now();
-            if (now - lastMove < 40) return;
-            lastMove = now;
-
-            const rect = e.currentTarget.getBoundingClientRect();
-            const normX = (e.clientX - rect.left) / rect.width;
-            const normY = (e.clientY - rect.top) / rect.height;
-
-            const rx = Math.round(normX * 3072);
-            const ry = Math.round(normY * 1728);
-
-            document.getElementById('mouse-coord-label').innerText = `Cursor: x=${rx}, y=${ry} (3072x1728)`;
-
-            fetch('/api/mouse', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'move', x: rx, y: ry})
-            });
-        }
-
-        async function sendMouseClick(btn) {
-            await fetch('/api/mouse', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'click', button: btn})
-            });
-        }
-
-        async function sendMouseDoubleClick() {
-            await fetch('/api/mouse', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'double_click'})
-            });
-        }
-
-        async function sendMouseScroll(dir) {
-            await fetch('/api/mouse', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'scroll', direction: dir, amount: 4})
-            });
-        }
-
-        async function sendTypeText() {
-            const input = document.getElementById('type-text-input');
-            const val = input.value;
-            if (!val) return;
-            await fetch('/api/mouse', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'type', text: val})
-            });
-            input.value = '';
-        }
-
-        // Files
-        async function loadFile() {
-            const path = document.getElementById('file-path-input').value.trim();
-            const res = await fetch('/api/files?path=' + encodeURIComponent(path));
-            const data = await res.json();
-            document.getElementById('file-content-area').value = data.content || data.error || '';
-        }
-
-        async function saveFile() {
-            const path = document.getElementById('file-path-input').value.trim();
-            const content = document.getElementById('file-content-area').value;
-            const res = await fetch('/api/files', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({path, content})
-            });
-            const data = await res.json();
-            alert(data.message || 'File saved to PC successfully!');
-        }
-
-        // WiFi
-        async function fetchWifi() {
-            const el = document.getElementById('wifi-content');
-            el.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-emerald-400 mr-2"></i> Inspecting WiFi network...';
-            const res = await fetch('/api/wifi');
-            const data = await res.json();
-            el.innerHTML = `
-                <div class="space-y-1.5 font-mono text-xs">
-                    <div>Status: <span class="${data.connected ? 'text-emerald-400' : 'text-red-400'} font-bold">${data.connected ? 'CONNECTED' : 'DISCONNECTED'}</span></div>
-                    <div>SSID: <span class="text-white">${data.ssid}</span></div>
-                    <div>Interface: <span class="text-gray-400">${data.interface}</span></div>
-                    <div>Signal: <span class="text-cyan-400">${data.signal}%</span></div>
-                    <div>IP Address: <span class="text-white">${data.ip}</span></div>
-                    <div>Internet: <span class="${data.internet ? 'text-emerald-400' : 'text-red-400'} font-bold">${data.internet ? 'ONLINE' : 'OFFLINE'}</span></div>
-                </div>
-            `;
-        }
-
-        async function executeResearch() {
-            const q = document.getElementById('research-query-input').value.trim();
-            if (!q) return;
-            const out = document.getElementById('research-output');
-            out.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-emerald-400 mr-2"></i> Conducting deep multi-platform research...';
-            const res = await fetch('/api/research?q=' + encodeURIComponent(q));
-            const data = await res.json();
-            out.innerHTML = marked.parse(data.report || 'No data retrieved.');
-        }
-
-        // Antigravity
-        async function delegateAntigravity() {
-            const prompt = document.getElementById('antigravity-input').value.trim();
-            if (!prompt) return;
-            const out = document.getElementById('antigravity-output');
-            out.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-400 mr-2"></i> Delegating to Google Antigravity autonomous engine...';
-            const res = await fetch('/api/antigravity', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({prompt})
-            });
-            const data = await res.json();
-            out.innerHTML = marked.parse(data.result || 'Delegation complete.');
-        }
-
         function copyToClipboard(btn) {
             const mdBody = btn.closest('.flex-1').querySelector('.markdown-body');
             if (mdBody) {
@@ -944,11 +991,12 @@
         }
 
         function exportChatTranscript() {
-            const text = chatMessages.innerText;
+            const sess = sessions[activeSessionIndex];
+            const text = sess.messages.map(m => `[${m.role.toUpperCase()}]:\n${m.content}\n`).join('\n---\n\n');
             const blob = new Blob([text], {type: 'text/plain'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `codex-chat-${Date.now()}.txt`;
+            a.download = `cdx-chat-${Date.now()}.txt`;
             a.click();
         }
 
@@ -958,8 +1006,8 @@
             }[tag]));
         }
 
-        // Initial setup
-        fetchUsage();
+        // Initialize sessions list
+        renderSessionsList();
     </script>
 </body>
 </html>

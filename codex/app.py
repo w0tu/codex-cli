@@ -149,8 +149,26 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
     # Generator queue to bridge synchronous generator into async stream
     def run_generator(queue: asyncio.Queue):
         try:
+            buffer = ""
             for chunk in desktop_client.stream_chat(messages, max_tokens=2500):
-                loop.call_soon_threadsafe(queue.put_nowait, chunk)
+                buffer += chunk
+                # Suppress raw XML tool tags if emitted by model
+                if "<tool_call>" in buffer:
+                    if "</tool_call>" in buffer:
+                        # Clean out completed tool call
+                        parts = buffer.split("</tool_call>")
+                        before = parts[0].split("<tool_call>")[0]
+                        after = "</tool_call>".join(parts[1:])
+                        buffer = before + after
+                        if buffer:
+                            loop.call_soon_threadsafe(queue.put_nowait, buffer)
+                            buffer = ""
+                    continue
+                else:
+                    loop.call_soon_threadsafe(queue.put_nowait, buffer)
+                    buffer = ""
+            if buffer and "<tool_call>" not in buffer:
+                loop.call_soon_threadsafe(queue.put_nowait, buffer)
         except Exception as ex:
             loop.call_soon_threadsafe(queue.put_nowait, f"\n[Stream Error: {ex}]")
         finally:
