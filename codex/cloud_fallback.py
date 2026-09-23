@@ -159,8 +159,8 @@ class CloakedCloudClient:
             if not active_key:
                 raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
 
-            # Cap max_tokens to 800 on qwen models to satisfy Groq on-demand OTPM limit ceiling
-            actual_max_tokens = min(max_tokens, 800) if "qwen" in model_id.lower() else max_tokens
+            # Support long generations (up to 4096 tokens) so complex code generations never stall or truncate
+            actual_max_tokens = min(max_tokens, 4096)
 
             headers = {
                 "Content-Type": "application/json",
@@ -177,7 +177,7 @@ class CloakedCloudClient:
             if "gpt-oss" in model_id:
                 payload["include_reasoning"] = False
 
-            with httpx.Client(timeout=45.0) as client:
+            with httpx.Client(timeout=120.0) as client:
                 with client.stream("POST", endpoint_url, json=payload, headers=headers) as response:
                     if response.status_code == 429 and attempts > 0:
                         from codex.config import rotate_api_key

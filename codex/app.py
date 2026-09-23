@@ -114,7 +114,11 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
         elif hasattr(desktop_client, "cloud_client") and hasattr(desktop_client.cloud_client, "set_model"):
             desktop_client.cloud_client.set_model(resolved)
 
-    sys_content = custom_system_prompt or get_system_prompt(lean=True)
+    if custom_system_prompt:
+        sys_content = custom_system_prompt
+    else:
+        from codex.client import get_model_system_prompt
+        sys_content = get_model_system_prompt(req_model or "cdx 3.2", lean=True)
     messages: list[dict[str, Any]] = [{"role": "system", "content": sys_content}]
 
     # Maintain complete conversational context across turns
@@ -150,7 +154,7 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
     def run_generator(queue: asyncio.Queue):
         try:
             buffer = ""
-            for chunk in desktop_client.stream_chat(messages, max_tokens=2500):
+            for chunk in desktop_client.stream_chat(messages, max_tokens=4096):
                 buffer += chunk
                 # Suppress raw XML tool tags if emitted by model
                 if "<tool_call>" in buffer:

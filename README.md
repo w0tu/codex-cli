@@ -20,9 +20,37 @@
 
 ## Overview
 
-**Codex** (`cdx`) is a terminal-native autonomous AI coding agent designed for Linux developers. Inspired by the ergonomics of Claude Code, Antigravity, and OpenAI Codex, it pairs ultra-fast Groq LPU cloud inference with autonomous local operating system execution.
+**Codex** (`cdx`) is a terminal-native and desktop AI coding agent designed for Linux developers, created by **Saad Kashif**. Inspired by the ergonomics of Claude Code, Antigravity, and OpenAI Codex, it pairs ultra-fast Groq LPU cloud inference with autonomous local operating system execution.
 
-It does not simply answer questions — it investigates codebases, writes and refactors files, executes shell commands, analyzes git trees, and validates solutions autonomously.
+### Quick Install (`sudo apt install`)
+Install natively on Debian / Ubuntu systems with a single command:
+```bash
+# Direct Debian package install
+sudo apt install ./dist/cdx_1.7.0_all.deb
+
+# Or launch immediately
+cdx        # Terminal CLI
+cdx-app    # Desktop GUI App with Agents Hub
+```
+
+### Models Lineup (`cdx 2.7` to `cdx 3.6`)
+- **`cdx 2.7 Instant`**: Ultra-fast local edge inference for rapid syntax and local bash workflows.
+- **`cdx 3.0 Turbo`**: Rapid triage, testing harnesses, and fast scripting.
+- **`cdx 3.2 LPU Ultra`**: 500+ tok/s hardware-accelerated full-stack web and code builder.
+- **`cdx 3.5 Pro`**: Enterprise systems architect for distributed design and large-scale refactors.
+- **`cdx 3.6 Max`**: Deep mathematical reasoning and formal verification engine.
+
+### Autonomous Specialists (Agents Hub)
+1. **CDX-Marketing**: Viral product launch copy, 30s commercial scripts, campaign strategy.
+2. **CDX-Frontend**: Tailwind CSS, Vue/React, micro-interactions, responsive design.
+3. **CDX-Legal**: Open-source license audits (MIT/Apache/GPL), Terms of Service, Privacy Policies.
+4. **CDX-Automator**: Native Linux mouse/keyboard macro automation and daemon workflows.
+5. **CDX-Architect**: Distributed architecture, API schemas, and systems design.
+6. **CDX-FullStack**: Complete end-to-end web apps, backend APIs, and database migrations.
+7. **CDX-Auditor**: Security audits, secret detection, vulnerability remediation.
+8. **CDX-Research**: Multi-source live internet research and GitHub intelligence synthesis.
+
+👉 **Special Feature**: See [`BRAG_AD_AND_IMPROVEMENTS.md`](BRAG_AD_AND_IMPROVEMENTS.md) for our 30-second commercial script and technical improvements for [`latent-spaces/brag`](https://github.com/latent-spaces/brag).
 
 ---
 
