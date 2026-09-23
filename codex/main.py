@@ -455,10 +455,9 @@ def run_repl(client: Any) -> None:
     from codex.gatekeeper import gatekeeper
     gatekeeper.check_and_prompt(os.getcwd(), interactive=True)
 
-    # 3. 24-bit Truecolor Image-to-ANSI Voxel Banner & Borderless Block Layout
-    from codex.banner_renderer import display_welcome_banner
-    status_text = "ONLINE | ZERO-LATENCY PINNED"
-    display_welcome_banner(model_label=client.model, status_text=status_text, cwd=os.getcwd())
+    # 3. Tokyonight OpenCode TUI Banner ("THE CODEX GROUP")
+    from codex.ui import render_opencode_tokyonight_banner
+    render_opencode_tokyonight_banner(model_name=client.model)
 
     HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
     pt = PTSession(
