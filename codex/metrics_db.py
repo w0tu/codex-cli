@@ -229,7 +229,7 @@ class MetricsDB:
         heatmap_str = " ".join("".join(contrib_blocks[i:i+7]) for i in range(0, 28, 7))
 
         lines = [
-            f"\033[38;2;120;120;130m▌\033[0m \033[1;37mTHE CODEX GROUP — TELEMETRY & CONTRIBUTION DASHBOARD\033[0m \033[38;2;100;100;110m░▒▓\033[0m",
+            f"\033[38;2;120;120;130m▌\033[0m \033[1;37mTHE CODEX GROUP (CODEX-CLI TELEMETRY) — CONTRIBUTION DASHBOARD\033[0m \033[38;2;100;100;110m░▒▓\033[0m",
             f"\033[38;2;90;90;100m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\033[0m",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;122;162;247mContribution Activity (Last 4 Weeks):\033[0m",
             f"\033[38;2;120;120;130m▌\033[0m   [{heatmap_str}]  \033[2m(Less ░ ▒ ▓ █ More)\033[0m",
@@ -237,6 +237,8 @@ class MetricsDB:
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;125;207;255mLifetime Tokens Evaluated:\033[0m \033[1;37m{data['lifetime_tokens']:,}\033[0m tokens",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;158;206;106mConsecutive Daily Streak:\033[0m  \033[1;32m{data['streak']}\033[0m days active",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;224;175;104mAll-Time Daily Record:\033[0m     \033[1;37m{data['peak_day_tokens']:,}\033[0m tokens on {data['peak_day_date']}",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;247;118;142mDaily Cloud Spend:\033[0m          ${spend:.4f} / ${budget:.2f} ({spend_pct:.1f}%)",
+            f"\033[38;2;120;120;130m▌\033[0m \033[38;2;247;118;142mBudget Meter:\033[0m               [{'█' * int(spend_pct // 5)}{'░' * (20 - int(spend_pct // 5))}] {spend_pct:.1f}%",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;187;154;247mToday Breakdown:\033[0m           Total: \033[1;37m{data['daily_total_tokens']:,}\033[0m | Local: \033[1;37m{data['daily_local_tokens']:,}\033[0m | Turns: \033[1;37m{data['turns_count']}\033[0m",
             f"\033[38;2;120;120;130m▌\033[0m \033[38;2;120;120;130mHardware & Storage:\033[0m        Mouse: \033[1;32m3072x1728 (xdotool)\033[0m | Storage: \033[1;36mLocal Disk (RWX)\033[0m",
             f"\033[38;2;90;90;100m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀\033[0m",
