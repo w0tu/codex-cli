@@ -99,7 +99,13 @@ class AgentRegistry:
                         "system_prompt": f"You are Leaf Sub-Agent #{node_id} specialized in {c_name}."
                     }
 
-        # 2. Check static domain personas (react-architect, security-auditor, etc.)
+        # 2. Check specialized personas (frontend, writer, reddit, wizard, explore, plan)
+        from codex.personas import get_specialized_persona, list_specialized_personas
+        sp = get_specialized_persona(clean)
+        if sp:
+            return sp
+
+        # 3. Check static domain personas (react-architect, security-auditor, etc.)
         for a in self.static_agents:
             if a["name"].lower() == clean:
                 return a
@@ -107,7 +113,7 @@ class AgentRegistry:
             if clean in a["name"].lower() or clean in a.get("role", "").lower():
                 return a
 
-        # 3. Check cluster names (marketing, legal, scraping, crypto, etc.)
+        # 4. Check cluster names (marketing, legal, scraping, crypto, etc.)
         for i, (tag, name, desc) in enumerate(CLUSTER_DEFINITIONS):
             if clean in name.lower() or clean in tag.lower():
                 return self.get_agent(str(i + 1))
@@ -124,6 +130,10 @@ class AgentRegistry:
         # Add 45 Cluster Managers
         for i in range(1, 46):
             results.append(self.get_agent(str(i)))
+
+        # Add specialized personas (frontend, writer, reddit, wizard, explore, plan)
+        from codex.personas import list_specialized_personas
+        results.extend(list_specialized_personas())
 
         # Add specialized domain agents
         results.extend(self.static_agents)

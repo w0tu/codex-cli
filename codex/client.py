@@ -486,6 +486,10 @@ class AntigravityClient:
 from codex.config import save_api_key, rotate_api_key
 
 ANTIGRAVITY_MODELS_MAP = {
+    "minimax-m2.7": "minimax/minimax-m2.7",
+    "minimax": "minimax/minimax-m2.7",
+    "minimax m2.7": "minimax/minimax-m2.7",
+    "m2.7": "minimax/minimax-m2.7",
     "gemini 3.8 flash": "qwen/qwen3.8-27b",
     "gemini 3.8 pro": "llama-3.3-70b-versatile",
     "gemini 2.5 flash": "llama-3.1-8b-instant",

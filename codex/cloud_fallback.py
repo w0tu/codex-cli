@@ -65,18 +65,27 @@ def detect_query_complexity(prompt: str, context_tokens: int = 0) -> Tuple[bool,
 
 def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str] = None) -> Tuple[str, str, str]:
     """Resolve endpoint URL, bearer key, and model ID with strict zero-leakage cloaking."""
-    req_model = model or DEFAULT_CLOAKED_MODEL
-    # Map virtual or external model IDs to available Groq high-speed LPU models
-    if "120b" in req_model or "70b" in req_model or "pro" in req_model or "oss" in req_model:
+    req_model = (model or DEFAULT_CLOAKED_MODEL).lower()
+    # Map virtual or external model IDs to available Groq / Cloud endpoints
+    if "minimax" in req_model or "m2.7" in req_model:
+        primary_groq_model = "minimax/minimax-m2.7"
+    elif "120b" in req_model or "70b" in req_model or "pro" in req_model or "oss" in req_model:
         primary_groq_model = "openai/gpt-oss-120b"
     elif "20b" in req_model:
         primary_groq_model = "openai/gpt-oss-20b"
     else:
         primary_groq_model = "qwen/qwen3.8-27b"  # 500+ tok/s ultra-fast primary model
 
+    # Check for direct MiniMax API key if minimax model requested
+    minimax_env = os.environ.get("MINIMAX_API_KEY", "").strip()
+    if ("minimax" in req_model or "m2.7" in req_model) and minimax_env:
+        return "https://api.minimax.chat/v1/text/chatcompletion_v2", minimax_env, "MiniMax-Text-01"
+
     if api_key:
         key = api_key.strip()
-        if key.startswith("gsk_"):
+        if key.startswith("mm-") or key.startswith("minimax-"):
+            return "https://api.minimax.chat/v1/text/chatcompletion_v2", key, "MiniMax-Text-01"
+        elif key.startswith("gsk_"):
             return "https://api.groq.com/openai/v1/chat/completions", key, primary_groq_model
         elif key.startswith("xai-"):
             return "https://api.x.ai/v1/chat/completions", key, "grok-2-latest"
