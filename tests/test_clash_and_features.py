@@ -24,6 +24,21 @@ def test_minimax_model_resolution():
     assert ANTIGRAVITY_MODELS_MAP["minimax-m2.7"] == "minimax/minimax-m2.7"
 
 
+def test_gpt_120b_cloud_resolution():
+    url, key, model_id = resolve_cloud_credentials(api_key="gsk_test_key_1234567890")
+    assert "120b" in model_id.lower()
+    assert "openai/gpt-oss-120b" in ANTIGRAVITY_MODELS_MAP
+    assert ANTIGRAVITY_MODELS_MAP["120b"] == "openai/gpt-oss-120b"
+
+
+def test_hybrid_client_cloud_only():
+    client = HybridCodexClient()
+    assert client.mode == "cloud"
+    assert client.cloud_enabled is True
+    assert "120b" in client.model.lower()
+
+
+
 def test_headroom_context_accounting():
     hm = HeadroomManager(model_name="minimax-m2.7")
     assert hm.context_limit == 204800

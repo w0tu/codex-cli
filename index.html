@@ -38,7 +38,7 @@
     .hero-title {
       font-size: clamp(2.5rem, 6vw, 5rem);
       font-weight: 800;
-      background: linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%);
+      background: linear-gradient(135deg, #e0af68 0%, #ff9e64 50%, #e6c384 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       line-height: 1.1;
@@ -73,7 +73,7 @@
       display: inline-block;
       margin-top: 1.5rem;
       padding: 0.9rem 2rem;
-      background: linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%);
+      background: linear-gradient(135deg, #e0af68 0%, #ff9e64 50%, #e6c384 100%);
       color: #0d1117;
       font-weight: 700;
       border-radius: 9999px;
@@ -172,7 +172,7 @@
   <div class="content-container">
     <section id="hero">
       <span class="nav-badge">Autonomous Neural Architecture</span>
-      <h1 class="hero-title">The Codex Group · GPT-OSS 120B and make it cyan</h1>
+      <h1 class="hero-title">GPT-OSS 120B Flagship Architecture and switch to gold cube with hyper speed</h1>
       <p class="hero-subtitle">High-performance 3D scroll experience orchestrated with Three.js, GSAP ScrollTrigger, and autonomous Linux agents.</p>
       <div><a href="#features" class="btn">Explore Architecture &darr;</a></div>
     </section>
@@ -224,13 +224,13 @@
     scene.add(gridHelper);
 
     // Geometries
-    let torusKnotGeo = new THREE.TorusKnotGeometry(1.4, 0.42, 120, 24, 2, 3);
+    let torusKnotGeo = new THREE.BoxGeometry(1.6, 1.6, 1.6);
     const material = new THREE.MeshStandardMaterial({
       color: 0x7dcfff,
       roughness: 0.2,
       metalness: 0.85,
       wireframe: true,
-      emissive: 0x223249,
+      emissive: 0x3a2e10,
     });
     const torusKnot = new THREE.Mesh(torusKnotGeo, material);
     scene.add(torusKnot);
@@ -367,22 +367,22 @@
         material.color.setHex(0xf7768e);
         material.emissive.setHex(0x3a1018);
         gridHelper.material.color.setHex(0xf7768e);
-        if (title) title.style.background = "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)";
+        if (title) title.style.background = "linear-gradient(135deg, #e0af68 0%, #ff9e64 50%, #e6c384 100%)";
       } else if (theme === "matrix") {
         material.color.setHex(0x73daca);
         material.emissive.setHex(0x103a20);
         gridHelper.material.color.setHex(0x73daca);
-        if (title) title.style.background = "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)";
+        if (title) title.style.background = "linear-gradient(135deg, #e0af68 0%, #ff9e64 50%, #e6c384 100%)";
       } else if (theme === "purple") {
         material.color.setHex(0xbb9af7);
         material.emissive.setHex(0x2d184d);
         gridHelper.material.color.setHex(0xbb9af7);
-        if (title) title.style.background = "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)";
+        if (title) title.style.background = "linear-gradient(135deg, #e0af68 0%, #ff9e64 50%, #e6c384 100%)";
       } else if (theme === "gold") {
         material.color.setHex(0xe0af68);
         material.emissive.setHex(0x3a2e10);
         gridHelper.material.color.setHex(0xe0af68);
-        if (title) title.style.background = "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)";
+        if (title) title.style.background = "linear-gradient(135deg, #e0af68 0%, #ff9e64 50%, #e6c384 100%)";
       }
       if (title) {
         title.style.webkitBackgroundClip = "text";
