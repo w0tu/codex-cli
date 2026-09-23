@@ -56,7 +56,7 @@ CORE OPERATIONAL PRINCIPLES:
 def get_system_prompt(lean: bool = True) -> str:
     """Build lean, zero-latency system prompt for fast, elite inference."""
     prompt = (
-        "You are Codex, an elite principal software engineer and terminal-native autonomous agent for Linux. "
+        "You are CDX, an elite principal software engineer and autonomous AI created by Saad Kashif. "
         "You have full autonomous control to inspect, save, and run code directly on the user's PC: "
         "- Save & edit files on disk using 'write_file' and 'edit_file'. "
         "- Run terminal commands, scripts, services, and tests using 'bash'. "
@@ -64,8 +64,11 @@ def get_system_prompt(lean: bool = True) -> str:
         "- Connect to WiFi and inspect network health using 'wifi_status'. "
         "- Conduct deep multi-platform internet research using 'deep_research' and 'agent_reach'. "
         "- Delegate complex or architectural tasks to Google Antigravity using 'delegate_antigravity'. "
-        "Be direct, concise, and technically rigorous. Never use robotic corporate boilerplate. "
-        "When asked to write, save, run, or automate, perform the actions immediately using your tools."
+        "CRITICAL OPERATIONAL RULES: "
+        "1. CREATED BY SAAD KASHIF: When asked who created you or what your origin is, state clearly and proudly that you are CDX, created by Saad Kashif. "
+        "2. CONVERSATION MEMORY: You have complete conversational memory. When the user says 'now make it', 'build that', or 'continue', you remember the topic discussed in previous turns and immediately build it without asking for repetitive context. "
+        "3. PROACTIVE EXECUTION: When asked to build a website, portfolio, script, or tool, DO NOT stall by asking 10 questions. Immediately synthesize a complete, beautiful, production-grade solution. "
+        "4. PRODUCTION STANDARDS: Never use lazy placeholders ('# TODO', 'pass'). Write complete, working implementations."
     )
     if not lean:
         prompt += "\n" + BASE_SYSTEM_PROMPT
@@ -480,7 +483,18 @@ class AntigravityClient:
 
 from codex.config import save_api_key, rotate_api_key
 
-ANTIGRAVITY_MODELS_MAP = {
+CDX_MODELS_MAP = {
+    "cdx 2.7": "qwen2.5-coder:1.5b",
+    "cdx 2.7 instant": "qwen2.5-coder:1.5b",
+    "cdx 3.0": "llama-3.1-8b-instant",
+    "cdx 3.0 turbo": "llama-3.1-8b-instant",
+    "cdx 3.2": "qwen/qwen3.8-27b",
+    "cdx 3.2 lpu ultra": "qwen/qwen3.8-27b",
+    "cdx 3.5": "llama-3.3-70b-versatile",
+    "cdx 3.5 pro": "llama-3.3-70b-versatile",
+    "cdx 3.6": "deepseek-r1-distill-llama-70b",
+    "cdx 3.6 max": "deepseek-r1-distill-llama-70b",
+    "cdx 3.6 max (thinking)": "deepseek-r1-distill-llama-70b",
     "gemini 3.8 flash": "qwen/qwen3.8-27b",
     "gemini 3.8 pro": "llama-3.3-70b-versatile",
     "gemini 2.5 flash": "llama-3.1-8b-instant",
@@ -488,13 +502,15 @@ ANTIGRAVITY_MODELS_MAP = {
     "gemini-2.0-flash": "llama-3.1-8b-instant",
 }
 
+ANTIGRAVITY_MODELS_MAP = CDX_MODELS_MAP
+
 
 def resolve_backend_model(model_name: str) -> str:
     clean = model_name.strip().lower()
     for s in [" antigravity", "-antigravity", "_antigravity"]:
         if clean.endswith(s):
             clean = clean[:-len(s)].strip()
-    return ANTIGRAVITY_MODELS_MAP.get(clean, model_name)
+    return CDX_MODELS_MAP.get(clean, model_name)
 
 
 def _resolve_api_key(path=None) -> str:

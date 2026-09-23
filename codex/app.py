@@ -95,20 +95,43 @@ async def model_handler(request: web.Request) -> web.Response:
 
 
 async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
-    """Stream chat responses in real-time token-by-token using chunked transfer encoding."""
+    """Stream chat responses in real-time with full conversation memory and model routing."""
     try:
         data = await request.json()
     except Exception:
         data = {}
 
     user_prompt = data.get("prompt", "").strip()
-    if not user_prompt:
-        return web.Response(text="Empty prompt provided.", status=400)
+    history_messages = data.get("messages", [])
+    custom_system_prompt = data.get("system_prompt", "").strip()
+    req_model = data.get("model", "").strip()
 
-    messages = [
-        {"role": "system", "content": get_system_prompt(lean=True)},
-        {"role": "user", "content": user_prompt}
-    ]
+    if req_model:
+        from codex.client import resolve_backend_model
+        resolved = resolve_backend_model(req_model)
+        if hasattr(desktop_client, "set_model"):
+            desktop_client.set_model(resolved)
+        elif hasattr(desktop_client, "cloud_client") and hasattr(desktop_client.cloud_client, "set_model"):
+            desktop_client.cloud_client.set_model(resolved)
+
+    sys_content = custom_system_prompt or get_system_prompt(lean=True)
+    messages: list[dict[str, Any]] = [{"role": "system", "content": sys_content}]
+
+    # Maintain complete conversational context across turns
+    if history_messages and isinstance(history_messages, list):
+        for msg in history_messages:
+            r = msg.get("role", "user")
+            c = msg.get("content", "")
+            if r in ("user", "assistant") and c:
+                messages.append({"role": r, "content": c})
+
+    # If prompt is provided and not already the last message in history, add it
+    if user_prompt:
+        if not messages or messages[-1].get("content") != user_prompt or messages[-1].get("role") != "user":
+            messages.append({"role": "user", "content": user_prompt})
+
+    if len(messages) <= 1:
+        return web.Response(text="Empty prompt provided.", status=400)
 
     response = web.StreamResponse(
         status=200,
@@ -126,7 +149,7 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
     # Generator queue to bridge synchronous generator into async stream
     def run_generator(queue: asyncio.Queue):
         try:
-            for chunk in desktop_client.stream_chat(messages, max_tokens=2048):
+            for chunk in desktop_client.stream_chat(messages, max_tokens=2500):
                 loop.call_soon_threadsafe(queue.put_nowait, chunk)
         except Exception as ex:
             loop.call_soon_threadsafe(queue.put_nowait, f"\n[Stream Error: {ex}]")
@@ -283,6 +306,31 @@ async def antigravity_handler(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def terminal_handler(request: web.Request) -> web.Response:
+    """Execute bash command and return output for GUI terminal."""
+    try:
+        data = await request.json()
+        cmd = data.get("command", "").strip()
+        cwd = data.get("cwd", os.getcwd())
+        if not cmd:
+            return web.json_response({"error": "Empty command provided.", "exit_code": 1}, status=400)
+
+        loop = asyncio.get_running_loop()
+        def run_bash():
+            import subprocess
+            res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=60, cwd=cwd)
+            return {
+                "exit_code": res.returncode,
+                "stdout": res.stdout,
+                "stderr": res.stderr,
+                "cwd": cwd,
+            }
+        result = await loop.run_in_executor(None, run_bash)
+        return web.json_response(result)
+    except Exception as e:
+        return web.json_response({"error": str(e), "exit_code": 1}, status=500)
+
+
 def create_app() -> web.Application:
     """Create and configure the aiohttp application."""
     app = web.Application()
@@ -291,6 +339,7 @@ def create_app() -> web.Application:
     app.router.add_get("/api/usage", usage_handler)
     app.router.add_post("/api/model", model_handler)
     app.router.add_post("/api/chat", chat_stream_handler)
+    app.router.add_post("/api/terminal", terminal_handler)
     app.router.add_post("/api/mouse", mouse_handler)
     app.router.add_get("/api/files", files_get_handler)
     app.router.add_post("/api/files", files_post_handler)
