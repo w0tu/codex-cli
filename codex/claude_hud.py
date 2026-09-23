@@ -43,7 +43,7 @@ class ClaudeHUD:
 
     def render_bar(
         self,
-        model_name: str = "minimax-m2.7",
+        model_name: str = "openai/gpt-oss-120b",
         total_tokens: int = 0,
         session_cost: float = 0.0,
         current_prompt: str = "",
@@ -85,7 +85,7 @@ class ClaudeHUD:
 
     def render_panel(
         self,
-        model_name: str = "minimax-m2.7",
+        model_name: str = "openai/gpt-oss-120b",
         total_tokens: int = 0,
         session_cost: float = 0.0,
         current_prompt: str = "",

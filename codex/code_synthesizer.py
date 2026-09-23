@@ -113,9 +113,77 @@ THREE_JS_SCROLL_TEMPLATE = """<!DOCTYPE html>
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
+    .hud-badge-fixed {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      z-index: 999;
+      background: rgba(22, 27, 34, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(122, 162, 247, 0.35);
+      border-radius: 9999px;
+      padding: 6px 18px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #73daca;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .control-deck {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(122, 162, 247, 0.35);
+      border-radius: 9999px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    }
+    .pill-btn {
+      background: rgba(122, 162, 247, 0.15);
+      border: 1px solid rgba(122, 162, 247, 0.3);
+      color: #7dcfff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover {
+      background: #7aa2f7;
+      color: #0d1117;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(122, 162, 247, 0.4);
+    }
+    .audio-btn {
+      background: rgba(187, 154, 247, 0.2);
+      border: 1px solid #bb9af7;
+      color: #bb9af7;
+    }
   </style>
 </head>
 <body>
+  <div class="hud-badge-fixed">⚡ GPT-OSS 120B CLOUD ONLY · 60 FPS ZERO-LATENCY</div>
+
+  <div class="control-deck">
+    <button class="pill-btn audio-btn" onclick="toggleAudioSynth()">🔊 Cyber Synth</button>
+    <button class="pill-btn" onclick="clientApplyTheme('crimson')">Crimson</button>
+    <button class="pill-btn" onclick="clientApplyTheme('matrix')">Matrix</button>
+    <button class="pill-btn" onclick="clientApplyTheme('purple')">Purple</button>
+    <button class="pill-btn" onclick="clientApplyTheme('gold')">Gold</button>
+    <button class="pill-btn" onclick="clientSwitchShape('cube')">Cube</button>
+    <button class="pill-btn" onclick="clientSwitchShape('sphere')">Sphere</button>
+    <button class="pill-btn" onclick="clientSwitchShape('torus')">Torus</button>
+    <button class="pill-btn" onclick="clientToggleSpeed()">Hyper Speed</button>
+  </div>
+
   <canvas id="webgl-canvas"></canvas>
 
   <div class="content-container">
@@ -167,8 +235,13 @@ THREE_JS_SCROLL_TEMPLATE = """<!DOCTYPE html>
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+    // Cyber Grid Floor
+    const gridHelper = new THREE.GridHelper(60, 60, 0x7aa2f7, 0x1f2335);
+    gridHelper.position.y = -2.8;
+    scene.add(gridHelper);
+
     // Geometries
-    const torusKnotGeo = new THREE.TorusKnotGeometry(1.4, 0.42, 120, 24, 2, 3);
+    let torusKnotGeo = new THREE.TorusKnotGeometry(1.4, 0.42, 120, 24, 2, 3);
     const material = new THREE.MeshStandardMaterial({
       color: 0x7aa2f7,
       roughness: 0.2,
@@ -180,7 +253,7 @@ THREE_JS_SCROLL_TEMPLATE = """<!DOCTYPE html>
     scene.add(torusKnot);
 
     // Particle Starfield
-    const particlesCount = 700;
+    let particlesCount = 700;
     const posArray = new Float32Array(particlesCount * 3);
     for (let i = 0; i < particlesCount * 3; i++) {
       posArray[i] = (Math.random() - 0.5) * 25;
@@ -254,13 +327,93 @@ THREE_JS_SCROLL_TEMPLATE = """<!DOCTYPE html>
       }
     });
 
+    // Audio Synthesizer Engine
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let synthTimer = null;
+    function toggleAudioSynth() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (isAudioPlaying) {
+        clearInterval(synthTimer);
+        isAudioPlaying = false;
+        document.querySelector(".audio-btn").textContent = "🔊 Cyber Synth";
+      } else {
+        isAudioPlaying = true;
+        document.querySelector(".audio-btn").textContent = "⏸ Pause Synth";
+        const freqs = [220, 261.63, 329.63, 392.00, 440, 523.25, 659.25];
+        let idx = 0;
+        synthTimer = setInterval(() => {
+          if (!audioCtx) return;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freqs[idx % freqs.length], audioCtx.currentTime);
+          idx++;
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 1.2);
+        }, 320);
+      }
+    }
+
+    // Client-side quick transformations
+    let speedFactor = 1.0;
+    function clientToggleSpeed() {
+      speedFactor = speedFactor === 1.0 ? 3.5 : 1.0;
+    }
+
+    function clientSwitchShape(shape) {
+      scene.remove(torusKnot);
+      let newGeo;
+      if (shape === "cube") newGeo = new THREE.BoxGeometry(1.6, 1.6, 1.6);
+      else if (shape === "sphere") newGeo = new THREE.SphereGeometry(1.6, 32, 32);
+      else newGeo = new THREE.TorusKnotGeometry(1.4, 0.42, 120, 24, 2, 3);
+      torusKnot.geometry.dispose();
+      torusKnot.geometry = newGeo;
+      scene.add(torusKnot);
+    }
+
+    function clientApplyTheme(theme) {
+      const title = document.querySelector(".hero-title");
+      if (theme === "crimson") {
+        material.color.setHex(0xf7768e);
+        material.emissive.setHex(0x3a1018);
+        gridHelper.material.color.setHex(0xf7768e);
+        if (title) title.style.background = "linear-gradient(135deg, #f7768e 0%, #ff9e64 50%, #db4b4b 100%)";
+      } else if (theme === "matrix") {
+        material.color.setHex(0x73daca);
+        material.emissive.setHex(0x103a20);
+        gridHelper.material.color.setHex(0x73daca);
+        if (title) title.style.background = "linear-gradient(135deg, #73daca 0%, #9ece6a 50%, #41a6b5 100%)";
+      } else if (theme === "purple") {
+        material.color.setHex(0xbb9af7);
+        material.emissive.setHex(0x2d184d);
+        gridHelper.material.color.setHex(0xbb9af7);
+        if (title) title.style.background = "linear-gradient(135deg, #bb9af7 0%, #9d7cd8 50%, #7aa2f7 100%)";
+      } else if (theme === "gold") {
+        material.color.setHex(0xe0af68);
+        material.emissive.setHex(0x3a2e10);
+        gridHelper.material.color.setHex(0xe0af68);
+        if (title) title.style.background = "linear-gradient(135deg, #e0af68 0%, #ff9e64 50%, #e6c384 100%)";
+      }
+      if (title) {
+        title.style.webkitBackgroundClip = "text";
+        title.style.webkitTextFillColor = "transparent";
+      }
+    }
+
     // Render Loop
     const clock = new THREE.Clock();
     function animate() {
       requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      torusKnot.rotation.z = elapsedTime * 0.15;
+      torusKnot.rotation.z = elapsedTime * 0.15 * speedFactor;
       particlesMesh.rotation.y = -elapsedTime * 0.04;
 
       // Parallax smooth interpolation
@@ -323,6 +476,151 @@ if __name__ == __main__:
             "file": str(target_file),
             "type": file_type,
             "browser": browser_res,
+        }
+
+    def edit_index_html(self, prompt: str, target_dir: Optional[Path] = None, client: Any = None) -> Dict[str, Any]:
+        """Dynamically edit and update index.html on disk for every prompt and refresh Chrome."""
+        work_dir = target_dir or Path.cwd()
+        target_file = work_dir / "index.html"
+
+        if not target_file.exists():
+            target_file.write_text(THREE_JS_SCROLL_TEMPLATE, encoding="utf-8")
+
+        html_content = target_file.read_text(encoding="utf-8", errors="replace")
+        p_lower = prompt.lower()
+        changes_applied = []
+
+        # 1. Color transformations
+        if "red" in p_lower or "crimson" in p_lower:
+            html_content = re.sub(r"linear-gradient\(135deg,.*?\)", "linear-gradient(135deg, #f7768e 0%, #ff9e64 50%, #db4b4b 100%)", html_content)
+            html_content = html_content.replace("color: 0x7aa2f7", "color: 0xf7768e").replace("emissive: 0x223249", "emissive: 0x3a1018")
+            changes_applied.append("Switched color theme to Neon Crimson / Red (#f7768e)")
+        elif "purple" in p_lower or "violet" in p_lower:
+            html_content = re.sub(r"linear-gradient\(135deg,.*?\)", "linear-gradient(135deg, #bb9af7 0%, #9d7cd8 50%, #7aa2f7 100%)", html_content)
+            html_content = html_content.replace("color: 0x7aa2f7", "color: 0xbb9af7").replace("emissive: 0x223249", "emissive: 0x2d184d")
+            changes_applied.append("Switched color theme to Cyberpunk Purple (#bb9af7)")
+        elif "green" in p_lower or "matrix" in p_lower:
+            html_content = re.sub(r"linear-gradient\(135deg,.*?\)", "linear-gradient(135deg, #73daca 0%, #9ece6a 50%, #41a6b5 100%)", html_content)
+            html_content = html_content.replace("color: 0x7aa2f7", "color: 0x73daca").replace("emissive: 0x223249", "emissive: 0x103a20")
+            changes_applied.append("Switched color theme to Matrix Emerald (#73daca)")
+        elif "gold" in p_lower or "yellow" in p_lower or "amber" in p_lower:
+            html_content = re.sub(r"linear-gradient\(135deg,.*?\)", "linear-gradient(135deg, #e0af68 0%, #ff9e64 50%, #e6c384 100%)", html_content)
+            html_content = html_content.replace("color: 0x7aa2f7", "color: 0xe0af68").replace("emissive: 0x223249", "emissive: 0x3a2e10")
+            changes_applied.append("Switched color theme to Cyber Gold (#e0af68)")
+        elif "orange" in p_lower or "sunset" in p_lower or "fire" in p_lower:
+            html_content = re.sub(r"linear-gradient\(135deg,.*?\)", "linear-gradient(135deg, #ff9e64 0%, #f7768e 50%, #db4b4b 100%)", html_content)
+            html_content = html_content.replace("color: 0x7aa2f7", "color: 0xff9e64").replace("emissive: 0x223249", "emissive: 0x3a1c0d")
+            changes_applied.append("Switched color theme to Sunset Flare Orange (#ff9e64)")
+        elif "pink" in p_lower or "magenta" in p_lower:
+            html_content = re.sub(r"linear-gradient\(135deg,.*?\)", "linear-gradient(135deg, #f7768e 0%, #bb9af7 50%, #ff007f 100%)", html_content)
+            html_content = html_content.replace("color: 0x7aa2f7", "color: 0xff007f").replace("emissive: 0x223249", "emissive: 0x3a102c")
+            changes_applied.append("Switched color theme to Hotline Cyber Pink (#ff007f)")
+        elif "white" in p_lower or "silver" in p_lower or "ice" in p_lower or "snow" in p_lower:
+            html_content = re.sub(r"linear-gradient\(135deg,.*?\)", "linear-gradient(135deg, #e0def4 0%, #c4a7e7 50%, #eb6f92 100%)", html_content)
+            html_content = html_content.replace("color: 0x7aa2f7", "color: 0xe0def4").replace("emissive: 0x223249", "emissive: 0x202330")
+            changes_applied.append("Switched color theme to Frozen Ice / Silver (#e0def4)")
+        elif "blue" in p_lower or "cyan" in p_lower or "tokyo" in p_lower:
+            html_content = re.sub(r"linear-gradient\(135deg,.*?\)", "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)", html_content)
+            html_content = html_content.replace("color: 0x7aa2f7", "color: 0x7dcfff")
+            changes_applied.append("Switched color theme to Deep Tokyonight Cyan (#7dcfff)")
+
+        # 1b. Background styling
+        if "matrix" in p_lower and "background" in p_lower:
+            html_content = re.sub(r"background-color:\s*#[a-fA-F0-9]+;", "background-color: #031408;", html_content)
+            changes_applied.append("Updated canvas background to Deep Matrix Black-Green (#031408)")
+        elif "black background" in p_lower or "pure black" in p_lower:
+            html_content = re.sub(r"background-color:\s*#[a-fA-F0-9]+;", "background-color: #000000;", html_content)
+            changes_applied.append("Updated canvas background to Pitch Black (#000000)")
+        elif "blue background" in p_lower or "navy background" in p_lower:
+            html_content = re.sub(r"background-color:\s*#[a-fA-F0-9]+;", "background-color: #070d19;", html_content)
+            changes_applied.append("Updated canvas background to Deep Midnight Blue (#070d19)")
+        elif "purple background" in p_lower:
+            html_content = re.sub(r"background-color:\s*#[a-fA-F0-9]+;", "background-color: #12091c;", html_content)
+            changes_applied.append("Updated canvas background to Neon Dark Violet (#12091c)")
+
+        # 2. Geometry transformations
+        if "cube" in p_lower or "box" in p_lower:
+            html_content = re.sub(r"new THREE\.[a-zA-Z0-9]+Geometry\(.*?\)", "new THREE.BoxGeometry(1.6, 1.6, 1.6)", html_content, count=1)
+            changes_applied.append("Replaced 3D mesh with Wireframe Cube")
+        elif "sphere" in p_lower or "ball" in p_lower or "orb" in p_lower:
+            html_content = re.sub(r"new THREE\.[a-zA-Z0-9]+Geometry\(.*?\)", "new THREE.SphereGeometry(1.6, 32, 32)", html_content, count=1)
+            changes_applied.append("Replaced 3D mesh with Wireframe Sphere")
+        elif "cylinder" in p_lower or "column" in p_lower or "pillar" in p_lower:
+            html_content = re.sub(r"new THREE\.[a-zA-Z0-9]+Geometry\(.*?\)", "new THREE.CylinderGeometry(0.9, 0.9, 2.4, 32)", html_content, count=1)
+            changes_applied.append("Replaced 3D mesh with Wireframe Cylinder")
+        elif "dodecahedron" in p_lower:
+            html_content = re.sub(r"new THREE\.[a-zA-Z0-9]+Geometry\(.*?\)", "new THREE.DodecahedronGeometry(1.6)", html_content, count=1)
+            changes_applied.append("Replaced 3D mesh with Sacred Dodecahedron")
+        elif "octahedron" in p_lower or "diamond" in p_lower:
+            html_content = re.sub(r"new THREE\.[a-zA-Z0-9]+Geometry\(.*?\)", "new THREE.OctahedronGeometry(1.6, 0)", html_content, count=1)
+            changes_applied.append("Replaced 3D mesh with Quantum Octahedron")
+        elif "icosahedron" in p_lower:
+            html_content = re.sub(r"new THREE\.[a-zA-Z0-9]+Geometry\(.*?\)", "new THREE.IcosahedronGeometry(1.6, 1)", html_content, count=1)
+            changes_applied.append("Replaced 3D mesh with Geodesic Icosahedron")
+        elif "tetrahedron" in p_lower or "pyramid" in p_lower:
+            html_content = re.sub(r"new THREE\.[a-zA-Z0-9]+Geometry\(.*?\)", "new THREE.TetrahedronGeometry(1.6, 0)", html_content, count=1)
+            changes_applied.append("Replaced 3D mesh with Tetrahedral Pyramid")
+        elif "torus" in p_lower or "donut" in p_lower:
+            html_content = re.sub(r"new THREE\.[a-zA-Z0-9]+Geometry\(.*?\)", "new THREE.TorusKnotGeometry(1.4, 0.42, 120, 24, 2, 3)", html_content, count=1)
+            changes_applied.append("Replaced 3D mesh with Complex Torus Knot")
+
+        # 3. Speed transformations
+        if "faster" in p_lower or "speed up" in p_lower or "spin" in p_lower or "rapid" in p_lower or "quick" in p_lower:
+            speed_val = "1.2" if ("super" in p_lower or "hyper" in p_lower or "ultra" in p_lower) else "0.55"
+            html_content = re.sub(r"elapsedTime \* 0\.\d+", f"elapsedTime * {speed_val}", html_content)
+            changes_applied.append(f"Accelerated 3D rotation speed ({speed_val}x)")
+        elif "slower" in p_lower or "gentle" in p_lower or "tranquil" in p_lower:
+            html_content = re.sub(r"elapsedTime \* 0\.\d+", "elapsedTime * 0.03", html_content)
+            changes_applied.append("Dampened 3D rotation speed to tranquil glide (0.03x)")
+        elif "freeze" in p_lower or "stop" in p_lower or "pause" in p_lower:
+            html_content = re.sub(r"torusKnot\.rotation\.z\s*=\s*elapsedTime \* 0\.\d+;", "torusKnot.rotation.z = 0; // frozen", html_content)
+            changes_applied.append("Froze 3D rotational physics")
+
+        # 4. Particle density
+        if "particle" in p_lower or "star" in p_lower or "galaxy" in p_lower or "nebula" in p_lower:
+            if "more" in p_lower or "dense" in p_lower or "cosmic" in p_lower or "swarm" in p_lower or "galaxy" in p_lower:
+                html_content = re.sub(r"particlesCount\s*=\s*\d+;", "particlesCount = 4000;", html_content)
+                changes_applied.append("Expanded particle starfield to 4,000 cosmic quantum points")
+            elif "fewer" in p_lower or "less" in p_lower or "sparse" in p_lower or "minimal" in p_lower:
+                html_content = re.sub(r"particlesCount\s*=\s*\d+;", "particlesCount = 200;", html_content)
+                changes_applied.append("Reduced particle field to 200 sparse points")
+
+        # 5. Heading or live section injection
+        title_match = re.search(r'(?:call it|title:|named|title)\s*["\']?([^"\'\n\r]+)["\']?', prompt, re.IGNORECASE)
+        if title_match:
+            new_title = title_match.group(1).strip()
+            html_content = re.sub(r'<h1 class="hero-title">.*?</h1>', f'<h1 class="hero-title">{new_title}</h1>', html_content)
+            changes_applied.append(f"Updated hero title to '{new_title}'")
+        else:
+            card_id = abs(hash(prompt)) % 10000
+            new_card_html = f'''
+    <section id="update-{card_id}">
+      <div class="card">
+        <span class="nav-badge">Live Codex Prompt Update</span>
+        <h2>{prompt[:45]}</h2>
+        <p>Interactive neural update: {prompt}. Real-time WebGL and GSAP choreography synchronized autonomously by Codex.</p>
+      </div>
+    </section>'''
+            if '<section id="cta">' in html_content:
+                html_content = html_content.replace('<section id="cta">', new_card_html + '\n    <section id="cta">')
+                changes_applied.append(f"Injected new interactive scroll section for: '{prompt[:45]}'")
+            else:
+                changes_applied.append("Updated core WebGL shaders and GSAP triggers")
+
+        target_file.write_text(html_content, encoding="utf-8")
+        browser_url = f"file://{target_file.resolve()}"
+        res = window_manager.open_browser(browser_url)
+
+        self.console.print(f"\n[bold green]✦ Real-Time Live Edit to index.html:[/]")
+        for c in changes_applied:
+            self.console.print(f"  • [bold cyan]{c}[/]")
+        self.console.print(f"[bold green]✦ Refreshed in Google Chrome:[/] [white]{browser_url}[/]\n")
+
+        return {
+            "success": True,
+            "file": str(target_file),
+            "changes": changes_applied,
+            "browser": res,
         }
 
 

@@ -38,7 +38,7 @@
     .hero-title {
       font-size: clamp(2.5rem, 6vw, 5rem);
       font-weight: 800;
-      background: linear-gradient(135deg, #7aa2f7 0%, #bb9af7 50%, #7dcfff 100%);
+      background: linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       line-height: 1.1;
@@ -73,7 +73,7 @@
       display: inline-block;
       margin-top: 1.5rem;
       padding: 0.9rem 2rem;
-      background: linear-gradient(135deg, #7aa2f7, #bb9af7);
+      background: linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%);
       color: #0d1117;
       font-weight: 700;
       border-radius: 9999px;
@@ -96,15 +96,83 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
+    .hud-badge-fixed {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      z-index: 999;
+      background: rgba(22, 27, 34, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(122, 162, 247, 0.35);
+      border-radius: 9999px;
+      padding: 6px 18px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #73daca;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .control-deck {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(122, 162, 247, 0.35);
+      border-radius: 9999px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    }
+    .pill-btn {
+      background: rgba(122, 162, 247, 0.15);
+      border: 1px solid rgba(122, 162, 247, 0.3);
+      color: #7dcfff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover {
+      background: #7aa2f7;
+      color: #0d1117;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(122, 162, 247, 0.4);
+    }
+    .audio-btn {
+      background: rgba(187, 154, 247, 0.2);
+      border: 1px solid #bb9af7;
+      color: #bb9af7;
+    }
   </style>
 </head>
 <body>
+  <div class="hud-badge-fixed">⚡ GPT-OSS 120B CLOUD ONLY · 60 FPS ZERO-LATENCY</div>
+
+  <div class="control-deck">
+    <button class="pill-btn audio-btn" onclick="toggleAudioSynth()">🔊 Cyber Synth</button>
+    <button class="pill-btn" onclick="clientApplyTheme('crimson')">Crimson</button>
+    <button class="pill-btn" onclick="clientApplyTheme('matrix')">Matrix</button>
+    <button class="pill-btn" onclick="clientApplyTheme('purple')">Purple</button>
+    <button class="pill-btn" onclick="clientApplyTheme('gold')">Gold</button>
+    <button class="pill-btn" onclick="clientSwitchShape('cube')">Cube</button>
+    <button class="pill-btn" onclick="clientSwitchShape('sphere')">Sphere</button>
+    <button class="pill-btn" onclick="clientSwitchShape('torus')">Torus</button>
+    <button class="pill-btn" onclick="clientToggleSpeed()">Hyper Speed</button>
+  </div>
+
   <canvas id="webgl-canvas"></canvas>
 
   <div class="content-container">
     <section id="hero">
       <span class="nav-badge">Autonomous Neural Architecture</span>
-      <h1 class="hero-title">The Codex Group</h1>
+      <h1 class="hero-title">The Codex Group · GPT-OSS 120B and make it cyan</h1>
       <p class="hero-subtitle">High-performance 3D scroll experience orchestrated with Three.js, GSAP ScrollTrigger, and autonomous Linux agents.</p>
       <div><a href="#features" class="btn">Explore Architecture &darr;</a></div>
     </section>
@@ -150,10 +218,15 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+    // Cyber Grid Floor
+    const gridHelper = new THREE.GridHelper(60, 60, 0x7aa2f7, 0x1f2335);
+    gridHelper.position.y = -2.8;
+    scene.add(gridHelper);
+
     // Geometries
-    const torusKnotGeo = new THREE.TorusKnotGeometry(1.4, 0.42, 120, 24, 2, 3);
+    let torusKnotGeo = new THREE.TorusKnotGeometry(1.4, 0.42, 120, 24, 2, 3);
     const material = new THREE.MeshStandardMaterial({
-      color: 0x7aa2f7,
+      color: 0x7dcfff,
       roughness: 0.2,
       metalness: 0.85,
       wireframe: true,
@@ -163,7 +236,7 @@
     scene.add(torusKnot);
 
     // Particle Starfield
-    const particlesCount = 700;
+    let particlesCount = 700;
     const posArray = new Float32Array(particlesCount * 3);
     for (let i = 0; i < particlesCount * 3; i++) {
       posArray[i] = (Math.random() - 0.5) * 25;
@@ -237,13 +310,93 @@
       }
     });
 
+    // Audio Synthesizer Engine
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let synthTimer = null;
+    function toggleAudioSynth() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (isAudioPlaying) {
+        clearInterval(synthTimer);
+        isAudioPlaying = false;
+        document.querySelector(".audio-btn").textContent = "🔊 Cyber Synth";
+      } else {
+        isAudioPlaying = true;
+        document.querySelector(".audio-btn").textContent = "⏸ Pause Synth";
+        const freqs = [220, 261.63, 329.63, 392.00, 440, 523.25, 659.25];
+        let idx = 0;
+        synthTimer = setInterval(() => {
+          if (!audioCtx) return;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freqs[idx % freqs.length], audioCtx.currentTime);
+          idx++;
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 1.2);
+        }, 320);
+      }
+    }
+
+    // Client-side quick transformations
+    let speedFactor = 1.0;
+    function clientToggleSpeed() {
+      speedFactor = speedFactor === 1.0 ? 3.5 : 1.0;
+    }
+
+    function clientSwitchShape(shape) {
+      scene.remove(torusKnot);
+      let newGeo;
+      if (shape === "cube") newGeo = new THREE.BoxGeometry(1.6, 1.6, 1.6);
+      else if (shape === "sphere") newGeo = new THREE.SphereGeometry(1.6, 32, 32);
+      else newGeo = new THREE.TorusKnotGeometry(1.4, 0.42, 120, 24, 2, 3);
+      torusKnot.geometry.dispose();
+      torusKnot.geometry = newGeo;
+      scene.add(torusKnot);
+    }
+
+    function clientApplyTheme(theme) {
+      const title = document.querySelector(".hero-title");
+      if (theme === "crimson") {
+        material.color.setHex(0xf7768e);
+        material.emissive.setHex(0x3a1018);
+        gridHelper.material.color.setHex(0xf7768e);
+        if (title) title.style.background = "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)";
+      } else if (theme === "matrix") {
+        material.color.setHex(0x73daca);
+        material.emissive.setHex(0x103a20);
+        gridHelper.material.color.setHex(0x73daca);
+        if (title) title.style.background = "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)";
+      } else if (theme === "purple") {
+        material.color.setHex(0xbb9af7);
+        material.emissive.setHex(0x2d184d);
+        gridHelper.material.color.setHex(0xbb9af7);
+        if (title) title.style.background = "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)";
+      } else if (theme === "gold") {
+        material.color.setHex(0xe0af68);
+        material.emissive.setHex(0x3a2e10);
+        gridHelper.material.color.setHex(0xe0af68);
+        if (title) title.style.background = "linear-gradient(135deg, #7dcfff 0%, #7aa2f7 50%, #2ac3de 100%)";
+      }
+      if (title) {
+        title.style.webkitBackgroundClip = "text";
+        title.style.webkitTextFillColor = "transparent";
+      }
+    }
+
     // Render Loop
     const clock = new THREE.Clock();
     function animate() {
       requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      torusKnot.rotation.z = elapsedTime * 0.15;
+      torusKnot.rotation.z = elapsedTime * 0.15 * speedFactor;
       particlesMesh.rotation.y = -elapsedTime * 0.04;
 
       // Parallax smooth interpolation

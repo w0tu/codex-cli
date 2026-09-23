@@ -99,3 +99,26 @@ def test_ruflo_agency_dispatch():
     res = agency.run_mission("Capture screen frame and record mission dossier")
     assert res["success"] is True
     assert len(res["actions"]) >= 2
+
+
+def test_code_synthesizer_live_edit(tmp_path):
+    from codex.code_synthesizer import CodeSynthesizer
+    synth = CodeSynthesizer()
+    res = synth.edit_index_html("change color to red and add a cube", target_dir=tmp_path)
+    assert res["success"] is True
+    assert (tmp_path / "index.html").exists()
+    content = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert "#f7768e" in content
+    assert "BoxGeometry" in content
+    assert len(res["changes"]) >= 2
+
+
+def test_code_synthesizer_speed_and_particles(tmp_path):
+    from codex.code_synthesizer import CodeSynthesizer
+    synth = CodeSynthesizer()
+    res = synth.edit_index_html("make it spin faster with matrix green and dense galaxy particles", target_dir=tmp_path)
+    assert res["success"] is True
+    content = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert "particlesCount = 4000" in content
+    assert "elapsedTime * 0.55" in content
+

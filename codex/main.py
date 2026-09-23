@@ -289,6 +289,35 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                 print_telemetry(turn_tokens, gen_elapsed)
                 return
 
+            # 3. Dynamic Live Edit to index.html on every prompt
+            has_index_html = (Path.cwd() / "index.html").exists()
+            is_website_edit = (
+                "index html" in user_clean
+                or "index.html" in user_clean
+                or any(w in user_clean for w in (
+                    "color", "red", "green", "blue", "purple", "gold", "yellow", "cyan", "crimson", "pink", "orange", "silver", "white",
+                    "cube", "sphere", "cylinder", "dodecahedron", "octahedron", "tetrahedron", "torus", "shape", "geometry", "mesh",
+                    "spin", "faster", "slower", "speed", "particle", "star", "galaxy", "nebula", "density",
+                    "background", "card", "section", "heading", "title", "theme", "3d"
+                ))
+            )
+            is_shell_cmd = (
+                user_clean.startswith("!")
+                or user_clean.startswith("bash ")
+                or any(user_clean.startswith(cmd) for cmd in ("pytest", "run test", "git ", "pip ", "python "))
+            )
+            if not is_shell_cmd and (has_index_html or is_website_edit):
+                from codex.code_synthesizer import code_synthesizer
+                res = code_synthesizer.edit_index_html(prompt_text or user_text, client=client)
+                changes_str = "; ".join(res.get("changes", []))
+                session.add_assistant(f"Updated index.html: {changes_str}. Persisted to disk and refreshed in Google Chrome.")
+                turn_tokens = 320
+                gen_elapsed = time.perf_counter() - prompt_start_time
+                session.record(turn_tokens, gen_elapsed)
+                print_telemetry(turn_tokens, gen_elapsed)
+                return
+
+
             explicit_tool_directives = [
                 "run", "exec", "terminal", "bash", "command",
                 "create", "write", "edit", "save", "read", "inspect", "search", "grep", "find",

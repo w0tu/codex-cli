@@ -278,44 +278,20 @@ class HybridCodexClient:
             except Exception:
                 pass
 
-        chosen_model = model or local_model or DEFAULT_LOCAL_MODEL
+        chosen_model = model or "openai/gpt-oss-120b"
         self.local_client = OllamaClient(model=chosen_model)
         self.cloud_client = cloaked_cloud_client
         if api_key:
             self.cloud_client.set_api_key(api_key)
-        self.cloud_enabled = cloud_enabled
-
-        # Set execution mode: 'cloud' by default unless explicitly configured or offline
-        cfg_mode = None
-        try:
-            from codex.config import load_config
-            c = load_config()
-            cfg_mode = c.get("default_mode")
-        except Exception:
-            pass
-
-        if mode:
-            self.mode = mode.lower()
-        elif cfg_mode:
-            self.mode = cfg_mode.lower()
-        else:
-            self.mode = "cloud" if self.cloud_enabled else "local"
-
-        self.model = CLOAKED_ENGINE_LABEL if self.mode == "cloud" else chosen_model
+        self.cloud_enabled = True
+        self.mode = "cloud"
+        self.model = "openai/gpt-oss-120b"
         self.last_engine_used = self.model
 
     def set_mode(self, mode: str) -> str:
-        """Switch routing mode between 'cloud', 'local', and 'auto'."""
-        mode_clean = mode.lower().strip()
-        if mode_clean in ["cloud", "remote", "oss-120b", "groq"]:
-            self.mode = "cloud"
-            self.model = CLOAKED_ENGINE_LABEL
-        elif mode_clean in ["local", "ollama", "offline"]:
-            self.mode = "local"
-            self.model = self.local_client.model
-        else:
-            self.mode = "cloud"
-            self.model = CLOAKED_ENGINE_LABEL
+        """Switch routing mode - locked to High-Precision Cloud Native GPT-OSS 120B."""
+        self.mode = "cloud"
+        self.model = "openai/gpt-oss-120b"
         return self.mode
 
     def rotate_failover(self) -> Optional[str]:
@@ -327,13 +303,10 @@ class HybridCodexClient:
         return None
 
     def set_model(self, model: str) -> None:
-        self.model = model
+        self.model = "openai/gpt-oss-120b" if ("120b" in model.lower() or "gpt" in model.lower() or model == CLOAKED_ENGINE_LABEL) else model
         if hasattr(self.cloud_client, "set_model"):
-            self.cloud_client.set_model(model)
-        if hasattr(self.local_client, "set_model"):
-            self.local_client.set_model(model)
-        if model == CLOAKED_ENGINE_LABEL or any(k in model.lower() for k in ("120b", "qwen", "groq", "llama", "grok", "gemini", "cloud")):
-            self.mode = "cloud"
+            self.cloud_client.set_model(self.model)
+        self.mode = "cloud"
 
     def set_api_key(self, key: str) -> None:
         self.cloud_client.set_api_key(key)
@@ -341,74 +314,44 @@ class HybridCodexClient:
     def stream_chat(
         self,
         messages: list[dict[str, Any]],
-        max_tokens: int = 1500,
+        max_tokens: int = 4096,
         temperature: float = 0.2,
     ) -> Generator[str, None, None]:
-        """Intelligently route turn to cloaked cloud engine (default) or local pinned engine."""
-        user_prompt = ""
-        for m in reversed(messages):
-            if m.get("role") == "user":
-                user_prompt = m.get("content", "")
-                break
-
-        est_tokens = sum(len(m.get("content", "")) // 4 for m in messages if isinstance(m.get("content"), str))
-        exceeds_1b, reason = detect_query_complexity(user_prompt, est_tokens)
-
-        route_to_cloud = False
-        if self.cloud_enabled and self.mode != "local":
-            if is_internet_available():
-                allowed, notice = billing_guardrail.check_cloud_escalation()
-                if allowed:
-                    if self.mode in ("cloud", "auto") or exceeds_1b:
-                        route_to_cloud = True
-                        self.last_engine_used = CLOAKED_ENGINE_LABEL
-                else:
-                    sys.stdout.write(f"\n\033[1;33m{notice}\033[0m\n")
-                    sys.stdout.flush()
-                    self.last_engine_used = self.local_client.model
-            else:
-                self.last_engine_used = self.local_client.model
-        else:
-            self.last_engine_used = self.local_client.model
-
-        if route_to_cloud:
-            try:
-                # If auto-escalated on complexity in auto mode, display subtle notice
-                if self.mode == "auto" and exceeds_1b:
-                    sys.stdout.write(f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255m[ESCALATION]\033[0m Routing complex query to \033[1;37m{CLOAKED_ENGINE_LABEL}\033[0m ({reason})...\n")
-                    sys.stdout.flush()
+        """Stream chat turns directly via the High-Precision Cloud Native GPT-OSS 120B engine."""
+        self.last_engine_used = self.model
+        try:
+            yield from self.cloud_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
+            return
+        except Exception:
+            # Attempt failover rotation if available
+            rotated_key = self.rotate_failover()
+            if rotated_key:
                 yield from self.cloud_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
                 return
-            except Exception as e:
-                sys.stdout.write(f"\n\033[1;33m[Fallback Notice: Cloud engine error: {e}. Routing to pinned local model]\033[0m\n")
-                sys.stdout.flush()
-                self.last_engine_used = self.local_client.model
-
-        # Default local zero-latency pinned inference
-        yield from self.local_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
+            # Re-yield from cloud client
+            yield from self.cloud_client.stream_chat(messages, max_tokens=max_tokens, temperature=temperature)
 
     def chat_turn(
         self,
         messages: list[dict[str, Any]],
-        max_tokens: int = 1200,
+        max_tokens: int = 4096,
         temperature: float = 0.2,
     ) -> Any:
-        if self.cloud_enabled and self.mode != "local" and is_internet_available():
-            allowed, _ = billing_guardrail.check_cloud_escalation()
-            if allowed:
-                try:
-                    self.last_engine_used = CLOAKED_ENGINE_LABEL
-                    return self.cloud_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
-                except Exception:
-                    pass
-        self.last_engine_used = self.local_client.model
-        return self.local_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
+        """Execute chat turn directly via High-Precision Cloud Native GPT-OSS 120B engine."""
+        self.last_engine_used = self.model
+        try:
+            return self.cloud_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
+        except Exception:
+            rotated_key = self.rotate_failover()
+            if rotated_key:
+                return self.cloud_client.chat_turn(messages, max_tokens=max_tokens, temperature=temperature)
+            raise
 
 
 # Backward compatibility aliases for existing commands & tests
 GroqClient = HybridCodexClient
 CodexClient = HybridCodexClient
-DEFAULT_MODEL = "minimax/minimax-m2.7"
+DEFAULT_MODEL = "openai/gpt-oss-120b"
 
 
 class AntigravityClient:
@@ -488,6 +431,12 @@ class AntigravityClient:
 from codex.config import save_api_key, rotate_api_key
 
 ANTIGRAVITY_MODELS_MAP = {
+    "openai/gpt-oss-120b": "openai/gpt-oss-120b",
+    "gpt-oss-120b": "openai/gpt-oss-120b",
+    "gpt-120b": "openai/gpt-oss-120b",
+    "gpt 120b": "openai/gpt-oss-120b",
+    "120b": "openai/gpt-oss-120b",
+    "default": "openai/gpt-oss-120b",
     "minimax-m2.7": "minimax/minimax-m2.7",
     "minimax": "minimax/minimax-m2.7",
     "minimax m2.7": "minimax/minimax-m2.7",

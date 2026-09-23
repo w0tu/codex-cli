@@ -15,9 +15,9 @@ from typing import Any, Generator, Optional, Tuple
 
 from codex.billing import billing_guardrail
 
-CLOAKED_ENGINE_LABEL = "Cloud Native (Zero-Latency)"
+CLOAKED_ENGINE_LABEL = "Cloud Native (GPT-OSS 120B)"
 CLOAKED_CLOUD_URL = "https://api.groq.com/openai/v1/chat/completions"
-DEFAULT_CLOAKED_MODEL = "minimax/minimax-m2.7"
+DEFAULT_CLOAKED_MODEL = "openai/gpt-oss-120b"
 
 
 def is_internet_available(host: str = "8.8.8.8", port: int = 53, timeout: float = 1.2) -> bool:
@@ -69,14 +69,14 @@ def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str
     # Map virtual or external model IDs to available Groq / Cloud endpoints
     if "minimax" in req_model or "m2.7" in req_model:
         primary_groq_model = "minimax/minimax-m2.7"
-    elif "120b" in req_model or "70b" in req_model or "pro" in req_model or "oss" in req_model:
-        primary_groq_model = "openai/gpt-oss-120b"
     elif "20b" in req_model:
         primary_groq_model = "openai/gpt-oss-20b"
     elif "qwen" in req_model:
         primary_groq_model = "qwen/qwen3.8-27b"
+    elif "120b" in req_model or "oss" in req_model or "gpt" in req_model or "pro" in req_model:
+        primary_groq_model = "openai/gpt-oss-120b"
     else:
-        primary_groq_model = "minimax/minimax-m2.7"  # Default elite coding engine
+        primary_groq_model = "openai/gpt-oss-120b"  # Default flagship GPT 120B engine
 
     # Check for direct MiniMax API key if minimax model requested
     minimax_env = os.environ.get("MINIMAX_API_KEY", "").strip()
