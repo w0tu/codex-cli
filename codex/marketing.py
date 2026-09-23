@@ -112,7 +112,7 @@ class InstagramAutomationEngine:
         caption = (
             f"⚡ {hook}\n\n"
             f"We just deployed an autonomous 45,000-agent AI swarm in terminal. "
-            f"Strategic decomposition, BFS deep research, and instant consensus—all running at 500+ tok/s.\n\n"
+            f"Strategic decomposition, BFS deep research, and instant consensus—all running at zero-latency cloud speed.\n\n"
             f"✦ Core Features:\n"
             f"• 3-Tier Multi-Agent Hierarchy (Commander ➔ 45 Managers ➔ 45K Workers)\n"
             f"• Sub-second Cloud Native Server Pipeline\n"

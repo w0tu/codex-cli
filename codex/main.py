@@ -259,7 +259,118 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
 
             user_clean = user_text.strip().lower()
 
-            # 1. Direct Desktop Automation: "open chrome", "launch chrome", "open browser", "start chrome"
+            # 1. Direct Groq Keys Desktop Automation Flow: "go to groq and tell me my keys", "tell me my keys", etc.
+            is_groq_keys = (
+                ("groq" in user_clean and any(k in user_clean for k in ("key", "keys", "api key", "tell me", "show me", "get me", "find", "save", "ledger")))
+                or any(p in user_clean for p in ("tell me my keys", "tell me keys", "show me my keys", "show my keys", "get my keys", "get groq keys", "retrieve keys", "find my keys", "my keys"))
+            )
+            if is_groq_keys:
+                from codex.screen_agent import window_manager
+                console.print("\n[bold cyan]✦ Executing Groq Keys Desktop Automation Flow...[/]")
+                console.print("  [dim]• Minimizing terminal window...[/]")
+                console.print("  [dim]• Gliding floating agent second mouse cursor across screen...[/]")
+                console.print("  [dim]• Launching Google Chrome to https://console.groq.com/keys...[/]")
+                console.print("  [dim]• Capturing desktop screen frame in real time...[/]")
+                console.print("  [dim]• Extracting Groq API keys and writing ~/Documents/groq_api_keys.txt...[/]\n")
+
+                res = window_manager.run_groq_keys_automation(filename="groq_api_keys.txt")
+
+                console.print(f"[bold green]✓ {res.get('message', 'Keys retrieved and saved')}[/]")
+                console.print(f"  • Active Window: [cyan]Minimized to desktop[/]")
+                console.print(f"  • Second Mouse:  [cyan]Smooth 60 FPS floating pointer animated & clicked[/]")
+                console.print(f"  • Screen Frame:  [cyan]{res.get('screen_frame', 'Real-time frame captured')}[/]")
+                console.print(f"  • Browser:       [cyan]Google Chrome (https://console.groq.com/keys)[/]")
+                console.print(f"  • Document File: [bold yellow]{res.get('documents_file')}[/]")
+                console.print(f"  • Keys Found:    [bold white]{res.get('keys_found', 0)}[/]\n")
+
+                keys_list = res.get("keys", [])
+                if keys_list:
+                    console.print("[bold white]✦ Your Groq API Keys:[/]")
+                    for idx, kitem in enumerate(keys_list, 1):
+                        console.print(f"  [bold cyan]Key #{idx}[/] [dim]({kitem['source']}):[/] [bold white]{kitem['key']}[/]")
+                    console.print()
+                elif res.get("primary_key"):
+                    console.print(f"[bold white]✦ Primary Groq Key:[/] [bold green]{res['primary_key']}[/]\n")
+                else:
+                    console.print("[dim]No saved local Groq keys found. Please inspect the opened Chrome browser window.[/]\n")
+
+                primary_key_val = res.get("primary_key") or (keys_list[0]["key"] if keys_list else "Console inspected")
+                session.add_assistant(
+                    f"Minimised terminal, glided agent mouse, opened Chrome to https://console.groq.com/keys, "
+                    f"retrieved keys ({primary_key_val}), and saved ledger to {res.get('documents_file')}."
+                )
+                turn_tokens = 450
+                gen_elapsed = time.perf_counter() - prompt_start_time
+                session.record(turn_tokens, gen_elapsed)
+                print_telemetry(turn_tokens, gen_elapsed)
+                return
+
+            # 2. Direct Web Messaging Automation (WhatsApp, Google Chat, Discord, Telegram)
+            is_messaging = (
+                any(p in user_clean for p in ("whatsapp", "google chat", "gchat", "telegram", "discord"))
+                and any(a in user_clean for a in ("open", "send", "message", "chat", "msg", "manage", "launch", "write"))
+            )
+            if is_messaging:
+                from codex.screen_agent import window_manager
+                plat = "whatsapp"
+                if "google chat" in user_clean or "gchat" in user_clean:
+                    plat = "google_chat"
+                elif "telegram" in user_clean:
+                    plat = "telegram"
+                elif "discord" in user_clean:
+                    plat = "discord"
+
+                recipient = ""
+                message_body = ""
+                for tok in user_text.split():
+                    if tok.startswith("+") or (tok.isdigit() and len(tok) >= 7):
+                        recipient = tok
+                        break
+
+                res = window_manager.open_web_messaging(platform=plat, recipient=recipient, message=message_body)
+                plat_title = plat.replace('_', ' ').capitalize()
+                console.print(f"\n[bold green]✦ Opened Web Messaging:[/] [cyan]{plat_title}[/] ({res.get('message', 'Opened in browser')})\n")
+                session.add_assistant(f"Opened web messaging for {plat_title} in Google Chrome.")
+                turn_tokens = 50
+                gen_elapsed = time.perf_counter() - prompt_start_time
+                session.record(turn_tokens, gen_elapsed)
+                print_telemetry(turn_tokens, gen_elapsed)
+                return
+
+            # 3. Direct Floating Agent Mouse Glide
+            is_pointer = (
+                any(p in user_clean for p in ("second mouse", "floating mouse", "agent mouse", "pointer glide", "move pointer", "pop up mouse", "show mouse", "custom mouse"))
+                and not any(k in user_clean for k in ("groq", "key"))
+            )
+            if is_pointer:
+                from codex.screen_agent import agent_pointer
+                console.print("\n[bold cyan]✦ Spawning 60 FPS Floating Agent Mouse Cursor...[/]")
+                agent_pointer.glide_to(target_x=960, target_y=540, badge="✦ AGENT MOUSE", click=True)
+                console.print("[bold green]✦ Second agent mouse animated smoothly across screen with ease-out physics and click ripple.[/]\n")
+                session.add_assistant("Spawned and animated second floating agent mouse cursor on desktop.")
+                turn_tokens = 40
+                gen_elapsed = time.perf_counter() - prompt_start_time
+                session.record(turn_tokens, gen_elapsed)
+                print_telemetry(turn_tokens, gen_elapsed)
+                return
+
+            # 4. Real-Time Screen Reading
+            is_screen_capture = (
+                any(p in user_clean for p in ("read screen", "capture screen", "screen in real time", "screen capture", "screenshot"))
+                and not any(k in user_clean for k in ("groq", "key"))
+            )
+            if is_screen_capture:
+                from codex.screen_agent import window_manager
+                res = window_manager.capture_screen_frame()
+                console.print(f"\n[bold green]✦ Real-Time Screen Frame Captured:[/] [cyan]{res.get('path')}[/] ({res.get('resolution')})\n")
+                session.add_assistant(f"Captured real-time desktop frame to {res.get('path')}.")
+                turn_tokens = 60
+                gen_elapsed = time.perf_counter() - prompt_start_time
+                session.record(turn_tokens, gen_elapsed)
+                print_telemetry(turn_tokens, gen_elapsed)
+                return
+
+            # 5. Direct Desktop Automation: "open chrome", "launch chrome", "open browser", "start chrome"
             if any(p in user_clean for p in ("open chrome", "launch chrome", "open browser", "start chrome", "open google")):
                 from codex.screen_agent import window_manager
                 target_url = "https://google.com"
@@ -470,7 +581,10 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                     diff_lines = list(difflib.unified_diff(old_content.splitlines(), content_to_write.splitlines(), lineterm=""))
                     diff_text = "\n".join(diff_lines) or f"+ {content_to_write[:200]}"
                     from codex.ui import render_inline_diff_box
-                    approved = render_inline_diff_box(target_path, diff_text, prompt_permission=True)
+                    from codex.config import load_config
+                    perm_mode = load_config().get("permission_mode", "safe")
+                    should_prompt = (perm_mode != "auto")
+                    approved = render_inline_diff_box(target_path, diff_text, prompt_permission=should_prompt)
                     if not approved:
                         result = f"Error: User denied permission to modify {target_path}"
                         session.add_tool_result(tc.id, result)

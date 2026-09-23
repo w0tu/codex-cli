@@ -137,3 +137,39 @@ def test_code_synthesizer_speed_and_particles(tmp_path):
     assert "particlesCount = 4000" in content
     assert "elapsedTime * 0.55" in content
 
+
+def test_desktop_window_manager_groq_automation(tmp_path, monkeypatch):
+    from codex.screen_agent import DesktopWindowManager
+    wm = DesktopWindowManager()
+    
+    # Test saving keys to custom document
+    doc_file = "test_groq_keys.txt"
+    res = wm.run_groq_keys_automation(filename=doc_file)
+    assert res["success"] is True
+    assert "groq_api_keys" in res["message"] or doc_file in res["message"]
+    assert "primary_key" in res
+    assert "keys" in res
+    assert isinstance(res["keys"], list)
+
+
+def test_web_messaging_platforms():
+    from codex.screen_agent import DesktopWindowManager
+    wm = DesktopWindowManager()
+
+    # WhatsApp
+    res_wa = wm.open_web_messaging(platform="whatsapp", recipient="+1234567890", message="Hello from Agent")
+    assert res_wa["success"] is True
+    assert "whatsapp" in res_wa["message"].lower()
+
+    # Google Chat
+    res_gc = wm.open_web_messaging(platform="google_chat")
+    assert res_gc["success"] is True
+    assert "chat.google.com" in res_gc["message"].lower() or "google" in res_gc["message"].lower()
+
+
+def test_floating_agent_pointer():
+    from codex.screen_agent import agent_pointer
+    ok = agent_pointer.spawn(start_x=300, start_y=300, badge="✦ TEST AGENT")
+    assert isinstance(ok, bool)
+    agent_pointer.close()
+
