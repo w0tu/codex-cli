@@ -19,3 +19,4 @@ ENV/
 *.log
 .codex_history
 .env
+codex/electron/node_modules/
