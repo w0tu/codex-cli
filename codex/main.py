@@ -330,6 +330,26 @@ def execute_turn(session: Session, client: GroqClient, prompt_text: str = "", ma
                 if tool_name in ("write_file", "edit_file", "read_file") and "path" in args:
                     session.memory.record_file_op(args["path"], tool_name)
 
+                # Interactive permission prompt & diff rendering for file edits
+                if tool_name in ("write_file", "edit_file"):
+                    target_path = args.get("path", "")
+                    content_to_write = args.get("content") or args.get("new_string") or ""
+                    old_content = ""
+                    if target_path and Path(target_path).exists():
+                        try:
+                            old_content = Path(target_path).read_text(encoding="utf-8", errors="replace")
+                        except Exception:
+                            pass
+                    import difflib
+                    diff_lines = list(difflib.unified_diff(old_content.splitlines(), content_to_write.splitlines(), lineterm=""))
+                    diff_text = "\n".join(diff_lines) or f"+ {content_to_write[:200]}"
+                    from codex.ui import render_inline_diff_box
+                    approved = render_inline_diff_box(target_path, diff_text, prompt_permission=True)
+                    if not approved:
+                        result = f"Error: User denied permission to modify {target_path}"
+                        session.add_tool_result(tc.id, result)
+                        continue
+
                 summary = args.get("command") or args.get("path") or args.get("repo") or args.get("query") or args.get("url") or args.get("topic") or json.dumps(args)
                 tool_label = f"{tool_name} {summary}"
 
@@ -487,6 +507,11 @@ def run_repl(client: Any) -> None:
             clear_terminal()
             from codex.banner_renderer import display_welcome_banner
             display_welcome_banner(model_label=client.model, status_text="ONLINE | ZERO-LATENCY PINNED", cwd=os.getcwd())
+            continue
+
+        if user_input in ["/dashboard", "/tui", "/opencode"]:
+            from codex.ui import render_opencode_dashboard
+            render_opencode_dashboard(model_name=client.model)
             continue
 
         if user_input == "/help":

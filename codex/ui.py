@@ -667,3 +667,188 @@ def render_stats(queries: int, tokens: int, total_time: float) -> None:
 def render_model_info(model: str) -> None:
     """Display active model info."""
     console.print(f"[dim]Active model:[/] [bold white]{model}[/]\n")
+
+
+# ── OpenCode Tokyonight TUI Components ("The Codex Group") ───────────────
+TOKYONIGHT_BG = "#1a1b26"
+TOKYONIGHT_PANEL = "#24283b"
+TOKYONIGHT_BLUE = "#7aa2f7"
+TOKYONIGHT_PURPLE = "#bb9af7"
+TOKYONIGHT_CYAN = "#7dcfff"
+TOKYONIGHT_GREEN = "#9ece6a"
+TOKYONIGHT_RED = "#f7768e"
+TOKYONIGHT_ORANGE = "#e0af68"
+TOKYONIGHT_FG = "#a9b1d6"
+
+
+def render_opencode_tokyonight_banner(model_name: str = "Groq LPU (qwen3.8-27b)") -> None:
+    """Render Tokyonight OpenCode Startup UI rebranded as 'THE CODEX GROUP' matching Screenshot 2."""
+    clean_model = format_clean_model_name(model_name)
+    banner_text = [
+        "████████╗██╗  ██╗███████╗    ██████╗ ██████╗ ██████╗ ███████╗██╗  ██╗    ██████╗ ██████╗ ██╗   ██╗██████╗ ",
+        "╚══██╔══╝██║  ██║██╔════╝    ██╔════╝██╔═══██╗██╔══██╗██╔════╝╚██╗██╔╝    ██╔════╝ ██╔══██╗██║   ██║██╔══██╗",
+        "   ██║   ███████║█████╗      ██║     ██║   ██║██║  ██║█████╗   ╚███╔╝     ██║  ███╗██████╔╝██║   ██║██████╔╝",
+        "   ██║   ██╔══██║██╔══╝      ██║     ██║   ██║██║  ██║██╔══╝   ██╔██╗     ██║   ██║██╔══██╗██║   ██║██╔═══╝ ",
+        "   ██║   ██║  ██║███████╗    ╚██████╗╚██████╔╝██████╔╝███████╗██╔╝ ██╗    ╚██████╔╝██║  ██║╚██████╔╝██║     ",
+        "   ╚═╝   ╚═╝  ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝     ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ",
+    ]
+
+    console.print("\n\n")
+    for line in banner_text:
+        console.print(f"[{TOKYONIGHT_BLUE}]{line:<100}[/]")
+    console.print(f"[{TOKYONIGHT_PURPLE}]                                           v1.7.0 (Tokyonight Edition)[/]\n\n")
+
+    cmd_table = Table.grid(padding=(0, 4))
+    cmd_table.add_column(style=f"bold {TOKYONIGHT_CYAN}", justify="right")
+    cmd_table.add_column(style=f"{TOKYONIGHT_FG}", justify="left")
+    cmd_table.add_column(style="dim", justify="left")
+
+    cmd_table.add_row("/help", "show help reference", "ctrl+x h")
+    cmd_table.add_row("/editor", "open multiline editor", "ctrl+x e")
+    cmd_table.add_row("/models", "list active LLM models", "ctrl+x m")
+    cmd_table.add_row("/init", "create AGENTS.md / CODEX.md context", "ctrl+x i")
+    cmd_table.add_row("/compact", "compact context session", "ctrl+x c")
+    cmd_table.add_row("/sessions", "list active subagent sessions", "ctrl+x l")
+
+    console.print(cmd_table)
+    console.print("\n")
+
+    input_panel = Panel(
+        Text("> ", style=f"bold {TOKYONIGHT_CYAN}"),
+        box=box.ROUNDED,
+        border_style=TOKYONIGHT_PURPLE,
+        expand=False,
+        subtitle=f"[{TOKYONIGHT_FG}]enter [dim]send[/]                 [{TOKYONIGHT_BLUE}]Engine: {clean_model}[/]",
+        subtitle_align="right"
+    )
+    console.print(input_panel)
+    console.print("\n")
+
+
+def render_opencode_dashboard(
+    active_agent: str = "0m0",
+    model_name: str = "qwen/qwen3.8-27b",
+    tasks_completed: list[dict] | None = None,
+    cwd: str | None = None,
+) -> None:
+    """Render Tokyonight split-pane OpenCode TUI dashboard matching Screenshot 1."""
+    workspace = cwd or os.getcwd()
+    display_model = format_clean_model_name(model_name)
+
+    # 1. Main Left Pane: Tasks, Sub-Agent Tabs, and Thought Log
+    left_content = Text()
+    left_content.append("• call_omo_agent [subagent_type=explore, prompt=Find potential bugs related to EDGE CASES]\n", style=TOKYONIGHT_CYAN)
+    left_content.append("  1. Array access without bounds checking\n", style="dim")
+    left_content.append("  2. Division operations that could divide by zero\n", style="dim")
+    left_content.append("  3. Path operations that don't handle Windows vs Unix differences\n\n", style="dim")
+
+    left_content.append("⚛ Oracle Task \"Deep architecture & security review\"\n", style=f"bold {TOKYONIGHT_PURPLE}")
+    left_content.append("ctrl+x right, ctrl+x left to navigate between subagent sessions\n\n", style="dim")
+
+    # Tabs
+    left_content.append("■ 0m0 · claude-opus-4-5  ", style=f"bold {TOKYONIGHT_CYAN}")
+    left_content.append("  explore · qwen2.5-coder  ", style="dim")
+    left_content.append("  auditor · gpt-oss-120b\n", style="dim")
+
+    if tasks_completed:
+        for t in tasks_completed:
+            name = t.get("name", "Research task")
+            dur = t.get("duration", "3m 41s")
+            left_content.append(f"\n[BACKGROUND TASK COMPLETED] Task \"{name}\" finished in {dur}.\n", style=f"bold {TOKYONIGHT_GREEN}")
+
+    left_content.append(f"\n[BACKGROUND TASK COMPLETED] Task \"Research multi-agent patterns\" finished in 3m 41s. Use background_output to get results.\n", style=f"bold {TOKYONIGHT_GREEN}")
+    left_content.append(f"[BACKGROUND TASK COMPLETED] Task \"Find type safety issues\" finished in 27s. Use background_output to get results.\n\n", style=f"bold {TOKYONIGHT_GREEN}")
+
+    left_panel = Panel(
+        left_content,
+        title="[bold white][The Codex Group] Leveraging agents for tasks[/]",
+        title_align="left",
+        border_style=TOKYONIGHT_BLUE,
+        box=box.ROUNDED,
+    )
+
+    # 2. Right Sidebar Pane: Context, MCP, LSP, Todo, Workspace
+    right_content = Text()
+    right_content.append("Leveraging agents for tasks\n\n", style="bold white")
+    right_content.append("Context\n", style=f"bold {TOKYONIGHT_PURPLE}")
+    right_content.append("66,518 tokens\n33% used\n$0.00 spent\n\n", style=TOKYONIGHT_FG)
+
+    right_content.append("▼ MCP\n", style=f"bold {TOKYONIGHT_CYAN}")
+    right_content.append("• context7 Connected\n• grep_app Connected\n• websearch_exa Connected\n\n", style=TOKYONIGHT_GREEN)
+
+    right_content.append("▼ LSP\n", style=f"bold {TOKYONIGHT_CYAN}")
+    right_content.append("• markdown-oxide\n• typescript\n• eslint\n\n", style=TOKYONIGHT_FG)
+
+    right_content.append("▼ Todo\n", style=f"bold {TOKYONIGHT_CYAN}")
+    right_content.append("[✓] Demonstrate AGENTS: Show all 2,000+ curated swarm agents\n", style=TOKYONIGHT_GREEN)
+    right_content.append("[✓] Demonstrate BACKGROUND AGENTS: Run parallel tasks\n", style=TOKYONIGHT_GREEN)
+    right_content.append("[ ] Demonstrate ZERO-LATENCY: 500+ tok/s Groq LPU\n", style=TOKYONIGHT_ORANGE)
+    right_content.append("[ ] Demonstrate PERMISSION PROMPTS: Inline diff approval\n\n", style=TOKYONIGHT_ORANGE)
+
+    right_content.append(f"{workspace}\n", style="dim")
+    right_content.append("master · The Codex Group v1.7.0", style=f"bold {TOKYONIGHT_BLUE}")
+
+    right_panel = Panel(
+        right_content,
+        border_style="grey35",
+        box=box.ROUNDED,
+    )
+
+    # 3. Render side-by-side grid
+    grid = Table.grid(expand=True)
+    grid.add_column(ratio=7)
+    grid.add_column(ratio=3)
+    grid.add_row(left_panel, right_panel)
+
+    console.print(grid)
+
+
+def render_inline_diff_box(
+    file_path: str,
+    diff_content: str,
+    prompt_permission: bool = True
+) -> bool:
+    """Render interactive inline diff box showing line numbers, red '-' deletions, and green '+' additions matching Screenshot 3."""
+    console.print(f"\n[{TOKYONIGHT_PURPLE}]Edit {file_path}[/]")
+
+    lines = diff_content.splitlines()
+    table = Table(box=box.SIMPLE, show_header=False, padding=(0, 1), border_style="grey23", expand=True)
+    table.add_column("OldLn", justify="right", style="dim", width=6)
+    table.add_column("NewLn", justify="right", style="dim", width=6)
+    table.add_column("Line", style=TOKYONIGHT_FG)
+
+    old_line = 1
+    new_line = 1
+
+    for line in lines:
+        if line.startswith("@@"):
+            table.add_row("", "", f"[{TOKYONIGHT_CYAN}]{line}[/]")
+            continue
+        elif line.startswith("-"):
+            table.add_row(str(old_line), "", f"[bold {TOKYONIGHT_RED}]{line}[/]")
+            old_line += 1
+        elif line.startswith("+"):
+            table.add_row("", str(new_line), f"[bold {TOKYONIGHT_GREEN}]{line}[/]")
+            new_line += 1
+        else:
+            table.add_row(str(old_line), str(new_line), line)
+            old_line += 1
+            new_line += 1
+
+    panel = Panel(table, box=box.ROUNDED, border_style=TOKYONIGHT_BLUE, title=f"[bold white]Diff Preview — {file_path}[/]")
+    console.print(panel)
+
+    if prompt_permission:
+        try:
+            ans = console.input(f"[{TOKYONIGHT_ORANGE}]Approve file edit to {file_path}? [y/N]: [/]").strip().lower()
+            return ans in ("y", "yes")
+        except (EOFError, KeyboardInterrupt):
+            return False
+    return True
+
+
+def render_realtime_agent_bar(agent_name: str, task_desc: str, status: str = "CODING") -> None:
+    """Render real-time animated sub-agent activity bar showing active agent names."""
+    tag_style = f"bold {TOKYONIGHT_CYAN}" if status == "CODING" else f"bold {TOKYONIGHT_GREEN}"
+    console.print(f"[{tag_style}]⚡ [{agent_name} - {status}]:[/] [{TOKYONIGHT_FG}]{task_desc}[/]")
+

@@ -186,7 +186,7 @@ def render_borderless_block_frame(
     os_info = f"{platform.system()} {platform.release()}"[:28]
 
     lines = [
-        f"\033[38;2;120;120;130m▌ \033[1;37mCODEX-CLI\033[0m \033[38;2;100;100;110m░▒▓\033[0m \033[38;2;140;140;150mAutonomous Systems Architecture\033[0m",
+        f"\033[38;2;120;120;130m▌ \033[1;37mTHE CODEX GROUP\033[0m \033[38;2;100;100;110m░▒▓\033[0m \033[38;2;140;140;150mAutonomous Systems Architecture (OpenCode Tokyonight Edition)\033[0m",
         f"\033[38;2;120;120;130m▌\033[0m \033[38;2;80;160;255mENGINE:\033[0m {model_label}  \033[38;2;80;200;120mSTATUS:\033[0m {status_text}",
         f"\033[38;2;120;120;130m▌\033[0m \033[38;2;160;160;170mWORKSPACE:\033[0m {workspace}  \033[38;2;160;160;170mUSER:\033[0m {user}",
         f"\033[38;2;120;120;130m▌\033[0m \033[38;2;255;180;50mSYSTEM:\033[0m CPU: {cpu_str} │ RAM: {ram_str} │ OS: {os_info}",
