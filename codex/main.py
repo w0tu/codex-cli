@@ -483,28 +483,18 @@ def run_repl(client: Any) -> None:
     )
 
     from prompt_toolkit.formatted_text import HTML, ANSI
+    from codex.ui import format_prompt_string
 
     while True:
         try:
             clean_model = format_clean_model_name(client.model)
-            if session.tui_stage == 1:
-                prompt_str = "\x1b[38;2;125;207;255m> \x1b[0m"
-                def get_toolbar():
-                    return HTML(
-                        f'<style fg="#7aa2f7">enter</style> <style fg="#565f89">send</style>   '
-                        f'<style fg="#bb9af7">ctrl+x</style> <style fg="#565f89">shortcuts</style>   '
-                        f'<style fg="#7dcfff">/</style> <style fg="#565f89">commands</style>       '
-                        f'│ <style fg="#9ece6a">{clean_model}</style>'
-                    )
-            else:
-                from codex.ui import format_prompt_string
-                prompt_str = format_prompt_string(os.getcwd())
-                def get_toolbar():
-                    return HTML(
-                        f'<style fg="#7aa2f7">The Codex Group v1.7.0</style> <style fg="#565f89">│</style> '
-                        f'<style fg="#9ece6a">{clean_model}</style> <style fg="#565f89">│</style> '
-                        f'<style fg="#bb9af7">tab</style> <style fg="#565f89">BUILD MODE</style>'
-                    )
+            prompt_str = format_prompt_string(os.getcwd())
+            def get_toolbar():
+                return HTML(
+                    f'<style fg="#7aa2f7">The Codex Group</style> <style fg="#565f89">│</style> '
+                    f'<style fg="#9ece6a">{clean_model}</style> <style fg="#565f89">│</style> '
+                    f'<style fg="#7dcfff">/</style> <style fg="#565f89">commands</style>'
+                )
 
             user_input = pt.prompt(ANSI(prompt_str), bottom_toolbar=get_toolbar).strip()
         except (KeyboardInterrupt, EOFError):
@@ -513,19 +503,6 @@ def run_repl(client: Any) -> None:
 
         if not user_input:
             continue
-
-        # Two-Stage TUI Transition:
-        # As soon as the user says anything (enters query or command), transition to Stage 2 Active TUI Dashboard!
-        if session.tui_stage == 1 and user_input != "/welcome":
-            session.tui_stage = 2
-            clear_terminal()
-            from codex.ui import render_opencode_dashboard
-            render_opencode_dashboard(
-                active_agent="0m0",
-                model_name=client.model,
-                cwd=os.getcwd(),
-                query_title=user_input
-            )
 
         # Automatic API key capture & global persistence
         key_match = re.search(r"\b(gsk_[a-zA-Z0-9]{20,})\b", user_input)

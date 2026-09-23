@@ -269,7 +269,7 @@ def format_prompt_string(cwd: str, theme_name: str | None = None) -> str:
     except Exception:
         pass
 
-    return f"{t['prompt_app']}codex{t['prompt_in']} in {t['prompt_dir']}{dirname}{branch_info} {t['prompt_char']}>\x1b[0m "
+    return f"\x1b[38;2;122;162;247mcodex\x1b[0m \x1b[38;2;86;95;137min\x1b[0m \x1b[38;2;125;207;255m{dirname}\x1b[0m{branch_info} \x1b[38;2;158;206;106m❯\x1b[0m "
 
 
 def print_prompt(cwd: str) -> None:
@@ -304,11 +304,9 @@ def render_tool_result(result: str, max_lines: int = 8) -> None:
 
 
 def print_telemetry(tokens: int, total_elapsed: float) -> None:
-    """Timer and telemetry from prompt entry to finished execution."""
+    """Subtle, modern telemetry line matching top-tier AI CLI tools."""
     tps = tokens / max(total_elapsed, 0.001)
-    console.print(
-        f"[dim]> {tokens} tokens | Done in {total_elapsed:.2f}s | {tps:.1f} tok/s | Codex Native[/]\n"
-    )
+    console.print(f"[dim]· {tokens} tokens in {total_elapsed:.2f}s ({tps:.0f} tok/s)[/]\n")
 
 
 def render_usage_tab(stats: dict) -> None:
