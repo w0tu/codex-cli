@@ -379,6 +379,80 @@ TOOLS_SCHEMA = [
                 "required": ["action"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "control_mouse",
+            "description": (
+                "Automate the user's PC desktop mouse and keyboard via native Linux xdotool. "
+                "Move mouse cursor, click buttons, drag, scroll, inspect cursor coordinates, get screen size, type text, or press keys."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["move", "click", "double_click", "drag", "scroll", "position", "screen_size", "type", "key"],
+                        "description": "Mouse/desktop action to perform."
+                    },
+                    "x": {"type": "integer", "description": "X coordinate on screen."},
+                    "y": {"type": "integer", "description": "Y coordinate on screen."},
+                    "button": {"type": "integer", "description": "Mouse button: 1=Left, 2=Middle, 3=Right (default: 1)."},
+                    "direction": {"type": "string", "enum": ["up", "down"], "description": "Scroll direction (up or down)."},
+                    "amount": {"type": "integer", "description": "Scroll amount (default: 3)."},
+                    "text": {"type": "string", "description": "Text to type into active window."},
+                    "key": {"type": "string", "description": "Key or hotkey combination to press, e.g. 'Return', 'ctrl+c'."}
+                },
+                "required": ["action"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "wifi_status",
+            "description": "Inspect local PC WiFi status, active SSID, signal strength, local IP address, and internet gateway connectivity.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "deep_research",
+            "description": "Conduct deep internet research across multiple platforms (Exa, web, news, docs) for any complex query when asked.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The research question or topic to investigate."
+                    }
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delegate_antigravity",
+            "description": "Delegate complex reasoning, architectural refactoring, and multi-file workflows to Google Antigravity.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task": {
+                        "type": "string",
+                        "description": "The complex task prompt or problem description."
+                    }
+                },
+                "required": ["task"]
+            }
+        }
     }
 ]
 
@@ -868,6 +942,95 @@ def run_tool(name: str, args: dict[str, Any]) -> str:
             query=args.get("query", ""),
             url=args.get("url", "")
         )
+    elif name == "control_mouse":
+        return execute_control_mouse(args)
+    elif name == "wifi_status":
+        return execute_wifi_status()
+    elif name == "deep_research":
+        return execute_deep_research(args.get("query", ""))
+    elif name == "delegate_antigravity":
+        return execute_delegate_antigravity(args.get("task", ""))
     else:
         return f"Error: Unknown tool '{name}'"
+
+
+def execute_control_mouse(args: dict[str, Any]) -> str:
+    """Execute desktop mouse automation."""
+    from codex.mouse_control import mouse_controller
+    action = args.get("action", "position").lower()
+    x = args.get("x")
+    y = args.get("y")
+    button = args.get("button", 1)
+    text = args.get("text", "")
+    key = args.get("key", "")
+    direction = args.get("direction", "down")
+    amount = args.get("amount", 3)
+
+    if action == "move":
+        if x is None or y is None:
+            return "Error: 'move' action requires 'x' and 'y' integer coordinates."
+        res = mouse_controller.move_to(int(x), int(y))
+        return res.get("message", "Mouse moved")
+    elif action == "click":
+        res = mouse_controller.click(button=int(button), x=int(x) if x is not None else None, y=int(y) if y is not None else None)
+        return res.get("message", "Clicked")
+    elif action == "double_click":
+        res = mouse_controller.double_click(x=int(x) if x is not None else None, y=int(y) if y is not None else None)
+        return res.get("message", "Double-clicked")
+    elif action == "drag":
+        curr = mouse_controller.get_position()
+        start_x = curr.get("x", 0)
+        start_y = curr.get("y", 0)
+        if x is None or y is None:
+            return "Error: 'drag' requires target 'x' and 'y' coordinates."
+        res = mouse_controller.drag(start_x, start_y, int(x), int(y), button=int(button))
+        return res.get("message", "Dragged")
+    elif action == "scroll":
+        res = mouse_controller.scroll(direction=direction, amount=int(amount))
+        return res.get("message", "Scrolled")
+    elif action == "position":
+        pos = mouse_controller.get_position()
+        return f"Mouse cursor at x={pos.get('x')}, y={pos.get('y')} (screen: {pos.get('screen')})"
+    elif action == "screen_size":
+        sz = mouse_controller.get_screen_size()
+        return f"Screen resolution: {sz.get('width')}x{sz.get('height')}"
+    elif action == "type":
+        if not text:
+            return "Error: 'type' action requires 'text' parameter."
+        res = mouse_controller.type_text(text)
+        return res.get("message", "Typed text")
+    elif action == "key":
+        if not key:
+            return "Error: 'key' action requires 'key' combination parameter."
+        res = mouse_controller.press_key(key)
+        return res.get("message", "Pressed key")
+    return f"Unsupported mouse action '{action}'"
+
+
+def execute_wifi_status() -> str:
+    """Inspect and format WiFi connectivity status."""
+    from codex.network import check_wifi_status
+    st = check_wifi_status()
+    conn_str = "CONNECTED" if st.get("connected") else "DISCONNECTED"
+    inet_str = "ONLINE (Internet OK)" if st.get("internet") else "OFFLINE"
+    return (
+        f"WiFi Status: {conn_str}\n"
+        f"- SSID: {st.get('ssid')}\n"
+        f"- Interface: {st.get('interface')}\n"
+        f"- Signal Strength: {st.get('signal')}%\n"
+        f"- Local IP: {st.get('ip')}\n"
+        f"- Gateway Connectivity: {inet_str}"
+    )
+
+
+def execute_deep_research(query: str) -> str:
+    """Execute multi-engine internet research."""
+    from codex.network import run_deep_research
+    return run_deep_research(query)
+
+
+def execute_delegate_antigravity(task: str) -> str:
+    """Delegate complex task to Google Antigravity."""
+    from codex.antigravity_bridge import delegate_to_antigravity
+    return delegate_to_antigravity(task)
 
