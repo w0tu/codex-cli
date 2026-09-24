@@ -10,11 +10,20 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.5.0-black?style=flat-square" alt="Version" />
-  <img src="https://img.shields.io/badge/inference-Groq_LPU-white?style=flat-square&logo=linux&logoColor=black" alt="Inference" />
+  <img src="https://img.shields.io/badge/version-1.7.0-black?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/inference-Groq_LPU_500+_tok/s-white?style=flat-square&logo=linux&logoColor=black" alt="Inference" />
   <img src="https://img.shields.io/badge/python-3.9+-black?style=flat-square" alt="Python" />
   <img src="https://img.shields.io/badge/license-MIT-white?style=flat-square" alt="License" />
 </p>
+
+---
+
+## 🎬 20-Second Launch Video (`/brag`)
+
+[![CDX Launch Video](brag-output/brag.jpg)](brag-output/brag.mp4)
+
+> *"Stop shipping in silence. Meet CDX — the autonomous AI coding assistant & desktop for Linux."*  
+> Watch the full 20s launch video generated via HyperFrames: [`brag-output/brag.mp4`](brag-output/brag.mp4)
 
 ---
 
@@ -25,12 +34,12 @@
 ### Quick Install (`sudo apt install`)
 Install natively on Debian / Ubuntu systems with a single command:
 ```bash
-# Direct Debian package install
+# Direct Debian package install from release
 sudo apt install ./dist/cdx_1.7.0_all.deb
 
 # Or launch immediately
 cdx        # Terminal CLI
-cdx-app    # Desktop GUI App with Agents Hub
+cdx-app    # Desktop GUI App with Agents Hub & Sub-Agents Swarm
 ```
 
 ### Models Lineup (`cdx 2.7` to `cdx 3.6`)
@@ -40,7 +49,7 @@ cdx-app    # Desktop GUI App with Agents Hub
 - **`cdx 3.5 Pro`**: Enterprise systems architect for distributed design and large-scale refactors.
 - **`cdx 3.6 Max`**: Deep mathematical reasoning and formal verification engine.
 
-### Autonomous Specialists (Agents Hub)
+### Autonomous Specialists (12 Agents Hub)
 1. **CDX-Marketing**: Viral product launch copy, 30s commercial scripts, campaign strategy.
 2. **CDX-Frontend**: Tailwind CSS, Vue/React, micro-interactions, responsive design.
 3. **CDX-Legal**: Open-source license audits (MIT/Apache/GPL), Terms of Service, Privacy Policies.
@@ -49,8 +58,23 @@ cdx-app    # Desktop GUI App with Agents Hub
 6. **CDX-FullStack**: Complete end-to-end web apps, backend APIs, and database migrations.
 7. **CDX-Auditor**: Security audits, secret detection, vulnerability remediation.
 8. **CDX-Research**: Multi-source live internet research and GitHub intelligence synthesis.
+9. **CDX-DeepSeek-R1**: Pure deep reasoning with explicit `<thinking>` chain-of-thought proofs.
+10. **CDX-DataEngineer**: Streaming pipelines, ClickHouse/Postgres schemas, Kafka event brokers.
+11. **CDX-DevOps-SRE**: Multi-stage Docker, Kubernetes manifests, CI/CD GitHub Actions.
+12. **CDX-MobileDev**: Cross-platform React Native and Flutter mobile applications.
 
-👉 **Special Feature**: See [`BRAG_AD_AND_IMPROVEMENTS.md`](BRAG_AD_AND_IMPROVEMENTS.md) for our 30-second commercial script and technical improvements for [`latent-spaces/brag`](https://github.com/latent-spaces/brag).
+### ⚡ Sub-Agents Swarm Orchestration
+Deconstruct any engineering mission across a 4-node concurrent DAG pipeline:
+```
+Architect (System Design) ───► Backend (FastAPI / DB)
+                             ├───► Frontend (Tailwind / UI)
+                             └───► Security Auditor (Vulnerability Scan)
+```
+Run `POST /api/subagents/swarm` or use the dedicated **Sub-Agents Swarm** tab in `cdx-app`.
+
+👉 **Special Features**:
+- [`BRAG_AD_AND_IMPROVEMENTS.md`](BRAG_AD_AND_IMPROVEMENTS.md) — 30-second commercial script and improvements for [`latent-spaces/brag`](https://github.com/latent-spaces/brag).
+- [`brag-output/brag.mp4`](brag-output/brag.mp4) — 20-second cinematic launch video rendered with HyperFrames.
 
 ---
 
