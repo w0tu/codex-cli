@@ -450,13 +450,9 @@
                     <!-- Bottom Status Bar -->
                     <div class="flex items-center justify-between px-2 text-[11px] text-gray-500 mt-0.5">
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] text-gray-400 font-mono">
-                                Created by Saad Kashif • Zero-Latency Memory
+                            <span class="text-[10px] text-gray-500 font-mono">
+                                Created by Saad Kashif
                             </span>
-                        </div>
-                        <div class="flex items-center gap-1.5 font-mono text-[10px] text-emerald-400">
-                            <i class="fa-solid fa-bolt text-[10px]"></i>
-                            Groq LPU (500+ tok/s Ultra-Fast)
                         </div>
                     </div>
 
@@ -1370,8 +1366,7 @@
             const aiCard = document.createElement('div');
             aiCard.className = 'flex gap-4 w-full justify-start';
             aiCard.innerHTML = `
-                <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <i class="fa-solid fa-sparkles text-emerald-400 text-xs"></i>
+                <div class="w-7 h-7 rounded-full border border-emerald-500/40 bg-emerald-950/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="markdown-body text-gray-200 text-sm leading-relaxed" id="current-stream-text">
@@ -1415,12 +1410,14 @@
                 // Save assistant message to session memory!
                 sess.messages.push({ role: 'assistant', content: fullText });
 
-                // Add action footer with copy button
+                // Add action footer matching UI screenshot
                 const footer = document.createElement('div');
-                footer.className = "flex items-center gap-3 mt-3 text-gray-500";
+                footer.className = "flex items-center gap-2 mt-2.5 text-gray-500";
                 footer.innerHTML = `
-                    <button onclick="copyToClipboard(this)" class="hover:text-gray-300 transition-colors" title="Copy text"><i class="fa-regular fa-copy text-xs"></i></button>
-                    <span class="text-[10px] text-gray-600 font-mono">${currentModel.toUpperCase()} • 500+ tok/s</span>
+                    <button onclick="copyToClipboard(this)" class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 font-mono transition-colors" title="Copy text">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                        <span>${currentModel.toUpperCase()} • 500+ tok/s</span>
+                    </button>
                 `;
                 aiCard.querySelector('.flex-1').appendChild(footer);
                 playUiSound('complete');
@@ -1449,21 +1446,23 @@
             
             if (sender === 'user') {
                 wrapper.innerHTML = `
-                    <div class="bg-surfaceHover border border-borderLight text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[80%] text-sm">
+                    <div class="bg-[#1f1f23] text-white rounded-[18px] px-5 py-3.5 max-w-[85%] text-sm leading-relaxed border border-white/5">
                         ${escapeHTML(content)}
                     </div>
                 `;
             } else {
                 wrapper.innerHTML = `
-                    <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <i class="fa-solid fa-sparkles text-emerald-400 text-xs"></i>
+                    <div class="w-7 h-7 rounded-full border border-emerald-500/40 bg-emerald-950/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="markdown-body text-gray-200 text-sm leading-relaxed">
                             ${formatMarkdownWithThinking(content)}
                         </div>
-                        <div class="flex items-center gap-3 mt-3 text-gray-500">
-                            <button onclick="copyToClipboard(this)" class="hover:text-gray-300 transition-colors" title="Copy text"><i class="fa-regular fa-copy text-xs"></i></button>
+                        <div class="flex items-center gap-2 mt-2.5 text-gray-500">
+                            <button onclick="copyToClipboard(this)" class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 font-mono transition-colors" title="Copy text">
+                                <i class="fa-regular fa-copy text-xs"></i>
+                                <span>${currentModel.toUpperCase()} • 500+ tok/s</span>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1668,6 +1667,10 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ mission })
                 });
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errText.slice(0, 120)}`);
+                }
                 const data = await response.json();
                 latestSwarmResult = data;
 
