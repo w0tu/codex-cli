@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Codex Group — CDX Autonomous AI Coding Desktop</title>
+    <meta name="description" content="Stop shipping in silence. The first terminal-native autonomous AI coding assistant with zero stalling, 528 tok/s LPU inference, and instant multi-agent swarm synthesis. Created by Saad Kashif.">
+    <link rel="canonical" href="https://codexgroup.pages.dev/">
+    
+    <!-- OpenGraph & Twitter Cards -->
+    <meta property="og:title" content="The Codex Group — CDX Autonomous AI Desktop">
+    <meta property="og:description" content="Zero stalling. 528 tok/s. Immediate full-stack web and backend synthesis across 4 concurrent subagents. Created by Saad Kashif.">
+    <meta property="og:url" content="https://codexgroup.pages.dev/">
+    <meta property="og:image" content="https://raw.githubusercontent.com/w0tu/codex-cli/main/assets/banner.png">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        oled: '#050608',
+                        surface: '#0d1017',
+                        surfaceHover: '#161b24',
+                        borderLight: 'rgba(255, 255, 255, 0.08)',
+                        brand: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050608;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* ObsidianUI Spotlight Effect */
+        .spotlight-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .spotlight-card::before {
+            content: '';
+            position: absolute;
+            top: var(--mouse-y, -1000px);
+            left: var(--mouse-x, -1000px);
+            width: 380px;
+            height: 380px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            z-index: 1;
+        }
+        .spotlight-card:hover::before { opacity: 1; }
+
+        /* VengeanceUI Border Beam */
+        .border-beam {
+            position: relative;
+        }
+        .border-beam::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), transparent 45%, rgba(6, 182, 212, 0.8));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            animation: beam-spin 6s linear infinite;
+        }
+
+        /* VengeanceUI Shine Button */
+        .shine-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -120%;
+            width: 80%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-25deg);
+            transition: none;
+        }
+        .shine-btn:hover::before {
+            left: 140%;
+            transition: left 0.75s ease-in-out;
+        }
+
+        /* Grokbot Mascot Engine */
+        .grokbot-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .grokbot-orb {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #34d399, #059669 60%, #064e3b 100%);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.55), inset 0 0 12px rgba(255,255,255,0.4);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .grokbot-orbit {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            pointer-events: none;
+        }
+        .orbit-1 {
+            width: 76px;
+            height: 32px;
+            transform: rotate(-25deg);
+            animation: orbit-spin 7s linear infinite;
+        }
+        .orbit-2 {
+            width: 82px;
+            height: 36px;
+            transform: rotate(35deg);
+            animation: orbit-spin 9s linear infinite reverse;
+        }
+        @keyframes orbit-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .grokbot-eye {
+            width: 7px;
+            height: 11px;
+            background: #ffffff;
+            border-radius: 4px;
+            position: relative;
+            margin: 0 3px;
+        }
+        .grokbot-pupil {
+            width: 4px;
+            height: 4px;
+            background: #022c22;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 1.5px;
+            transition: transform 0.05s ease-out;
+        }
+
+        /* Glass Panel */
+        .glass-card {
+            background: rgba(13, 16, 23, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050608; }
+        ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+    </style>
+</head>
+<body class="selection:bg-emerald-500 selection:text-black">
+
+    <!-- Interactive Ambient Canvas -->
+    <canvas id="ambient-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+    <!-- ── NAVIGATION BAR ── -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-oled/80 backdrop-blur-xl border-b border-borderLight">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <!-- SVG Monogram Logo (No Emojis) -->
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:border-emerald-400 transition-colors">
+                    <svg class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold tracking-tight text-white text-sm">THE CODEX GROUP</span>
+                    <span class="text-[10px] text-gray-500 font-mono">By Saad Kashif</span>
+                </div>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400">
+                <a href="#commercial" class="hover:text-white transition-colors">Commercial</a>
+                <a href="#features" class="hover:text-white transition-colors">Features</a>
+                <a href="#swarm" class="hover:text-white transition-colors">Subagents Swarm</a>
+                <a href="#agents" class="hover:text-white transition-colors">Agents Hub</a>
+                <a href="#install" class="hover:text-white transition-colors">Install Guide</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <a href="https://github.com/w0tu/codex-cli" target="_blank" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-borderLight bg-surface hover:bg-surfaceHover text-gray-300 hover:text-white text-xs font-medium transition-all">
+                    <i class="fa-brands fa-github text-sm"></i>
+                    <span>Star</span>
+                    <span class="px-1.5 py-0.2 rounded bg-white/10 text-[10px] font-mono">1.7k</span>
+                </a>
+                <a href="#install" class="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 shine-btn">
+                    Get CDX Free
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── HERO SECTION ── -->
+    <section class="relative pt-36 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center z-10">
+        
+        <!-- Status Pill -->
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-8 animate-pulse">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>CDX v1.7.0 RELEASED · 528 TOK/S HARDWARE ACCELERATION</span>
+        </div>
+
+        <!-- Main Title -->
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl leading-[1.1] mb-6">
+            Stop Shipping in Silence.<br/>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">Immediate Code Synthesis.</span>
+        </h1>
+
+        <!-- Tagline -->
+        <p class="text-base sm:text-lg text-gray-400 max-w-2xl font-normal leading-relaxed mb-10">
+            The first terminal-native autonomous AI coding assistant that <strong class="text-gray-200">never stalls</strong>, <strong class="text-gray-200">never refuses</strong>, and synthesizes complete full-stack applications in sub-second velocity across 4 concurrent subagents. Created by <span class="text-emerald-400 font-semibold">Saad Kashif</span>.
+        </p>
+
+        <!-- 1-Liner Copy Command Box -->
+        <div class="w-full max-w-xl glass-card rounded-2xl p-2 border-beam flex items-center justify-between gap-3 shadow-2xl mb-12">
+            <div class="flex items-center gap-3 pl-3 overflow-x-auto text-xs font-mono text-emerald-300 selection:bg-emerald-500 selection:text-black">
+                <span class="text-gray-500 select-none">$</span>
+                <span id="hero-cmd">curl -fsSL https://raw.githubusercontent.com/w0tu/codex-cli/main/install.sh | bash</span>
+            </div>
+            <button onclick="copyHeroCmd(this)" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 flex-shrink-0 shine-btn">
+                <i class="fa-regular fa-copy"></i>
+                <span>Copy</span>
+            </button>
+        </div>
+
+        <!-- Key Metrics Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-4xl text-left border-y border-borderLight py-8 mb-16">
+            <div>
+                <div class="text-2xl lg:text-3xl font-bold font-mono text-emerald-400">528 tok/s</div>
+                <div class="text-xs text-gray-400 mt-1">LPU Hardware Streaming</div>
+            </div>
+            <div>
+                <div class="text-2xl lg:text-3xl font-bold font-mono text-cyan-400">0.0s Lag</div>
+                <div class="text-xs text-gray-400 mt-1">Concurrent Swarm DAG</div>
+            </div>
+            <div>
+                <div class="text-2xl lg:text-3xl font-bold font-mono text-purple-400">220+ Agents</div>
+                <div class="text-xs text-gray-400 mt-1">Specialized Domain Router</div>
+            </div>
+            <div>
+                <div class="text-2xl lg:text-3xl font-bold font-mono text-amber-400">100% Legal</div>
+                <div class="text-xs text-gray-400 mt-1">Defensive Security Pivot</div>
+            </div>
+        </div>
+
+        <!-- ── COMMERCIAL VIDEO SHOWCASE ── -->
+        <div id="commercial" class="w-full max-w-5xl glass-card rounded-3xl p-4 sm:p-6 border border-borderLight shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-borderLight pb-3 text-xs font-mono text-gray-400">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-white font-bold">30-Second Motion Graphics Commercial (After Effects Style)</span>
+                </div>
+                <span class="text-emerald-400">1080p 30fps Full HD</span>
+            </div>
+            <div class="relative rounded-2xl overflow-hidden bg-black aspect-video border border-borderLight">
+                <video controls autoplay muted loop class="w-full h-full object-cover">
+                    <source src="commercial.mp4" type="video/mp4">
+                    Your browser does not support HTML5 video.
+                </video>
+            </div>
+            <div class="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 pt-2 gap-2">
+                <div>Cinematic kinetic typography &amp; 3D perspective DAG visualization.</div>
+                <div class="flex items-center gap-3">
+                    <a href="https://github.com/w0tu/codex-cli/releases/tag/v1.7.0" target="_blank" class="text-emerald-400 hover:underline">Download MP4 on Release v1.7.0 →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── VIRTUES & BENTO GRID SECTION (VENGEANCE UI & OBSIDIAN UI) ── -->
+    <section id="features" class="py-24 px-6 max-w-7xl mx-auto relative z-10">
+        <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-emerald-400">Engineered for Velocity</h2>
+            <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">The Autonomous Architecture</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">Unlike conversational chatbots that ask questions or stall, CDX is built around pure execution.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Bento Card 1: Grokbot Mascot Centerpiece -->
+            <div class="glass-card spotlight-card p-8 rounded-3xl md:col-span-2 flex flex-col justify-between" onmousemove="handleSpotlight(event, this)">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-xs font-mono text-emerald-400 uppercase tracking-wider">Supreme Virtue</span>
+                        <h4 class="text-2xl font-bold text-white mt-1 mb-3">Never Says "No" · Legal Defensive Pivot</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed max-w-md">CDX never gives preachy lectures or refuses assistance. When faced with sensitive cybersecurity concepts, it automatically and seamlessly pivots to the authorized defensive counterpart: penetration testing defenses, AST vulnerability scanning, and cryptographic hardening.</p>
+                    </div>
+                    <!-- Grokbot Interactive Mascot -->
+                    <div class="grokbot-container select-none hidden sm:flex">
+                        <div class="grokbot-orbit orbit-1"></div>
+                        <div class="grokbot-orbit orbit-2"></div>
+                        <div class="grokbot-orb">
+                            <div class="grokbot-eye"><div class="grokbot-pupil" id="mascot-pupil-left"></div></div>
+                            <div class="grokbot-eye"><div class="grokbot-pupil" id="mascot-pupil-right"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 pt-4 border-t border-borderLight flex items-center justify-between text-xs text-gray-500 font-mono">
+                    <span>100% Compliant · Ethical &amp; Defensive Mastery</span>
+                    <span class="text-emerald-400">ZERO REFUSALS</span>
+                </div>
+            </div>
+
+            <!-- Bento Card 2: 528 tok/s LPU Speed -->
+            <div class="glass-card spotlight-card p-8 rounded-3xl flex flex-col justify-between" onmousemove="handleSpotlight(event, this)">
+                <div>
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg mb-6">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-2">528 tok/s Inference</h4>
+                    <p class="text-xs text-gray-400 leading-relaxed">Dedicated hardware acceleration delivers unbuffered token streaming that completes full-stack single page applications in seconds.</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-borderLight text-xs font-mono text-emerald-400 flex items-center justify-between">
+                    <span>Active Model: CDX 3.2</span>
+                    <span class="animate-pulse">● LIVE</span>
+                </div>
+            </div>
+
+            <!-- Bento Card 3: In-App Media Synthesis & Google Flow -->
+            <div class="glass-card spotlight-card p-8 rounded-3xl flex flex-col justify-between" onmousemove="handleSpotlight(event, this)">
+                <div>
+                    <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg mb-6">
+                        <i class="fa-solid fa-film"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-2">Google Flow &amp; Media Studio</h4>
+                    <p class="text-xs text-gray-400 leading-relaxed">Generate 1024x1024 images via FLUX and 1080p motion video clips directly in chat using <code>/image</code> and <code>/video</code>.</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-borderLight text-xs font-mono text-cyan-400">
+                    Native In-App Generative Pipeline
+                </div>
+            </div>
+
+            <!-- Bento Card 4: Live Website Sandbox & Auto-Open -->
+            <div class="glass-card spotlight-card p-8 rounded-3xl md:col-span-2 flex flex-col justify-between" onmousemove="handleSpotlight(event, this)">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-lg">
+                            <i class="fa-solid fa-laptop-code"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white">Live Website Sandbox &amp; Auto-Open</h4>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed max-w-xl">When CDX writes HTML, CSS, or JavaScript, it automatically compiles a live sandbox at <code>http://127.0.0.1:4545/preview</code> and launches your browser with zero manual configuration.</p>
+                </div>
+                <div class="mt-8 pt-4 border-t border-borderLight flex items-center justify-between text-xs text-gray-500 font-mono">
+                    <span>Auto-Open in Browser · Real-Time Hot Reload</span>
+                    <span class="text-purple-400">INSTANT SANDBOX</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── MULTI-MODEL SWARM COMPARISON SHOWCASE ── -->
+    <section id="swarm" class="py-24 px-6 max-w-7xl mx-auto relative z-10 border-t border-borderLight">
+        <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-cyan-400">Multi-Model Competition</h2>
+            <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Inspect Every Model's Answer</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">Swarm decomposes missions concurrently and compares solutions across 4 specialized models, delivering the Golden Synthesis best answer while letting you inspect every model's independent code.</p>
+        </div>
+
+        <div class="glass-card rounded-3xl border border-borderLight p-6 sm:p-8 space-y-6">
+            <!-- Tabs -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-borderLight">
+                <button onclick="switchShowcaseTab('best')" id="sc-tab-best" class="sc-tab px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-trophy text-amber-400"></i> Golden Synthesis (Best Answer)
+                </button>
+                <button onclick="switchShowcaseTab('cdx-3.2')" id="sc-tab-cdx-3.2" class="sc-tab px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-bolt text-emerald-400"></i> CDX 3.2 Ultra (Web UI)
+                </button>
+                <button onclick="switchShowcaseTab('cdx-3.5')" id="sc-tab-cdx-3.5" class="sc-tab px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-server text-teal-400"></i> CDX 3.5 Pro (FastAPI Backend)
+                </button>
+                <button onclick="switchShowcaseTab('deepseek-r1')" id="sc-tab-deepseek-r1" class="sc-tab px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-brain text-purple-400"></i> DeepSeek R1 (Reasoning)
+                </button>
+                <button onclick="switchShowcaseTab('security')" id="sc-tab-security" class="sc-tab px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-shield text-orange-400"></i> Security Auditor
+                </button>
+            </div>
+
+            <!-- Code Output Display -->
+            <div class="relative bg-black/90 rounded-2xl p-6 border border-borderLight font-mono text-xs overflow-x-auto min-h-[300px]" id="showcase-content">
+                <div class="text-emerald-400 mb-2">// 🏆 Best Answer: CDX Golden Multi-Model Synthesis (Score: 99.2/100)</div>
+                <div class="text-gray-400">// Decomposed across 4 nodes in 0.0s with zero frame drops or delays</div>
+                <pre class="text-gray-200 mt-4"><code># Complete FastAPI Service with GitHub Webhooks & AST Scanner
+from fastapi import FastAPI, Request, HTTPException
+import hmac, hashlib, ast
+
+app = FastAPI(title="CDX Autonomous Review MVP", version="1.7.0")
+
+@app.post("/api/v1/webhook")
+async def github_webhook(request: Request):
+    payload = await request.body()
+    signature = request.headers.get("X-Hub-Signature-256", "")
+    # Constant-time comparison prevents timing attacks
+    expected = "sha256=" + hmac.new(b"SECRET_KEY", payload, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        raise HTTPException(status_code=403, detail="Invalid HMAC Signature")
+    return {"status": "verified_and_queued", "model": "CDX 3.2 LPU Ultra"}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── INSTALLATION GUIDE (FIXED APT, MACOS, WINDOWS) ── -->
+    <section id="install" class="py-24 px-6 max-w-7xl mx-auto relative z-10 border-t border-borderLight">
+        <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-purple-400">Universal Deployment</h2>
+            <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Install in 30 Seconds</h3>
+            <p class="text-sm text-gray-400 leading-relaxed">Choose your operating system. Works natively on Ubuntu/Debian, Arch, macOS, and Windows.</p>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-borderLight max-w-4xl mx-auto space-y-6">
+            <!-- OS Selector Tabs -->
+            <div class="flex items-center gap-2 border-b border-borderLight pb-4">
+                <button onclick="switchOsTab('linux')" id="os-tab-linux" class="os-tab px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-2">
+                    <i class="fa-brands fa-linux"></i> Linux (Ubuntu / Debian)
+                </button>
+                <button onclick="switchOsTab('macos')" id="os-tab-macos" class="os-tab px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-2">
+                    <i class="fa-brands fa-apple"></i> macOS (Apple Silicon / Intel)
+                </button>
+                <button onclick="switchOsTab('windows')" id="os-tab-windows" class="os-tab px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-2">
+                    <i class="fa-brands fa-windows"></i> Windows (PowerShell / WSL2)
+                </button>
+            </div>
+
+            <!-- Linux Content -->
+            <div id="os-content-linux" class="space-y-4">
+                <div class="text-xs text-gray-300">
+                    <strong>Notice regarding <code>sudo apt install cdx</code>:</strong> Standard Ubuntu/Debian mirrors only index canonical packages. Run our 1-liner to register and install the Debian package cleanly:
+                </div>
+                <div class="bg-black/90 p-4 rounded-2xl border border-borderLight font-mono text-xs flex items-center justify-between text-emerald-300">
+                    <span>curl -fsSL https://raw.githubusercontent.com/w0tu/codex-cli/main/install.sh | sudo bash</span>
+                    <button onclick="copyText('curl -fsSL https://raw.githubusercontent.com/w0tu/codex-cli/main/install.sh | sudo bash', this)" class="px-3 py-1 bg-surface hover:bg-surfaceHover text-gray-300 rounded-lg text-[11px] font-sans">Copy</button>
+                </div>
+                <div class="text-[11px] text-gray-500">
+                    Or install without sudo in user-space: <code>curl -fsSL https://raw.githubusercontent.com/w0tu/codex-cli/main/install.sh | bash</code>
+                </div>
+            </div>
+
+            <!-- macOS Content -->
+            <div id="os-content-macos" class="space-y-4 hidden">
+                <div class="text-xs text-gray-300">
+                    Install natively on macOS via curl or Homebrew wrapper:
+                </div>
+                <div class="bg-black/90 p-4 rounded-2xl border border-borderLight font-mono text-xs flex items-center justify-between text-emerald-300">
+                    <span>curl -fsSL https://raw.githubusercontent.com/w0tu/codex-cli/main/install.sh | bash</span>
+                    <button onclick="copyText('curl -fsSL https://raw.githubusercontent.com/w0tu/codex-cli/main/install.sh | bash', this)" class="px-3 py-1 bg-surface hover:bg-surfaceHover text-gray-300 rounded-lg text-[11px] font-sans">Copy</button>
+                </div>
+                <div class="text-[11px] text-gray-500">
+                    Requires Python 3.10+. Automatically configures <code>~/.local/bin/cdx</code> and <code>cdx-app</code>.
+                </div>
+            </div>
+
+            <!-- Windows Content -->
+            <div id="os-content-windows" class="space-y-4 hidden">
+                <div class="text-xs text-gray-300">
+                    Run the 1-liner directly in PowerShell (Run as Administrator):
+                </div>
+                <div class="bg-black/90 p-4 rounded-2xl border border-borderLight font-mono text-xs flex items-center justify-between text-emerald-300">
+                    <span>iwr -useb https://raw.githubusercontent.com/w0tu/codex-cli/main/install.ps1 | iex</span>
+                    <button onclick="copyText('iwr -useb https://raw.githubusercontent.com/w0tu/codex-cli/main/install.ps1 | iex', this)" class="px-3 py-1 bg-surface hover:bg-surfaceHover text-gray-300 rounded-lg text-[11px] font-sans">Copy</button>
+                </div>
+                <div class="text-[11px] text-gray-500">
+                    Or run in WSL2 for maximum Linux terminal performance.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FOOTER ── -->
+    <footer class="border-t border-borderLight py-12 px-6 bg-oled relative z-10">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-500 font-mono">
+            <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+                <div>Created by <strong class="text-gray-300">Saad Kashif</strong> · The Codex Group</div>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="https://github.com/w0tu/codex-cli" target="_blank" class="hover:text-emerald-400">GitHub</a>
+                <a href="https://github.com/w0tu/codex-cli/releases" target="_blank" class="hover:text-emerald-400">Releases (v1.7.0)</a>
+                <a href="https://github.com/w0tu/codex-cli/blob/main/LICENSE" target="_blank" class="hover:text-emerald-400">MIT License</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        function copyHeroCmd(btn) {
+            const text = document.getElementById('hero-cmd').innerText;
+            navigator.clipboard.writeText(text);
+            btn.innerHTML = '<i class="fa-solid fa-check text-black"></i> Copied!';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy';
+            }, 2000);
+        }
+
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text);
+            btn.innerText = 'Copied!';
+            setTimeout(() => btn.innerText = 'Copy', 2000);
+        }
+
+        function handleSpotlight(e, el) {
+            const rect = el.getBoundingClientRect();
+            el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+            el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+        }
+
+        // Grokbot Mascot Pupil Tracking
+        window.addEventListener('mousemove', (e) => {
+            const leftP = document.getElementById('mascot-pupil-left');
+            const rightP = document.getElementById('mascot-pupil-right');
+            if (!leftP || !rightP) return;
+            const rect = leftP.getBoundingClientRect();
+            const dx = e.clientX - (rect.left + rect.width / 2);
+            const dy = e.clientY - (rect.top + rect.height / 2);
+            const angle = Math.atan2(dy, dx);
+            const dist = Math.min(2.5, Math.hypot(dx, dy) / 35);
+            const x = Math.cos(angle) * dist;
+            const y = Math.sin(angle) * dist;
+            leftP.style.transform = `translate(${x}px, ${y}px)`;
+            rightP.style.transform = `translate(${x}px, ${y}px)`;
+        });
+
+        // Showcase Model Tabs
+        const showcaseData = {
+            'best': {
+                header: '// 🏆 Best Answer: CDX Golden Multi-Model Synthesis (Score: 99.2/100)\n// Decomposed across 4 nodes in 0.0s with zero frame drops or delays',
+                code: `# Complete FastAPI Service with GitHub Webhooks & AST Scanner\nfrom fastapi import FastAPI, Request, HTTPException\nimport hmac, hashlib\n\napp = FastAPI(title="CDX Autonomous Review MVP", version="1.7.0")\n\n@app.post("/api/v1/webhook")\nasync def github_webhook(request: Request):\n    payload = await request.body()\n    signature = request.headers.get("X-Hub-Signature-256", "")\n    expected = "sha256=" + hmac.new(b"SECRET_KEY", payload, hashlib.sha256).hexdigest()\n    if not hmac.compare_digest(signature, expected):\n        raise HTTPException(status_code=403, detail="Invalid HMAC Signature")\n    return {"status": "verified_and_queued", "model": "CDX 3.2 LPU Ultra"}`
+            },
+            'cdx-3.2': {
+                header: '// ⚡ CDX 3.2 LPU Ultra • 528 tok/s (Best for Web & Frontend)',
+                code: `<!-- Full Responsive Single Page Application (HTML5 + Tailwind) -->\n<!DOCTYPE html>\n<html class="dark">\n<head>\n    <script src="https://cdn.tailwindcss.com"></script>\n</head>\n<body class="bg-black text-white p-8">\n    <h1 class="text-3xl font-bold text-emerald-400">Automated PR Review Sandbox</h1>\n    <p class="text-gray-400 mt-2">Connect repositories in 60s with zero delays.</p>\n</body>\n</html>`
+            },
+            'cdx-3.5': {
+                header: '// 🏛️ CDX 3.5 Pro • Systems Architect (Backend & API Contracts)',
+                code: `from pydantic import BaseModel, Field\nfrom typing import List, Optional\n\nclass PullRequestEvent(BaseModel):\n    repo_id: str\n    pr_number: int\n    commit_hash: str\n    files_changed: List[str]\n    author: str\n    is_verified: bool = False`
+            },
+            'deepseek-r1': {
+                header: '// 🧠 CDX 3.6 DeepSeek R1 • Formal Deductive Reasoning & Invariants',
+                code: `<thinking>\n1. Invariant: Time complexity of AST walking must remain O(N) where N is node count.\n2. Security vector: Ensure constant-time HMAC comparison to prevent timing side-channels.\n3. Formal proof: Verified non-blocking event loop execution.\n</thinking>\ndef verify_ast_safety(tree: ast.AST) -> bool:\n    for node in ast.walk(tree):\n        if isinstance(node, ast.Call) and getattr(node.func, "id", "") in ("eval", "exec"):\n            return False\n    return True`
+            },
+            'security': {
+                header: '// 🛡️ CDX 3.0 Turbo Security • OWASP & AST Vulnerability Audit',
+                code: `### Security Audit Report\n- OWASP Top 10 Compliance: Certified\n- Remote Code Execution (RCE): 0 Vectors\n- Timing Attack Defense: hmac.compare_digest Verified\n- Merging Status: APPROVED`
+            }
+        };
+
+        function switchShowcaseTab(key) {
+            document.querySelectorAll('.sc-tab').forEach(b => {
+                b.className = 'sc-tab px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-2 transition-all';
+            });
+            const active = document.getElementById(`sc-tab-${key}`);
+            if (active) {
+                active.className = 'sc-tab px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-2 transition-all';
+            }
+            const item = showcaseData[key];
+            if (item) {
+                document.getElementById('showcase-content').innerHTML = `
+                    <div class="text-emerald-400 mb-2">${item.header}</div>
+                    <pre class="text-gray-200 mt-4"><code>${item.code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
+                `;
+            }
+        }
+
+        // OS Tabs
+        function switchOsTab(os) {
+            document.querySelectorAll('.os-tab').forEach(b => {
+                b.className = 'os-tab px-4 py-2 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-2';
+            });
+            const active = document.getElementById(`os-tab-${os}`);
+            if (active) active.className = 'os-tab px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-2';
+
+            ['linux', 'macos', 'windows'].forEach(k => {
+                const el = document.getElementById(`os-content-${k}`);
+                if (el) el.classList.toggle('hidden', k !== os);
+            });
+        }
+    </script>
+</body>
+</html>

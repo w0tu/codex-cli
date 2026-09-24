@@ -18,12 +18,12 @@
 
 ---
 
-## 🎬 20-Second Launch Video (`/brag`)
+## 🎬 30-Second Motion Graphics Commercial (After Effects Style)
 
-[![CDX Launch Video](brag-output/brag.jpg)](brag-output/brag.mp4)
+[![CDX Commercial](assets/banner.png)](assets/cdx_aftereffects_30s.mp4)
 
-> *"Stop shipping in silence. Meet CDX — the autonomous AI coding assistant & desktop for Linux."*  
-> Watch the full 20s launch video generated via HyperFrames: [`brag-output/brag.mp4`](brag-output/brag.mp4)
+> *"Stop shipping in silence. Meet CDX — the autonomous AI coding assistant & desktop."*  
+> Watch the full 30s commercial: [`assets/cdx_aftereffects_30s.mp4`](assets/cdx_aftereffects_30s.mp4) or replay via `mpv assets/cdx_aftereffects_30s.mp4`.
 
 ---
 
@@ -31,16 +31,28 @@
 
 **Codex** (`cdx`) is a terminal-native and desktop AI coding agent designed for Linux developers, created by **Saad Kashif**. Inspired by the ergonomics of Claude Code, Antigravity, and OpenAI Codex, it pairs ultra-fast Groq LPU cloud inference with autonomous local operating system execution.
 
-### Quick Install (`sudo apt install`)
-Install natively on Debian / Ubuntu systems with a single command:
-```bash
-# Direct Debian package install from release
-sudo apt install ./dist/cdx_1.7.0_all.deb
+### ⚡ Universal 1-Liner Installation (Linux, macOS, Windows)
 
-# Or launch immediately
-cdx        # Terminal CLI
-cdx-app    # Desktop GUI App with Agents Hub & Sub-Agents Swarm
+#### 🐧 Linux & 🍎 macOS:
+```bash
+curl -fsSL https://raw.githubusercontent.com/w0tu/codex-cli/main/install.sh | bash
 ```
+
+#### 🐧 Ubuntu / Debian APT Setup (Fix for `sudo apt install cdx`):
+> *Standard APT mirrors do not index third-party debs by default. Run our automated APT setup to register and install `cdx`:*
+```bash
+curl -fsSL https://raw.githubusercontent.com/w0tu/codex-cli/main/setup-apt.sh | sudo bash
+# Or install local deb (note the ./ is required by apt):
+sudo apt install ./dist/cdx_1.7.0_all.deb
+```
+
+#### 🪟 Windows (PowerShell Administrator):
+```powershell
+iwr -useb https://raw.githubusercontent.com/w0tu/codex-cli/main/install.ps1 | iex
+```
+
+🌐 **Official Website**: [https://codexgroup.pages.dev](https://codexgroup.pages.dev)  
+📖 **Full Installation Guide**: See [`INSTALL.md`](INSTALL.md) for Arch Linux, Homebrew, and WSL2.
 
 ### Models Lineup (`cdx 2.7` to `cdx 3.6`)
 - **`cdx 2.7 Instant`**: Ultra-fast local edge inference for rapid syntax and local bash workflows.
