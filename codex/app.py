@@ -369,6 +369,38 @@ async def subagents_swarm_handler(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def video_stitch_handler(request: web.Request) -> web.Response:
+    """Stitch multiple video clips into a single file via FFmpeg."""
+    try:
+        data = await request.json()
+        videos = data.get("videos", [])
+        output = data.get("output", "stitched_output.mp4")
+        resolution = data.get("resolution", "1920:1080")
+        audio = data.get("audio")
+        
+        from codex.video_stitcher import stitch_videos
+        loop = asyncio.get_running_loop()
+        res = await loop.run_in_executor(None, stitch_videos, videos, output, resolution, 30, audio)
+        return web.json_response(res)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def video_flow_handler(request: web.Request) -> web.Response:
+    """Generate Google Flow / Veo 2 video prompt sequence and storyboard."""
+    try:
+        data = await request.json()
+        topic = data.get("topic", "").strip() or "Autonomous AI Coding Desktop"
+        scene_count = int(data.get("scenes", 4))
+        
+        from codex.video_stitcher import generate_google_flow_package
+        loop = asyncio.get_running_loop()
+        res = await loop.run_in_executor(None, generate_google_flow_package, topic, scene_count)
+        return web.json_response(res)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
 def create_app() -> web.Application:
     """Create and configure the aiohttp application."""
     app = web.Application()
@@ -385,6 +417,8 @@ def create_app() -> web.Application:
     app.router.add_get("/api/research", research_handler)
     app.router.add_post("/api/antigravity", antigravity_handler)
     app.router.add_post("/api/subagents/swarm", subagents_swarm_handler)
+    app.router.add_post("/api/video/stitch", video_stitch_handler)
+    app.router.add_post("/api/video/flow", video_flow_handler)
     return app
 
 
