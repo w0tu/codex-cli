@@ -1,0 +1,11 @@
+Stop shipping in silence. Meet CDX — the autonomous AI coding assistant & desktop for Linux.
+
+⚡ 500+ tok/s on Groq LPUs
+🤖 4-Node Concurrent Sub-Agents Swarm (Architect → Backend → Frontend → Auditor)
+🎯 12 Specialist Agents with deep reasoning
+🐧 Native Linux shell, local execution & OLED noir aesthetic
+
+Built by Saad Kashif.
+Install in seconds: sudo apt install cdx
+
+#Linux #OpenSource #AI #Groq #BuildInPublic
