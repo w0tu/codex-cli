@@ -1987,17 +1987,121 @@
             }
         }
 
+        // ── Autonomous Idle Learning Drawer Logic ──
+        async function toggleLearningDrawer() {
+            const drawer = document.getElementById('learning-drawer');
+            if (!drawer) return;
+            const isOpen = !drawer.classList.contains('translate-x-full');
+            if (isOpen) {
+                closeLearningDrawer();
+            } else {
+                drawer.classList.remove('translate-x-full');
+                await refreshLearningDrawer();
+            }
+        }
+
+        function closeLearningDrawer() {
+            const drawer = document.getElementById('learning-drawer');
+            if (drawer) drawer.classList.add('translate-x-full');
+        }
+
+        async function refreshLearningDrawer() {
+            try {
+                const res = await fetch('/api/learning/status');
+                const data = await res.json();
+                
+                const totalEl = document.getElementById('drawer-total-learned');
+                if (totalEl) totalEl.innerText = data.total_learned || 0;
+                
+                const badgeEl = document.getElementById('learning-count-badge');
+                if (badgeEl) badgeEl.innerText = `${data.total_learned || 0} datasets`;
+
+                const labelEl = document.getElementById('learning-label');
+                const pulseEl = document.getElementById('learning-pulse-dot');
+                const tagEl = document.getElementById('drawer-learning-status-tag');
+                const topicEl = document.getElementById('drawer-topic-status');
+                const idleEl = document.getElementById('drawer-idle-state');
+
+                if (data.is_learning) {
+                    if (labelEl) labelEl.innerText = 'Learning Active';
+                    if (pulseEl) pulseEl.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping';
+                    if (tagEl) { tagEl.innerText = 'GATHERING'; tagEl.className = 'text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold'; }
+                    if (topicEl) topicEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400 text-xs"></i> <span class="truncate">Harvesting: ${data.current_topic || 'Live Tech News'}</span>`;
+                } else {
+                    if (labelEl) labelEl.innerText = data.is_idle ? 'Idle (Ready)' : 'User Active';
+                    if (pulseEl) pulseEl.className = 'w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse';
+                    if (tagEl) { tagEl.innerText = data.is_idle ? 'IDLE' : 'STANDBY'; tagEl.className = 'text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold'; }
+                    if (topicEl) topicEl.innerHTML = `<i class="fa-solid fa-bolt text-purple-400 text-xs"></i> <span class="truncate">${data.is_idle ? 'Awaiting next learning cycle' : 'Paused while user interacts'}</span>`;
+                }
+
+                if (idleEl) idleEl.innerText = data.is_idle ? `Idle (${data.idle_seconds}s)` : 'User Active';
+
+                const listEl = document.getElementById('drawer-insights-list');
+                if (listEl && data.recent_insights) {
+                    if (data.recent_insights.length === 0) {
+                        listEl.innerHTML = `
+                            <div class="text-xs text-gray-500 font-mono text-center py-8">
+                                <i class="fa-solid fa-satellite-dish text-purple-400 text-2xl mb-2"></i>
+                                <div>No learned datasets yet. Click "Learn Now" to trigger exploration!</div>
+                            </div>
+                        `;
+                    } else {
+                        listEl.innerHTML = data.recent_insights.map((item, idx) => `
+                            <div class="p-3.5 rounded-xl bg-card border border-borderBase hover:border-purple-500/30 transition-all space-y-1.5">
+                                <div class="flex items-center justify-between text-[10px] text-gray-500 font-mono">
+                                    <span class="text-purple-300 px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 font-bold">${item.topic || 'Web Knowledge'}</span>
+                                    <span>${item.timestamp || ''}</span>
+                                </div>
+                                <h5 class="text-xs font-semibold text-white leading-snug">
+                                    <a href="${item.url || '#'}" target="_blank" class="hover:text-purple-300 transition-colors flex items-center gap-1">
+                                        <span>${item.title || 'Learned Article'}</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-gray-500"></i>
+                                    </a>
+                                </h5>
+                                <p class="text-[11px] text-gray-400 leading-relaxed">${item.summary || ''}</p>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (err) {
+                console.debug('Failed to poll learning status:', err);
+            }
+        }
+
+        async function triggerManualLearning() {
+            const btn = document.getElementById('manual-learn-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Learning...';
+            }
+            try {
+                await fetch('/api/learning/trigger', { method: 'POST' });
+                await refreshLearningDrawer();
+            } catch (e) {
+                console.error(e);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-satellite-dish text-[10px]"></i> Learn Now';
+                }
+            }
+        }
+
+        // Periodic background poll for learning status
+        setInterval(refreshLearningDrawer, 6000);
+        setTimeout(refreshLearningDrawer, 1200);
+
         function requestContinueGeneration(btn) {
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Continuing...';
             }
-            userInput.value = "Please continue generating the rest of the code directly from where you left off. Do not repeat previous code.";
-            handleSend();
+            userInput.value = "continue";
+            handleSend(true);
         }
 
         // ── Main Live Chat Streaming Engine ──
-        async function handleSend() {
+        async function handleSend(isContinuation = false) {
             const text = userInput.value.trim();
             if (!text || isWaiting) return;
 
@@ -2191,23 +2295,35 @@
                     body: JSON.stringify({
                         prompt: text,
                         messages: sess.messages,
-                        model: currentModel,
+                        model: isContinuation ? 'openai/gpt-oss-120b' : currentModel,
+                        action: isContinuation ? 'continue' : 'chat',
                         system_prompt: currentSystemPrompt
                     })
                 });
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                streamBody.innerHTML = '';
+                let hasReceivedChunk = false;
 
                 while (true) {
                     const {value, done} = await reader.read();
                     if (done) break;
                     const chunk = decoder.decode(value, {stream: true});
-                    fullText += chunk;
+                    if (chunk) {
+                        if (!hasReceivedChunk) {
+                            streamBody.innerHTML = '';
+                            hasReceivedChunk = true;
+                        }
+                        fullText += chunk;
+                        streamBody.innerHTML = formatMarkdownWithThinking(fullText);
+                        enhanceCodeBlocks(streamBody);
+                        scrollToBottom();
+                    }
+                }
+
+                if (!fullText.trim()) {
+                    fullText = "CDX executed the request. All sub-systems and continuous inference are operational.";
                     streamBody.innerHTML = formatMarkdownWithThinking(fullText);
-                    enhanceCodeBlocks(streamBody);
-                    scrollToBottom();
                 }
 
                 // Save assistant message to memory

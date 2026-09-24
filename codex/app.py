@@ -167,8 +167,8 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
     if len(messages) <= 1:
         return web.Response(text="Empty prompt provided.", status=400)
 
-    # High token ceiling (8192) for code/continuation, 2048 for basic questions
-    stream_max_tokens = 8192 if is_coding else 2048
+    # Optimal token ceiling: 4096 tokens for coding/continuation, 2048 for basic questions
+    stream_max_tokens = 4096 if is_coding else 2048
 
     response = web.StreamResponse(
         status=200,
@@ -218,9 +218,15 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
         chunk = await q.get()
         if chunk is None:
             break
-        await response.write(chunk.encode("utf-8"))
+        try:
+            await response.write(chunk.encode("utf-8"))
+        except (ConnectionResetError, asyncio.CancelledError):
+            break
 
-    await response.write_eof()
+    try:
+        await response.write_eof()
+    except Exception:
+        pass
     return response
 
 
