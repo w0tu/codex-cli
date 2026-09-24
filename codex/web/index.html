@@ -1742,6 +1742,10 @@
                 activeNav.className = "w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-card rounded-xl border border-emerald-500/30 shadow-sm transition-all group btn-press cursor-pointer";
             }
 
+            if (window.location.hash !== '#' + tabId) {
+                try { history.replaceState(null, '', '#' + tabId); } catch (_) {}
+            }
+
             if (tabId === 'usage') fetchUsage();
             if (tabId === 'chat') {
                 setTimeout(() => {
@@ -2884,6 +2888,15 @@
         // Initialize engines
         renderSessionsList();
         initParticles();
+
+        function checkUrlHash() {
+            const hash = window.location.hash.replace('#', '');
+            if (['chat', 'swarm', 'agents', 'terminal', 'usage'].includes(hash)) {
+                switchTab(hash);
+            }
+        }
+        window.addEventListener('hashchange', checkUrlHash);
+        checkUrlHash();
     </script>
 </body>
 </html>
