@@ -27,6 +27,7 @@ from codex.network import check_wifi_status, run_deep_research
 from codex.antigravity_bridge import delegate_to_antigravity
 from codex.metrics_db import metrics_db
 from codex.usage import UsageTracker
+from codex.learner import idle_learner
 
 HTML_INDEX_PATH = Path(__file__).parent / "web" / "index.html"
 
@@ -95,7 +96,9 @@ async def model_handler(request: web.Request) -> web.Response:
 
 
 async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
-    """Stream chat responses in real-time with full conversation memory and model routing."""
+    """Stream chat responses in real-time with full conversation memory, model routing, and idle learning."""
+    idle_learner.record_interaction()
+
     try:
         data = await request.json()
     except Exception:
@@ -106,7 +109,21 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
     custom_system_prompt = data.get("system_prompt", "").strip()
     req_model = data.get("model", "").strip()
 
-    if req_model:
+    prompt_lower = user_prompt.lower()
+    is_continue = prompt_lower in ["continue", "keep going", "resume", "go on", "more", "next"] or data.get("action") == "continue"
+    is_coding = is_continue or any(k in prompt_lower for k in [
+        "code", "build", "write a", "script", "function", "class", "html", "css", "javascript",
+        "python", "react", "fastapi", "flask", "django", "sql", "api", "backend", "frontend",
+        "fullstack", "full-stack", "app", "website", "refactor", "debug", "test", "docker"
+    ])
+
+    if is_continue:
+        req_model = "openai/gpt-oss-120b"
+        if hasattr(desktop_client, "set_model"):
+            desktop_client.set_model("openai/gpt-oss-120b")
+        elif hasattr(desktop_client, "cloud_client") and hasattr(desktop_client.cloud_client, "set_model"):
+            desktop_client.cloud_client.set_model("openai/gpt-oss-120b")
+    elif req_model:
         from codex.client import resolve_backend_model
         resolved = resolve_backend_model(req_model)
         if hasattr(desktop_client, "set_model"):
@@ -119,6 +136,12 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
     else:
         from codex.client import get_model_system_prompt
         sys_content = get_model_system_prompt(req_model or "cdx 3.2", lean=True)
+
+    # Inject autonomously learned internet knowledge & news
+    learned_knowledge = idle_learner.get_learned_context()
+    if learned_knowledge:
+        sys_content += "\n" + learned_knowledge
+
     messages: list[dict[str, Any]] = [{"role": "system", "content": sys_content}]
 
     # Maintain complete conversational context across turns
@@ -129,13 +152,23 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
             if r in ("user", "assistant") and c:
                 messages.append({"role": r, "content": c})
 
-    # If prompt is provided and not already the last message in history, add it
-    if user_prompt:
+    # Seamless continuation instruction vs normal user prompt
+    if is_continue:
+        continuation_prompt = (
+            "CONTINUE CODE GENERATION IMMEDIATELY: Continue writing the code seamlessly from the exact character "
+            "where it was paused or interrupted above. Do NOT restart from line 1. Do NOT repeat already written code. "
+            "Do NOT include conversational meta-commentary like 'Sure, here is the continuation'. Output the next lines of the code block immediately:"
+        )
+        messages.append({"role": "user", "content": continuation_prompt})
+    elif user_prompt:
         if not messages or messages[-1].get("content") != user_prompt or messages[-1].get("role") != "user":
             messages.append({"role": "user", "content": user_prompt})
 
     if len(messages) <= 1:
         return web.Response(text="Empty prompt provided.", status=400)
+
+    # High token ceiling (8192) for code/continuation, 2048 for basic questions
+    stream_max_tokens = 8192 if is_coding else 2048
 
     response = web.StreamResponse(
         status=200,
@@ -154,7 +187,7 @@ async def chat_stream_handler(request: web.Request) -> web.StreamResponse:
     def run_generator(queue: asyncio.Queue):
         try:
             buffer = ""
-            for chunk in desktop_client.stream_chat(messages, max_tokens=4096):
+            for chunk in desktop_client.stream_chat(messages, max_tokens=stream_max_tokens):
                 buffer += chunk
                 # Suppress raw XML tool tags if emitted by model
                 if "<tool_call>" in buffer:
@@ -492,6 +525,25 @@ async def media_file_handler(request: web.Request) -> web.Response:
     return web.Response(body=target.read_bytes(), content_type=content_type)
 
 
+async def learning_status_handler(request: web.Request) -> web.Response:
+    """Return autonomous idle learning telemetry and recent insights."""
+    return web.json_response(idle_learner.get_status())
+
+
+async def learning_trigger_handler(request: web.Request) -> web.Response:
+    """Manually trigger an autonomous idle learning cycle."""
+    try:
+        data = await request.json() if request.can_read_body else {}
+    except Exception:
+        data = {}
+    topic = data.get("topic", "")
+    if topic:
+        res = idle_learner.learn_topic_cycle(topic, force=True)
+    else:
+        res = idle_learner.learn_recent_news_cycle(force=True)
+    return web.json_response(res)
+
+
 def create_app() -> web.Application:
     """Create and configure the aiohttp application."""
     app = web.Application()
@@ -516,6 +568,12 @@ def create_app() -> web.Application:
     app.router.add_post("/api/media/image", media_image_handler)
     app.router.add_post("/api/media/video", media_video_handler)
     app.router.add_get("/api/media/file/{folder}/{filename}", media_file_handler)
+    app.router.add_get("/api/learning/status", learning_status_handler)
+    app.router.add_post("/api/learning/trigger", learning_trigger_handler)
+
+    # Start autonomous background learning daemon
+    idle_learner.start_background_daemon()
+
     return app
 
 
