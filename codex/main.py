@@ -88,6 +88,7 @@ class SlashCommandCompleter(Completer):
         ("/stats", "Show session token usage and stats"),
         ("/panel", "Open interactive Cyberpunk telemetry & Groq usage dashboard"),
         ("/marketing", "Generate viral Instagram Reel package & Google Flow video prompts"),
+        ("/brag", "Play the 30-second After Effects style motion graphics commercial"),
         ("/lawyer", "Run autonomous legal counsel audit on contracts and IP compliance"),
         ("/legal", "Alias for /lawyer contract audit"),
         ("/swarm", "Enter the 45,000+ Agent Swarm Command Center area"),
@@ -742,6 +743,19 @@ def run_repl(client: Any) -> None:
             console.print(f"[bold cyan]✦ Synthesizing Instagram Viral Campaign & Google Flow Prompts for: '{topic}'...[/]")
             camp = InstagramAutomationEngine.create_campaign(topic)
             render_marketing_campaign(camp)
+            continue
+
+        if user_input.startswith("/brag"):
+            video_path = Path("/home/feds/.gemini/antigravity/scratch/codex-cli/assets/cdx_aftereffects_30s.mp4")
+            if not video_path.exists():
+                video_path = Path("/home/feds/.gemini/antigravity/scratch/codex-cli/brag_commercial_30s.mp4")
+            console.print("\n[bold cyan]✦ Playing CDX 30-Second Motion Graphics Commercial (After Effects Style)...[/]")
+            console.print(f"[dim]File: {video_path}[/]")
+            try:
+                subprocess.Popen(["mpv", "--title=CDX 30s Commercial", str(video_path)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                console.print("[bold green]✓ Playback launched via mpv.[/]\n")
+            except Exception:
+                console.print(f"[yellow]To watch manually: mpv {video_path}[/]\n")
             continue
 
         if user_input.startswith("/lawyer") or user_input.startswith("/legal"):
