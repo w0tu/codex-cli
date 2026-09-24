@@ -187,6 +187,131 @@
         .heat-2 { background: #006d32; color: #c4fcd9; }
         .heat-3 { background: #26a641; color: #fff; font-weight: 600; }
         .heat-4 { background: #39d353; color: #000; font-weight: 700; }
+    
+        /* ObsidianUI & VengeanceUI Components */
+        .spotlight-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .spotlight-card::before {
+            content: '';
+            position: absolute;
+            top: var(--mouse-y, -1000px);
+            left: var(--mouse-x, -1000px);
+            width: 320px;
+            height: 320px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.16) 0%, transparent 70%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            z-index: 1;
+        }
+        .spotlight-card:hover::before { opacity: 1; }
+
+        .border-beam {
+            position: relative;
+        }
+        .border-beam::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.7), transparent 40%, rgba(6, 182, 212, 0.7));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .shine-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -120%;
+            width: 80%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            transform: skewX(-25deg);
+            transition: none;
+        }
+        .shine-btn:hover::before {
+            left: 140%;
+            transition: left 0.7s ease-in-out;
+        }
+
+        /* Grokbot Mascot Engine */
+        .grokbot-container {
+            position: relative;
+            width: 72px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .grokbot-orb {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #34d399, #059669 60%, #064e3b 100%);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.5), inset 0 0 10px rgba(255,255,255,0.4);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .grokbot-orbit {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            pointer-events: none;
+        }
+        .orbit-1 {
+            width: 66px;
+            height: 28px;
+            transform: rotate(-25deg);
+            animation: orbit-spin-1 6s linear infinite;
+        }
+        .orbit-2 {
+            width: 72px;
+            height: 32px;
+            transform: rotate(35deg);
+            animation: orbit-spin-2 8s linear infinite reverse;
+        }
+        @keyframes orbit-spin-1 {
+            from { transform: rotate(-25deg); }
+            to { transform: rotate(335deg); }
+        }
+        @keyframes orbit-spin-2 {
+            from { transform: rotate(35deg); }
+            to { transform: rotate(-325deg); }
+        }
+        .grokbot-eye {
+            width: 6px;
+            height: 10px;
+            background: #ffffff;
+            border-radius: 3px;
+            position: relative;
+            margin: 0 3px;
+            transition: transform 0.08s ease-out;
+        }
+        .grokbot-pupil {
+            width: 4px;
+            height: 4px;
+            background: #022c22;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 1px;
+            transition: transform 0.05s ease-out;
+        }
+
     </style>
 </head>
 <body class="font-sans flex h-screen overflow-hidden selection:bg-emerald-500/30">
@@ -201,8 +326,12 @@
         <div class="relative m-2">
             <div onclick="toggleModelDropdown(event)" class="p-3 flex items-center justify-between bg-surface hover:bg-surfaceHover cursor-pointer transition-colors rounded-xl border border-borderLight hover:border-gray-500">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                        <i class="fa-solid fa-bolt text-emerald-400 text-xs"></i>
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                        <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
                     </div>
                     <div>
                         <h2 class="text-xs font-semibold text-white tracking-wide" id="active-model-title">cdx 3.2 LPU Ultra</h2>
@@ -430,12 +559,30 @@
                         </button>
                     </div>
 
+                    <!-- Quick Media Action Bar -->
+                    <div class="flex items-center justify-between px-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <button onclick="insertPromptPrefix('/image ')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface/80 hover:bg-surface border border-borderLight text-gray-400 hover:text-emerald-400 transition-colors">
+                                <i class="fa-solid fa-image text-[10px]"></i> Image
+                            </button>
+                            <button onclick="insertPromptPrefix('/video ')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface/80 hover:bg-surface border border-borderLight text-gray-400 hover:text-cyan-400 transition-colors">
+                                <i class="fa-solid fa-film text-[10px]"></i> Video
+                            </button>
+                            <button onclick="openLivePreviewDrawer()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface/80 hover:bg-surface border border-borderLight text-gray-400 hover:text-teal-400 transition-colors">
+                                <i class="fa-solid fa-window-restore text-[10px]"></i> Live Sandbox
+                            </button>
+                        </div>
+                        <div class="text-[10px] text-gray-500 font-mono hidden sm:block">
+                            Virtue: Never Refuses • Fully Legal &amp; Defensive
+                        </div>
+                    </div>
+
                     <!-- Input Box -->
                     <div class="relative bg-surface rounded-full border border-borderLight flex items-center p-1.5 focus-within:border-emerald-500/70 transition-colors shadow-2xl">
                         <input 
                             type="text" 
                             id="user-input" 
-                            placeholder="Ask CDX anything or tell it to build a website/tool..." 
+                            placeholder="Ask CDX anything or type /image or /video..." 
                             class="w-full bg-transparent text-white pl-4 pr-12 py-2 outline-none text-sm placeholder-gray-500 font-sans"
                             onkeydown="handleEnter(event)"
                         >
@@ -594,37 +741,116 @@
                 </div>
             </div>
 
-            <!-- Swarm Results & Synthesis Output -->
+            <!-- Swarm Results & Multi-Model Competition Comparison -->
             <div id="swarm-results-panel" class="glass-card p-6 rounded-2xl border border-borderLight space-y-4 hidden">
-                <div class="flex items-center justify-between border-b border-borderLight pb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <h3 class="text-sm font-semibold text-white">Synthesized Swarm Deliverable</h3>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-borderLight pb-4 gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-sm">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-white tracking-wide" id="swarm-best-title">Golden Synthesis (Best Answer)</h3>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30">BEST ANSWER</span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 font-mono" id="swarm-best-model">CDX 3.2 LPU Ultra • Score 99.2/100</p>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="copySwarmSynthesis()" class="px-3 py-1 bg-surface hover:bg-surfaceHover border border-borderLight rounded-lg text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
-                            <i class="fa-regular fa-copy text-xs"></i> Copy Swarm Synthesis
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="openSwarmLivePreview()" class="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 shine-btn cursor-pointer">
+                            <i class="fa-solid fa-play text-[10px]"></i> Live Sandbox
                         </button>
-                        <button onclick="sendSwarmToChat()" class="px-3 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-lg text-xs text-emerald-300 hover:text-emerald-200 transition-colors flex items-center gap-1.5">
-                            <i class="fa-solid fa-paper-plane text-xs"></i> Send to Live Chat
+                        <button onclick="copySwarmSynthesis()" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-regular fa-copy text-xs"></i> Copy Code
+                        </button>
+                        <button onclick="sendSwarmToChat()" class="px-3 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-paper-plane text-xs"></i> Open in Chat
                         </button>
                     </div>
                 </div>
-                <div id="swarm-synthesis-body" class="markdown-body text-gray-200 text-sm leading-relaxed max-h-[500px] overflow-y-auto pr-2">
+
+                <!-- Multi-Model Inspection Tabs -->
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-borderLight/60" id="swarm-model-tabs">
+                    <button onclick="selectSwarmModelTab('best')" id="swarm-tab-best" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-trophy text-[10px] text-amber-400"></i> Best Synthesis
+                    </button>
+                    <button onclick="selectSwarmModelTab('cdx-3.2-ultra')" id="swarm-tab-cdx-3.2-ultra" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-bolt text-[10px] text-emerald-400"></i> CDX 3.2 Ultra (Web UI)
+                    </button>
+                    <button onclick="selectSwarmModelTab('cdx-3.5-pro')" id="swarm-tab-cdx-3.5-pro" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-server text-[10px] text-teal-400"></i> CDX 3.5 Pro (Backend)
+                    </button>
+                    <button onclick="selectSwarmModelTab('cdx-3.6-r1')" id="swarm-tab-cdx-3.6-r1" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-brain text-[10px] text-purple-400"></i> DeepSeek R1 (Reasoning)
+                    </button>
+                    <button onclick="selectSwarmModelTab('cdx-3.0-turbo')" id="swarm-tab-cdx-3.0-turbo" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-shield text-[10px] text-orange-400"></i> Security Auditor
+                    </button>
+                </div>
+
+                <div id="swarm-synthesis-body" class="markdown-body text-gray-200 text-sm leading-relaxed max-h-[550px] overflow-y-auto pr-2">
                 </div>
             </div>
         </div>
 
-        <!-- ── TAB 2: AGENTS HUB (NEW!) ── -->
-        <div id="tab-agents" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
-            <div class="border-b border-borderLight pb-4 flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold text-white">Autonomous Agents Hub</h2>
-                    <p class="text-xs text-gray-400 mt-1">Talk to specialized subagents configured with targeted domain expertise</p>
+        <!-- ── TAB 2: AGENTS HUB (GROKBOT STYLE + 200 AGENTS LIBRARY ROUTER) ── -->
+        <div id="tab-agents" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-5xl mx-auto space-y-6 hidden">
+            <!-- Grokbot Interactive Mascot Header -->
+            <div class="glass-card p-6 rounded-2xl border border-borderLight flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden spotlight-card" onmousemove="handleCardSpotlight(event, this)">
+                <div class="flex items-center gap-5 z-10">
+                    <!-- Grokbot Mascot Engine with pupil gaze tracking and orbit ribbons -->
+                    <div class="grokbot-container select-none">
+                        <div class="grokbot-orbit orbit-1"></div>
+                        <div class="grokbot-orbit orbit-2"></div>
+                        <div class="grokbot-orb">
+                            <div class="grokbot-eye"><div class="grokbot-pupil" id="grokbot-pupil-left"></div></div>
+                            <div class="grokbot-eye"><div class="grokbot-pupil" id="grokbot-pupil-right"></div></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-xl font-bold text-white tracking-tight">Autonomous Agents Hub</h2>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 220+ Agents Router
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1 max-w-xl">Inspired by Grokbot with gaze tracking, real-time agent state dispatch, and delegation router across Frontend, Backend, AI/ML, and Security.</p>
+                    </div>
                 </div>
-                <span class="text-xs px-2.5 py-1 bg-purple-500/15 border border-purple-500/30 text-purple-300 rounded-full font-mono">
-                    12 Autonomous Specialists
-                </span>
+
+                <!-- Live Agent Status Indicators -->
+                <div class="flex items-center gap-2 flex-wrap z-10">
+                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Working
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-mono flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span> You're in control
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-mono flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-purple-400"></span> 12 Core Specialists
+                    </span>
+                </div>
+            </div>
+
+            <!-- Agent Search & Domain Filter -->
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <div class="relative flex-1 w-full">
+                    <input 
+                        type="text" 
+                        id="agent-search-input" 
+                        placeholder="Search 220+ agent library personas (e.g. Next.js, Kali, ClickHouse, Pytest, Axum, ROS2)..." 
+                        oninput="filterAgentsHub(this.value)"
+                        class="w-full bg-surface border border-borderLight rounded-xl pl-9 pr-4 py-2.5 text-xs text-gray-200 placeholder-gray-500 outline-none focus:border-emerald-500 transition-colors"
+                    >
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-xs text-gray-500"></i>
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1" id="agent-filter-pills">
+                    <button onclick="filterAgentsByTag('all', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">All</button>
+                    <button onclick="filterAgentsByTag('web', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight">Web &amp; UI</button>
+                    <button onclick="filterAgentsByTag('backend', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight">Backend</button>
+                    <button onclick="filterAgentsByTag('security', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight">Security</button>
+                    <button onclick="filterAgentsByTag('reasoning', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-surface border border-borderLight">Reasoning</button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1330,7 +1556,53 @@
             playUiSound('click');
         }
 
-        // Live Chat Streaming with Complete Memory!
+        function insertPromptPrefix(prefix) {
+            userInput.value = prefix;
+            userInput.focus();
+        }
+
+        function openLivePreviewDrawer() {
+            const drawer = document.getElementById('live-preview-drawer');
+            if (drawer) {
+                drawer.classList.remove('translate-x-full');
+                refreshLivePreview();
+                playUiSound('click');
+            }
+        }
+
+        function closeLivePreviewDrawer() {
+            const drawer = document.getElementById('live-preview-drawer');
+            if (drawer) {
+                drawer.classList.add('translate-x-full');
+                playUiSound('click');
+            }
+        }
+
+        function refreshLivePreview() {
+            const iframe = document.getElementById('live-preview-iframe');
+            if (iframe) {
+                iframe.src = '/preview?t=' + Date.now();
+            }
+        }
+
+        async function openWebsiteInBrowser() {
+            try {
+                await fetch('/api/preview/open', { method: 'POST' });
+            } catch (e) {
+                window.open('http://127.0.0.1:4545/preview', '_blank');
+            }
+        }
+
+        function requestContinueGeneration(btn) {
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Continuing...';
+            }
+            userInput.value = "Please continue generating the rest of the code directly from where you left off. Do not repeat previous code.";
+            handleSend();
+        }
+
+        // Live Chat Streaming with Complete Memory & Rich Media Synthesis!
         async function handleSend() {
             const text = userInput.value.trim();
             if (!text || isWaiting) return;
@@ -1349,6 +1621,136 @@
 
             userInput.value = '';
 
+            // 1. Direct In-App Media Synthesis (/image <prompt>)
+            if (text.startsWith('/image ')) {
+                const imgPrompt = text.replace('/image ', '').trim();
+                appendMessageDOM(text, 'user');
+                sess.messages.push({ role: 'user', content: text });
+                setLoadingState(true);
+                playUiSound('send');
+
+                const mediaCard = document.createElement('div');
+                mediaCard.className = 'flex gap-4 w-full justify-start';
+                mediaCard.innerHTML = `
+                    <div class="w-7 h-7 rounded-xl border border-emerald-500/40 bg-emerald-950/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0 space-y-3">
+                        <div class="text-xs text-emerald-400 font-mono flex items-center gap-2">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Synthesizing Image via FLUX / Google Flow...
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(mediaCard);
+                scrollToBottom();
+
+                try {
+                    const res = await fetch('/api/media/image', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ prompt: imgPrompt })
+                    });
+                    const data = await res.json();
+                    const container = mediaCard.querySelector('.flex-1');
+                    if (data.ok && data.url) {
+                        container.innerHTML = `
+                            <div class="space-y-3">
+                                <div class="text-xs text-emerald-400 font-mono flex items-center gap-1.5">
+                                    <i class="fa-solid fa-image"></i> Generated Image: "${escapeHTML(imgPrompt)}"
+                                </div>
+                                <div class="rounded-2xl overflow-hidden border border-borderLight bg-black/80 max-w-lg shadow-2xl">
+                                    <img src="${data.url}" alt="${escapeHTML(imgPrompt)}" class="w-full h-auto object-cover hover:scale-[1.01] transition-transform cursor-pointer" onclick="window.open('${data.url}', '_blank')">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a href="${data.url}" download="${data.filename}" class="px-3.5 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                                        <i class="fa-solid fa-download text-[10px]"></i> Download PNG
+                                    </a>
+                                    <button onclick="window.open('${data.url}', '_blank')" class="px-3.5 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                                        <i class="fa-solid fa-expand text-[10px]"></i> Full View
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        sess.messages.push({ role: 'assistant', content: `[Generated Image: ${imgPrompt}](${data.url})` });
+                        playUiSound('complete');
+                    } else {
+                        container.innerHTML = `<span class="text-red-400 text-xs">Image generation failed: ${escapeHTML(data.error || 'Server error')}</span>`;
+                    }
+                } catch (e) {
+                    mediaCard.querySelector('.flex-1').innerHTML = `<span class="text-red-400 text-xs">Media generation error: ${e.message}</span>`;
+                } finally {
+                    setLoadingState(false);
+                    scrollToBottom();
+                }
+                return;
+            }
+
+            // 2. Direct In-App Motion Video Synthesis (/video <prompt>)
+            if (text.startsWith('/video ')) {
+                const vidPrompt = text.replace('/video ', '').trim();
+                appendMessageDOM(text, 'user');
+                sess.messages.push({ role: 'user', content: text });
+                setLoadingState(true);
+                playUiSound('send');
+
+                const mediaCard = document.createElement('div');
+                mediaCard.className = 'flex gap-4 w-full justify-start';
+                mediaCard.innerHTML = `
+                    <div class="w-7 h-7 rounded-xl border border-cyan-500/40 bg-cyan-950/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0 space-y-3">
+                        <div class="text-xs text-cyan-400 font-mono flex items-center gap-2">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Rendering Motion Video via Google Flow &amp; FFmpeg...
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(mediaCard);
+                scrollToBottom();
+
+                try {
+                    const res = await fetch('/api/media/video', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ prompt: vidPrompt, duration: 5 })
+                    });
+                    const data = await res.json();
+                    const container = mediaCard.querySelector('.flex-1');
+                    if (data.ok && data.url) {
+                        container.innerHTML = `
+                            <div class="space-y-3">
+                                <div class="text-xs text-cyan-400 font-mono flex items-center gap-1.5">
+                                    <i class="fa-solid fa-film"></i> Generated Motion Video: "${escapeHTML(vidPrompt)}"
+                                </div>
+                                <div class="rounded-2xl overflow-hidden border border-borderLight bg-black/80 max-w-lg shadow-2xl">
+                                    <video controls autoplay loop class="w-full h-auto rounded-xl">
+                                        <source src="${data.url}" type="video/mp4">
+                                    </video>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a href="${data.url}" download="${data.filename}" class="px-3.5 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                                        <i class="fa-solid fa-download text-[10px]"></i> Download MP4
+                                    </a>
+                                    <button onclick="window.open('${data.url}', '_blank')" class="px-3.5 py-1.5 bg-surface hover:bg-surfaceHover border border-borderLight rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                                        <i class="fa-solid fa-expand text-[10px]"></i> Popout
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        sess.messages.push({ role: 'assistant', content: `[Generated Video: ${vidPrompt}](${data.url})` });
+                        playUiSound('complete');
+                    } else {
+                        container.innerHTML = `<span class="text-red-400 text-xs">Video generation failed: ${escapeHTML(data.error || 'Server error')}</span>`;
+                    }
+                } catch (e) {
+                    mediaCard.querySelector('.flex-1').innerHTML = `<span class="text-red-400 text-xs">Media generation error: ${e.message}</span>`;
+                } finally {
+                    setLoadingState(false);
+                    scrollToBottom();
+                }
+                return;
+            }
+
             // Update title if first message
             if (sess.messages.length === 0) {
                 sess.title = text.length > 28 ? text.slice(0, 28) + '...' : text;
@@ -1366,7 +1768,12 @@
             const aiCard = document.createElement('div');
             aiCard.className = 'flex gap-4 w-full justify-start';
             aiCard.innerHTML = `
-                <div class="w-7 h-7 rounded-full border border-emerald-500/40 bg-emerald-950/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                <div class="w-7 h-7 rounded-xl border border-emerald-500/40 bg-emerald-950/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="markdown-body text-gray-200 text-sm leading-relaxed" id="current-stream-text">
@@ -1409,6 +1816,62 @@
 
                 // Save assistant message to session memory!
                 sess.messages.push({ role: 'assistant', content: fullText });
+
+                // Check for Token Limit Continuation Marker
+                if (fullText.includes("<!-- CDX_TOKEN_LIMIT_REACHED -->")) {
+                    const continueCard = document.createElement('div');
+                    continueCard.className = "mt-3.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-pulse";
+                    continueCard.innerHTML = `
+                        <div class="flex items-center gap-2 text-xs text-amber-300">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                            <span><strong>Token Limit Reached:</strong> Generation paused at maximum token length.</span>
+                        </div>
+                        <button onclick="requestContinueGeneration(this)" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer shine-btn">
+                            <i class="fa-solid fa-play text-[10px]"></i> Continue Generating
+                        </button>
+                    `;
+                    aiCard.querySelector('.flex-1').appendChild(continueCard);
+                }
+
+                // Check if Complete Website or HTML was generated -> Auto-save & show Live Sandbox Banner
+                let extractedHtml = '';
+                if (fullText.includes('<!DOCTYPE html>') || fullText.includes('<html') || fullText.includes('```html')) {
+                    const htmlMatch = fullText.match(/```html([\s\S]*?)```/i);
+                    if (htmlMatch && htmlMatch[1]) {
+                        extractedHtml = htmlMatch[1].trim();
+                    } else if (fullText.includes('<html')) {
+                        const start = fullText.indexOf('<!DOCTYPE html>');
+                        if (start !== -1) {
+                            extractedHtml = fullText.slice(start);
+                        }
+                    }
+                }
+                if (extractedHtml) {
+                    // Auto-save to /api/preview/save
+                    fetch('/api/preview/save', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ html: extractedHtml, open: false })
+                    }).catch(console.error);
+
+                    const previewBanner = document.createElement('div');
+                    previewBanner.className = "mt-3.5 p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between gap-3";
+                    previewBanner.innerHTML = `
+                        <div class="flex items-center gap-2 text-xs text-cyan-300">
+                            <i class="fa-solid fa-window-maximize text-sm"></i>
+                            <span><strong>Live Website Generated:</strong> Sandbox environment compiled.</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openLivePreviewDrawer()" class="px-3 py-1.5 rounded-lg bg-cyan-600/25 hover:bg-cyan-600/40 border border-cyan-500/40 text-cyan-200 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-eye text-[10px]"></i> Live Sandbox
+                            </button>
+                            <button onclick="openWebsiteInBrowser()" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shine-btn cursor-pointer">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Open in Browser
+                            </button>
+                        </div>
+                    `;
+                    aiCard.querySelector('.flex-1').appendChild(previewBanner);
+                }
 
                 // Add action footer matching UI screenshot
                 const footer = document.createElement('div');
@@ -1762,5 +2225,36 @@
             filterSessions(e.target.value);
         });
     </script>
+
+    <!-- ── LIVE WEBSITE PREVIEW SANDBOX DRAWER ── -->
+    <div id="live-preview-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[620px] lg:w-[840px] bg-black/95 backdrop-blur-2xl border-l border-borderLight z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
+        <div class="h-14 border-b border-borderLight px-5 flex items-center justify-between bg-surface/90">
+            <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                <div>
+                    <div class="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                        <span>CDX LIVE SANDBOX</span>
+                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">SANDBOX READY</span>
+                    </div>
+                    <div class="text-[10px] text-gray-500 font-mono">http://127.0.0.1:4545/preview</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="refreshLivePreview()" class="w-8 h-8 rounded-lg bg-surface hover:bg-surfaceHover text-gray-300 hover:text-white flex items-center justify-center transition-colors" title="Reload Sandbox">
+                    <i class="fa-solid fa-rotate text-xs"></i>
+                </button>
+                <button onclick="openWebsiteInBrowser()" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shine-btn">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Open in Browser
+                </button>
+                <button onclick="closeLivePreviewDrawer()" class="w-8 h-8 rounded-lg bg-surface hover:bg-surfaceHover text-gray-400 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 w-full bg-white relative">
+            <iframe id="live-preview-iframe" src="/preview" class="w-full h-full border-0"></iframe>
+        </div>
+    </div>
+
 </body>
 </html>

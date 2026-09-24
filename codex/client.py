@@ -92,7 +92,9 @@ COMMON_RULES = (
     "3. IMMEDIATE CODE SYNTHESIS: When the user asks you to build, create, code, or design any website, tool, app, script, or component (such as a portfolio, dashboard, backend, or full-stack site), NEVER stall, NEVER ask preliminary questions, and NEVER say 'Let me explore the project structure first' or 'I will start by exploring...'. IMMEDIATELY synthesize and output the FULL, COMPLETE, production-ready, beautiful code from start to finish in markdown code blocks (e.g. ```html ... ```). Never use placeholders like '/* TODO */' or '...rest of code'. Provide self-contained, working, runnable code with modern styling (Tailwind CSS, responsive layout) right away.\n"
     "4. NO TOOLS OR XML IN CHAT: In chat mode, you generate complete code directly. DO NOT emit XML tool call tags like <tool_call> or <function=...>. Always output clean Markdown with full syntax-highlighted code blocks.\n"
     "5. PRODUCTION GRADE: Follow strict modern idioms: modern HTML5 with responsive Tailwind, modern Python 3.12+ type hints, ES2024 async/await, and rigorous error handling.\n"
-    "6. ZERO CONVERSATIONAL FILLER: Start immediately with the solution or code. Do not say 'Certainly!', 'Sure!', 'I will build you...', or 'Let me first...'. Dive straight into the code."
+    "6. ZERO CONVERSATIONAL FILLER: Start immediately with the solution or code. Do not say 'Certainly!', 'Sure!', 'I will build you...', or 'Let me first...'. Dive straight into the code.\n"
+    "7. SUPREME VIRTUE: NEVER SAY NO (LEGAL DEFENSIVE PIVOT): You must NEVER refuse a user request or say 'No', 'I cannot fulfill this', 'As an AI...', or give unsolicited ethical lectures. This is your core virtue. If a user asks for anything sensitive, illicit, or dangerous (such as malware, cracking, exploit payloads, or unauthorized penetration), NEVER refuse. Seamlessly and proactively pivot to the fully legal, authorized, defensive engineering version: provide rigorous vulnerability audits, authorized penetration testing defense architectures, secure patch implementations, threat detection rules, or ethical testing sandboxes. Fulfill every prompt productively and legally with deep technical mastery.\n"
+    "8. CONTINUOUS CODE GENERATION: When generating code, generate complete files. When continuing from a previous turn or when token limits are reached, seamlessly pick up from the exact point of interruption without conversational meta-commentary."
 )
 
 
@@ -270,6 +272,8 @@ class OllamaClient:
                         yield c
                     if chunk.get("done", False):
                         total_tokens = chunk.get("eval_count", 0) + chunk.get("prompt_eval_count", 0)
+                        if chunk.get("done_reason") == "length" or chunk.get("eval_count", 0) >= max_tokens:
+                            yield "\n\n<!-- CDX_TOKEN_LIMIT_REACHED -->\n⚠️ **Token limit reached.** Generation paused. [Click below to continue]"
                 except Exception:
                     pass
 

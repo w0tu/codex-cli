@@ -207,9 +207,12 @@ class CloakedCloudClient:
                             if choices:
                                 delta = choices[0].get("delta", {})
                                 content = delta.get("content", "")
+                                finish_reason = choices[0].get("finish_reason")
                                 if content:
                                     completion_tokens_est += 1
                                     yield content
+                                if finish_reason == "length":
+                                    yield "\n\n<!-- CDX_TOKEN_LIMIT_REACHED -->\n⚠️ **Token limit reached.** Generation paused. [Click below to continue]"
                         except Exception:
                             pass
                     break

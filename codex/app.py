@@ -401,10 +401,104 @@ async def video_flow_handler(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def preview_get_handler(request: web.Request) -> web.Response:
+    """Serve the active live website preview."""
+    preview_file = Path("/tmp/cdx_live_preview.html")
+    if preview_file.exists():
+        content = preview_file.read_text(encoding="utf-8", errors="replace")
+    else:
+        content = (
+            "<!DOCTYPE html><html class='dark'><head><script src='https://cdn.tailwindcss.com'></script></head>"
+            "<body class='bg-black text-white min-h-screen flex items-center justify-center p-6'>"
+            "<div class='text-center space-y-4'><div class='w-12 h-12 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto text-xl'>⚡</div>"
+            "<h1 class='text-2xl font-bold font-mono text-emerald-400'>CDX Live Sandbox Ready</h1>"
+            "<p class='text-sm text-gray-400'>Ask CDX to build any website, dashboard, or SaaS app. Your live website will render here instantly.</p>"
+            "</div></body></html>"
+        )
+    return web.Response(text=content, content_type="text/html")
+
+
+async def preview_save_handler(request: web.Request) -> web.Response:
+    """Save HTML content for instant live sandbox preview and auto-open."""
+    try:
+        data = await request.json()
+        html_code = data.get("html", "")
+        auto_open = data.get("open", False)
+        preview_file = Path("/tmp/cdx_live_preview.html")
+        preview_file.write_text(html_code, encoding="utf-8")
+
+        if auto_open:
+            import subprocess
+            try:
+                subprocess.Popen(["xdg-open", "http://127.0.0.1:4545/preview"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:
+                pass
+
+        return web.json_response({"ok": True, "url": "http://127.0.0.1:4545/preview"})
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def preview_open_handler(request: web.Request) -> web.Response:
+    """Open the live website in the system browser."""
+    try:
+        import subprocess
+        subprocess.Popen(["xdg-open", "http://127.0.0.1:4545/preview"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return web.json_response({"ok": True, "url": "http://127.0.0.1:4545/preview"})
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def media_image_handler(request: web.Request) -> web.Response:
+    """Generate image asset via MediaEngine."""
+    try:
+        data = await request.json()
+        prompt = data.get("prompt", "").strip()
+        width = int(data.get("width", 1024))
+        height = int(data.get("height", 1024))
+        from codex.media_engine import generate_image_asset
+        loop = asyncio.get_running_loop()
+        res = await loop.run_in_executor(None, generate_image_asset, prompt, width, height)
+        return web.json_response(res)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def media_video_handler(request: web.Request) -> web.Response:
+    """Generate motion video clip via MediaEngine."""
+    try:
+        data = await request.json()
+        prompt = data.get("prompt", "").strip()
+        duration = int(data.get("duration", 5))
+        title = data.get("title")
+        from codex.media_engine import generate_motion_video_clip
+        loop = asyncio.get_running_loop()
+        res = await loop.run_in_executor(None, generate_motion_video_clip, prompt, duration, title)
+        return web.json_response(res)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def media_file_handler(request: web.Request) -> web.Response:
+    """Serve generated image or video file."""
+    folder = request.match_info.get("folder", "")
+    filename = request.match_info.get("filename", "")
+    from codex.media_engine import MEDIA_DIR
+    target = MEDIA_DIR / folder / filename
+    if not target.exists() or not target.is_file():
+        return web.Response(text="File not found", status=404)
+    
+    content_type = "image/png" if filename.endswith(".png") else "video/mp4"
+    return web.Response(body=target.read_bytes(), content_type=content_type)
+
+
 def create_app() -> web.Application:
     """Create and configure the aiohttp application."""
     app = web.Application()
     app.router.add_get("/", index_handler)
+    app.router.add_get("/preview", preview_get_handler)
+    app.router.add_post("/api/preview/save", preview_save_handler)
+    app.router.add_post("/api/preview/open", preview_open_handler)
     app.router.add_get("/api/status", status_handler)
     app.router.add_get("/api/usage", usage_handler)
     app.router.add_post("/api/model", model_handler)
@@ -419,6 +513,9 @@ def create_app() -> web.Application:
     app.router.add_post("/api/subagents/swarm", subagents_swarm_handler)
     app.router.add_post("/api/video/stitch", video_stitch_handler)
     app.router.add_post("/api/video/flow", video_flow_handler)
+    app.router.add_post("/api/media/image", media_image_handler)
+    app.router.add_post("/api/media/video", media_video_handler)
+    app.router.add_get("/api/media/file/{folder}/{filename}", media_file_handler)
     return app
 
 
