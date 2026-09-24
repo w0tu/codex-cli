@@ -20,3 +20,4 @@ ENV/
 .codex_history
 .env
 codex/electron/node_modules/
+codex/web/generated/
