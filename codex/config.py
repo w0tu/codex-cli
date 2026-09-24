@@ -31,6 +31,13 @@ def load_config(path: Path | None = None) -> dict[str, Any]:
         merged.update(data)
         if not isinstance(merged.get("backup_keys"), list):
             merged["backup_keys"] = []
+        # Filter out invalid test dummy keys
+        merged["backup_keys"] = [k for k in merged["backup_keys"] if k and not str(k).startswith("gsk_test")]
+        if merged.get("api_key", "").startswith("gsk_test"):
+            if merged["backup_keys"]:
+                merged["api_key"] = merged["backup_keys"].pop(0)
+            else:
+                merged["api_key"] = ""
         return merged
     except Exception:
         return dict(DEFAULT_CONFIG)
@@ -47,12 +54,12 @@ def save_config(data: dict[str, Any], path: Path | None = None) -> Path:
 def get_api_key(path: Path | None = None) -> str:
     """Resolve active API key: env var > config file > raise RuntimeError."""
     env_key = os.environ.get("GROQ_API_KEY")
-    if env_key and env_key.strip():
+    if env_key and env_key.strip() and not env_key.strip().startswith("gsk_test"):
         return env_key.strip()
 
     cfg = load_config(path)
     key = cfg.get("api_key", "").strip()
-    if key:
+    if key and not key.startswith("gsk_test"):
         return key
 
     raise RuntimeError(
@@ -69,8 +76,8 @@ def set_active_api_key(key: str, path: Path | None = None) -> Path:
     clean_key = key.strip()
     old_key = cfg.get("api_key", "").strip()
 
-    if old_key and old_key != clean_key:
-        backups = [k for k in cfg.get("backup_keys", []) if k != clean_key and k != old_key]
+    if old_key and old_key != clean_key and not old_key.startswith("gsk_test"):
+        backups = [k for k in cfg.get("backup_keys", []) if k != clean_key and k != old_key and not k.startswith("gsk_test")]
         backups.insert(0, old_key)
         cfg["backup_keys"] = backups
 
@@ -88,12 +95,12 @@ def add_api_key(key: str, path: Path | None = None) -> Path:
     cfg = load_config(cfg_file)
     clean_key = key.strip()
 
-    if not cfg.get("api_key"):
+    if not cfg.get("api_key") or cfg.get("api_key", "").startswith("gsk_test"):
         cfg["api_key"] = clean_key
     elif cfg["api_key"] == clean_key:
         pass
     else:
-        backups = [k for k in cfg.get("backup_keys", []) if k != clean_key]
+        backups = [k for k in cfg.get("backup_keys", []) if k != clean_key and not k.startswith("gsk_test")]
         backups.append(clean_key)
         cfg["backup_keys"] = backups
 
@@ -105,14 +112,14 @@ def rotate_api_key(path: Path | None = None) -> str | None:
     """Rotate to the next available backup key on 429/401 rate limits or auth errors."""
     cfg_file = path or DEFAULT_CONFIG_PATH
     cfg = load_config(cfg_file)
-    backups: list[str] = [k for k in cfg.get("backup_keys", []) if k.strip()]
+    backups: list[str] = [k for k in cfg.get("backup_keys", []) if k.strip() and not k.startswith("gsk_test")]
 
     if not backups:
         return None
 
     old_key = cfg.get("api_key", "")
     new_key = backups.pop(0)
-    if old_key:
+    if old_key and not old_key.startswith("gsk_test"):
         backups.append(old_key)
 
     cfg["api_key"] = new_key

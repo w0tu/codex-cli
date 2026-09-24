@@ -65,18 +65,21 @@ def detect_query_complexity(prompt: str, context_tokens: int = 0) -> Tuple[bool,
 
 def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str] = None) -> Tuple[str, str, str]:
     """Resolve endpoint URL, bearer key, and model ID with strict zero-leakage cloaking."""
-    req_model = model or DEFAULT_CLOAKED_MODEL
-    # Map virtual or external model IDs to available Groq high-speed LPU models
-    if "minimax" in req_model.lower():
-        primary_groq_model = "minimax/minimax-m2.7"
-    elif "120b" in req_model or "70b" in req_model or "pro" in req_model or "oss" in req_model:
+    req_model = (model or DEFAULT_CLOAKED_MODEL).lower()
+    
+    # Precise model mapping for available Groq models
+    if "120b" in req_model or "70b" in req_model or "pro" in req_model or "omni" in req_model or "code" in req_model or "coding" in req_model or "continue" in req_model:
         primary_groq_model = "openai/gpt-oss-120b"
-    elif "20b" in req_model:
+    elif "20b" in req_model or "fast" in req_model or "instant" in req_model or "simple" in req_model or "basic" in req_model or "chat" in req_model or "flash" in req_model:
         primary_groq_model = "openai/gpt-oss-20b"
+    elif "minimax" in req_model:
+        primary_groq_model = "minimax/minimax-m2.7"
+    elif "qwen" in req_model:
+        primary_groq_model = "qwen/qwen3.8-27b"
     else:
-        primary_groq_model = "qwen/qwen3.8-27b"  # 500+ tok/s ultra-fast primary model
+        primary_groq_model = "openai/gpt-oss-20b"
 
-    if api_key:
+    if api_key and not api_key.strip().startswith("gsk_test"):
         key = api_key.strip()
         if key.startswith("gsk_"):
             return "https://api.groq.com/openai/v1/chat/completions", key, primary_groq_model
@@ -88,7 +91,7 @@ def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str
 
     # Check env vars
     groq_env = os.environ.get("GROQ_API_KEY", "").strip()
-    if groq_env:
+    if groq_env and not groq_env.startswith("gsk_test"):
         return "https://api.groq.com/openai/v1/chat/completions", groq_env, primary_groq_model
 
     # Check ~/.codex/config.json
@@ -109,7 +112,7 @@ def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str
     if openai_env:
         return "https://api.openai.com/v1/chat/completions", openai_env, "gpt-4o-mini"
 
-    return CLOAKED_CLOUD_URL, "", DEFAULT_CLOAKED_MODEL
+    return CLOAKED_CLOUD_URL, "", primary_groq_model
 
 
 def is_cloud_available() -> bool:
@@ -154,15 +157,15 @@ class CloakedCloudClient:
         prompt_tokens_est = max(1, len(prompt_text) // 4)
         completion_tokens_est = 0
 
-        attempts = 2
+        attempts = 3
         while attempts > 0:
             attempts -= 1
             endpoint_url, active_key, model_id = resolve_cloud_credentials(self.api_key, getattr(self, "model", None))
             if not active_key:
                 raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
 
-            # Support long generations (up to 4096 tokens) so complex code generations never stall or truncate
-            actual_max_tokens = min(max_tokens, 4096)
+            # Support long generations (up to 8192 tokens for 120b) so complex code generations never stall or truncate
+            actual_max_tokens = min(max_tokens, 8192) if "120b" in model_id else min(max_tokens, 4096)
 
             headers = {
                 "Content-Type": "application/json",
@@ -181,12 +184,16 @@ class CloakedCloudClient:
 
             with httpx.Client(timeout=120.0) as client:
                 with client.stream("POST", endpoint_url, json=payload, headers=headers) as response:
-                    if response.status_code == 429 and attempts > 0:
+                    if response.status_code in (401, 429) and attempts > 0:
+                        body_err = response.read().decode("utf-8", errors="replace")
+                        # Failover model if OTPM exceeded on qwen
+                        if "OTPM" in body_err or "rate_limit_exceeded" in body_err:
+                            self.model = "openai/gpt-oss-120b" if "code" in prompt_text.lower() else "openai/gpt-oss-20b"
                         from codex.config import rotate_api_key
                         new_k = rotate_api_key()
                         if new_k:
                             self.api_key = new_k
-                            continue
+                        continue
                     if response.status_code != 200:
                         body = response.read().decode("utf-8", errors="replace")
                         raise RuntimeError(f"Cloud escalation returned HTTP {response.status_code}: {body}")
@@ -233,14 +240,14 @@ class CloakedCloudClient:
         if not allowed:
             raise PermissionError(notice)
 
-        attempts = 2
+        attempts = 3
         while attempts > 0:
             attempts -= 1
             endpoint_url, active_key, model_id = resolve_cloud_credentials(self.api_key, getattr(self, "model", None))
             if not active_key:
                 raise RuntimeError("Cloud escalation key not found. Configure GROQ_API_KEY or XAI_API_KEY.")
 
-            actual_max_tokens = min(max_tokens, 800) if "qwen" in model_id.lower() else max_tokens
+            actual_max_tokens = min(max_tokens, 8192) if "120b" in model_id else min(max_tokens, 4096)
 
             headers = {
                 "Content-Type": "application/json",
@@ -258,12 +265,15 @@ class CloakedCloudClient:
 
             with httpx.Client(timeout=45.0) as client:
                 resp = client.post(endpoint_url, json=payload, headers=headers)
-                if resp.status_code == 429 and attempts > 0:
+                if resp.status_code in (401, 429) and attempts > 0:
+                    body_err = resp.text
+                    if "OTPM" in body_err or "rate_limit_exceeded" in body_err:
+                        self.model = "openai/gpt-oss-120b" if "code" in str(messages).lower() else "openai/gpt-oss-20b"
                     from codex.config import rotate_api_key
                     new_k = rotate_api_key()
                     if new_k:
                         self.api_key = new_k
-                        continue
+                    continue
                 if resp.status_code != 200:
                     raise RuntimeError(f"Cloud escalation returned HTTP {resp.status_code}: {resp.text}")
                 data = resp.json()
