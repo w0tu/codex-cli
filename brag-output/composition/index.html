@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>CDX Brag Video</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #000000; color: #ffffff;
+    font-family: 'Inter', sans-serif;
+  }
+  #root {
+    width: 1920px; height: 1080px; position: relative;
+    background: #000000; overflow: hidden;
+  }
+
+  .clip {
+    position: absolute;
+  }
+
+  /* Ambient starfield */
+  #particles {
+    inset: 0; z-index: 1; pointer-events: none;
+  }
+  .particle {
+    position: absolute; width: 3px; height: 3px;
+    background: #10b981; border-radius: 50%; opacity: 0.35;
+  }
+
+  /* Scene 1: Hook */
+  #scene-1 {
+    inset: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hook-card {
+    width: 960px; padding: 52px 60px;
+    background: rgba(14, 14, 14, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.15);
+  }
+  .cursor-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px; font-weight: 500; color: #ffffff;
+    display: flex; align-items: center; margin-bottom: 24px;
+  }
+  .cursor-prompt { color: #10b981; margin-right: 14px; }
+  .cursor-blink {
+    display: inline-block; width: 3px; height: 36px;
+    background: #10b981; margin-left: 6px;
+  }
+  .model-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 18px; border-radius: 8px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    font-size: 16px; font-weight: 600; color: #10b981;
+  }
+  .badge-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+  }
+
+  /* Scene 2: Swarm */
+  #scene-2 {
+    inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 32px;
+  }
+  .swarm-title {
+    font-size: 20px; font-weight: 600; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: 4px;
+  }
+  .dag-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 24px; width: 1280px;
+  }
+  .dag-node {
+    padding: 32px 24px; border-radius: 16px; text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(14, 14, 14, 0.75); backdrop-filter: blur(14px);
+  }
+  .dag-node .node-icon { font-size: 38px; margin-bottom: 12px; }
+  .dag-node .node-name { font-size: 19px; font-weight: 600; margin-bottom: 6px; }
+  .dag-node .node-role { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+  .dag-node .node-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+  }
+  .status-running {
+    background: rgba(6, 182, 212, 0.15); color: #06b6d4;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+  }
+  .status-done {
+    background: rgba(16, 185, 129, 0.15); color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .status-running .status-dot { background: #06b6d4; }
+  .status-done .status-dot { background: #10b981; }
+
+  .node-architect { border-color: rgba(139, 92, 246, 0.35); }
+  .node-architect .node-name { color: #8b5cf6; }
+  .node-backend { border-color: rgba(13, 148, 136, 0.35); }
+  .node-backend .node-name { color: #0d9488; }
+  .node-frontend { border-color: rgba(6, 182, 212, 0.35); }
+  .node-frontend .node-name { color: #06b6d4; }
+  .node-auditor { border-color: rgba(249, 115, 22, 0.35); }
+  .node-auditor .node-name { color: #f97316; }
+
+  .synthesis-bar {
+    width: 1280px; padding: 22px 36px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 14px; display: flex; align-items: center; gap: 14px;
+    font-size: 18px; font-weight: 500; color: #10b981;
+  }
+
+  /* Scene 3: Arsenal */
+  #scene-3 {
+    inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .speed-counter {
+    position: absolute; top: 48px; right: 80px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 48px; font-weight: 600; color: #10b981;
+    text-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+  }
+  .speed-unit { font-size: 20px; color: #9ca3af; font-weight: 400; }
+  .arsenal-header { text-align: center; margin-bottom: 28px; }
+  .arsenal-header h2 { font-size: 44px; font-weight: 700; color: #ffffff; }
+  .count-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 18px; border-radius: 20px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    font-size: 15px; font-weight: 600; color: #10b981; margin-top: 10px;
+  }
+  .agents-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; width: 1320px;
+  }
+  .agent-card {
+    padding: 22px 18px; border-radius: 12px;
+    background: rgba(14, 14, 14, 0.75); backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08); text-align: center;
+  }
+  .agent-card .agent-icon { font-size: 26px; margin-bottom: 6px; }
+  .agent-card .agent-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .agent-card .agent-desc { font-size: 12px; color: #a1a1aa; }
+  .card-violet .agent-name { color: #a78bfa; }
+  .card-teal .agent-name { color: #14b8a6; }
+  .card-cyan .agent-name { color: #22d3ee; }
+  .card-orange .agent-name { color: #fb923c; }
+  .card-emerald .agent-name { color: #34d399; }
+  .card-rose .agent-name { color: #fb7185; }
+  .card-amber .agent-name { color: #fbbf24; }
+
+  /* Scene 4: Brand Card */
+  #scene-4 {
+    inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 24px;
+  }
+  .brand-wordmark {
+    font-size: 108px; font-weight: 900; letter-spacing: -3px; color: #ffffff;
+  }
+  .brand-tagline {
+    font-size: 26px; font-weight: 400; color: #d1d5db;
+  }
+  .brand-install {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px; font-weight: 500; color: #10b981;
+    padding: 14px 32px; background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px;
+  }
+  .brand-credit {
+    font-size: 17px; font-weight: 400; color: #9ca3af;
+  }
+</style>
+</head>
+<body>
+
+<div id="root"
+  data-composition-id="main"
+  data-start="0"
+  data-duration="20"
+  data-width="1920"
+  data-height="1080"
+>
+  <!-- Background Particles -->
+  <div id="particles" class="clip" data-start="0" data-duration="20" data-track-index="0">
+    <div class="particle" style="left:12%;top:18%;"></div>
+    <div class="particle" style="left:28%;top:10%;"></div>
+    <div class="particle" style="left:45%;top:24%;"></div>
+    <div class="particle" style="left:60%;top:14%;"></div>
+    <div class="particle" style="left:75%;top:22%;"></div>
+    <div class="particle" style="left:88%;top:8%;"></div>
+    <div class="particle" style="left:18%;top:48%;"></div>
+    <div class="particle" style="left:38%;top:58%;"></div>
+    <div class="particle" style="left:54%;top:42%;"></div>
+    <div class="particle" style="left:68%;top:52%;"></div>
+    <div class="particle" style="left:82%;top:40%;"></div>
+    <div class="particle" style="left:10%;top:78%;"></div>
+    <div class="particle" style="left:32%;top:84%;"></div>
+    <div class="particle" style="left:50%;top:72%;"></div>
+    <div class="particle" style="left:65%;top:88%;"></div>
+    <div class="particle" style="left:80%;top:74%;"></div>
+    <div class="particle" style="left:92%;top:90%;"></div>
+  </div>
+
+  <!-- Scene 1: Hook (0s - 4.2s) -->
+  <div id="scene-1" class="clip" data-start="0" data-duration="4.3" data-track-index="1">
+    <div class="hook-card">
+      <div class="cursor-line">
+        <span class="cursor-prompt">❯</span>
+        <span id="typed-text"></span>
+        <span class="cursor-blink"></span>
+      </div>
+      <div id="model-badge" class="model-badge">
+        <span class="badge-dot"></span>
+        cdx 3.2 LPU Ultra · 528 tok/s
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 2: Swarm (4.2s - 9.2s) -->
+  <div id="scene-2" class="clip" data-start="4.2" data-duration="5.0" data-track-index="2">
+    <div class="swarm-title">Sub-Agents Swarm · Concurrent Execution</div>
+    <div class="dag-grid">
+      <div class="dag-node node-architect" id="node-1">
+        <div class="node-icon">🏗️</div>
+        <div class="node-name">CDX-Architect</div>
+        <div class="node-role">System Design</div>
+        <div class="node-status status-running" id="st-1"><span class="status-dot"></span> Running</div>
+      </div>
+      <div class="dag-node node-backend" id="node-2">
+        <div class="node-icon">⚙️</div>
+        <div class="node-name">CDX-Backend</div>
+        <div class="node-role">API &amp; Logic</div>
+        <div class="node-status status-running" id="st-2"><span class="status-dot"></span> Running</div>
+      </div>
+      <div class="dag-node node-frontend" id="node-3">
+        <div class="node-icon">🎨</div>
+        <div class="node-name">CDX-Frontend</div>
+        <div class="node-role">UI &amp; Design</div>
+        <div class="node-status status-running" id="st-3"><span class="status-dot"></span> Running</div>
+      </div>
+      <div class="dag-node node-auditor" id="node-4">
+        <div class="node-icon">🛡️</div>
+        <div class="node-name">CDX-Auditor</div>
+        <div class="node-role">Security Scan</div>
+        <div class="node-status status-running" id="st-4"><span class="status-dot"></span> Running</div>
+      </div>
+    </div>
+    <div class="synthesis-bar" id="synthesis-bar">
+      <span>✅</span>
+      Swarm synthesis complete · 4/4 agents delivered · Zero hallucination
+    </div>
+  </div>
+
+  <!-- Scene 3: Arsenal (9.2s - 14.5s) -->
+  <div id="scene-3" class="clip" data-start="9.2" data-duration="5.3" data-track-index="3">
+    <div class="speed-counter" id="speed-counter">
+      528 <span class="speed-unit">tok/s</span>
+    </div>
+    <div class="arsenal-header">
+      <h2>Agents Hub</h2>
+      <div class="count-badge">
+        <span class="badge-dot" style="width:6px;height:6px;"></span>
+        12 Autonomous Specialists
+      </div>
+    </div>
+    <div class="agents-grid">
+      <div class="agent-card card-violet"><div class="agent-icon">📢</div><div class="agent-name">CDX-Marketing</div><div class="agent-desc">Launch campaigns</div></div>
+      <div class="agent-card card-cyan"><div class="agent-icon">🎨</div><div class="agent-name">CDX-Frontend</div><div class="agent-desc">Pixel-perfect UI</div></div>
+      <div class="agent-card card-emerald"><div class="agent-icon">⚖️</div><div class="agent-name">CDX-Legal</div><div class="agent-desc">License audits</div></div>
+      <div class="agent-card card-orange"><div class="agent-icon">🤖</div><div class="agent-name">CDX-Automator</div><div class="agent-desc">OS automation</div></div>
+      <div class="agent-card card-teal"><div class="agent-icon">🏗️</div><div class="agent-name">CDX-Architect</div><div class="agent-desc">System design</div></div>
+      <div class="agent-card card-emerald"><div class="agent-icon">🔥</div><div class="agent-name">CDX-FullStack</div><div class="agent-desc">Complete apps</div></div>
+      <div class="agent-card card-rose"><div class="agent-icon">🛡️</div><div class="agent-name">CDX-Auditor</div><div class="agent-desc">Security scans</div></div>
+      <div class="agent-card card-amber"><div class="agent-icon">🔍</div><div class="agent-name">CDX-Research</div><div class="agent-desc">Intel synthesis</div></div>
+      <div class="agent-card card-violet"><div class="agent-icon">🧠</div><div class="agent-name">CDX-DeepSeek</div><div class="agent-desc">Deep reasoning</div></div>
+      <div class="agent-card card-teal"><div class="agent-icon">📊</div><div class="agent-name">CDX-Data</div><div class="agent-desc">ETL pipelines</div></div>
+      <div class="agent-card card-orange"><div class="agent-icon">🚀</div><div class="agent-name">CDX-DevOps</div><div class="agent-desc">CI/CD &amp; K8s</div></div>
+      <div class="agent-card card-cyan"><div class="agent-icon">📱</div><div class="agent-name">CDX-Mobile</div><div class="agent-desc">iOS &amp; Android</div></div>
+    </div>
+  </div>
+
+  <!-- Scene 4: Brand Card (14.5s - 20s) -->
+  <div id="scene-4" class="clip" data-start="14.5" data-duration="5.5" data-track-index="4">
+    <div class="brand-wordmark" id="wordmark">CDX</div>
+    <div class="brand-tagline" id="tagline">Autonomous AI Desktop for Linux</div>
+    <div class="brand-install" id="install">sudo apt install cdx</div>
+    <div class="brand-credit" id="credit">Created by Saad Kashif</div>
+  </div>
+
+  <!-- Audio Elements -->
+  <audio id="music" class="clip" data-start="0" data-duration="20" data-volume="0.65" data-track-index="10" preload="auto" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"></audio>
+  <audio id="sfx-launch" class="clip" data-start="4.3" data-duration="0.65" data-volume="0.5" data-track-index="11" src="assets/sfx/impact/impactPunch_heavy_000.ogg"></audio>
+  <audio id="sfx-node1" class="clip" data-start="5.8" data-duration="0.1" data-volume="0.3" data-track-index="12" src="assets/sfx/interface/click_001.ogg"></audio>
+  <audio id="sfx-node2" class="clip" data-start="6.5" data-duration="0.05" data-volume="0.3" data-track-index="13" src="assets/sfx/interface/click_002.ogg"></audio>
+  <audio id="sfx-node3" class="clip" data-start="7.1" data-duration="0.05" data-volume="0.3" data-track-index="14" src="assets/sfx/interface/click_003.ogg"></audio>
+  <audio id="sfx-node4" class="clip" data-start="7.6" data-duration="0.05" data-volume="0.3" data-track-index="15" src="assets/sfx/interface/click_004.ogg"></audio>
+  <audio id="sfx-synthesis" class="clip" data-start="8.7" data-duration="0.15" data-volume="0.4" data-track-index="16" src="assets/sfx/interface/bong_001.ogg"></audio>
+  <audio id="sfx-logo" class="clip" data-start="15.2" data-duration="0.15" data-volume="0.6" data-track-index="17" src="assets/sfx/impact/impactMetal_heavy_004.ogg"></audio>
+</div>
+
+<script>
+  window.__timelines = window.__timelines || {};
+  const tl = gsap.timeline({ paused: true });
+
+  // Initial setup
+  gsap.set("#particles", { opacity: 0 });
+  gsap.set(".hook-card", { opacity: 0, scale: 0.96 });
+  gsap.set("#model-badge", { opacity: 0, y: 10 });
+  gsap.set("#scene-1", { opacity: 1 });
+  gsap.set("#scene-2", { opacity: 0 });
+  gsap.set(".dag-node", { opacity: 0, scale: 0.85 });
+  gsap.set("#synthesis-bar", { opacity: 0, y: 20 });
+  gsap.set("#scene-3", { opacity: 0 });
+  gsap.set(".agent-card", { opacity: 0, y: 15 });
+  gsap.set("#scene-4", { opacity: 0 });
+  gsap.set("#wordmark", { opacity: 0, scale: 0.9 });
+  gsap.set("#tagline", { opacity: 0, y: 10 });
+  gsap.set("#install", { opacity: 0, y: 10 });
+  gsap.set("#credit", { opacity: 0 });
+
+  // 0s - 4.2s: Scene 1 (Hook)
+  tl.to("#particles", { opacity: 0.6, duration: 1.2 }, 0);
+  tl.to(".hook-card", { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" }, 0.2);
+
+  const fullPrompt = "Build an AI-powered SaaS MVP";
+  const typedEl = document.getElementById("typed-text");
+  for (let i = 1; i <= fullPrompt.length; i++) {
+    const time = 0.5 + (i * 0.06);
+    tl.call(() => { typedEl.textContent = fullPrompt.slice(0, i); }, null, time);
+  }
+
+  tl.to("#model-badge", { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 2.5);
+  tl.to("#scene-1", { opacity: 0, duration: 0.3, ease: "power2.in" }, 4.0);
+
+  // 4.2s - 9.2s: Scene 2 (Swarm)
+  tl.to("#scene-2", { opacity: 1, duration: 0.3 }, 4.2);
+  tl.to(".dag-node", { opacity: 1, scale: 1, stagger: 0.08, duration: 0.5, ease: "back.out(1.4)" }, 4.39);
+
+  // Status transitions to DONE
+  tl.call(() => {
+    const st1 = document.getElementById("st-1");
+    if (st1) { st1.className = "node-status status-done"; st1.innerHTML = '<span class="status-dot"></span> Done ✓'; }
+  }, null, 5.80);
+
+  tl.call(() => {
+    const st2 = document.getElementById("st-2");
+    if (st2) { st2.className = "node-status status-done"; st2.innerHTML = '<span class="status-dot"></span> Done ✓'; }
+  }, null, 6.56);
+
+  tl.call(() => {
+    const st3 = document.getElementById("st-3");
+    if (st3) { st3.className = "node-status status-done"; st3.innerHTML = '<span class="status-dot"></span> Done ✓'; }
+  }, null, 7.09);
+
+  tl.call(() => {
+    const st4 = document.getElementById("st-4");
+    if (st4) { st4.className = "node-status status-done"; st4.innerHTML = '<span class="status-dot"></span> Done ✓'; }
+  }, null, 7.64);
+
+  tl.to("#synthesis-bar", { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 8.74);
+  tl.to("#scene-2", { opacity: 0, duration: 0.3 }, 9.1);
+
+  // 9.2s - 14.5s: Scene 3 (Arsenal)
+  tl.to("#scene-3", { opacity: 1, duration: 0.3 }, 9.2);
+  tl.to(".agent-card", { opacity: 1, y: 0, stagger: 0.06, duration: 0.4, ease: "power2.out" }, 9.8);
+  tl.to("#scene-3", { opacity: 0, duration: 0.3 }, 14.3);
+
+  // 14.5s - 20s: Scene 4 (Brand Card)
+  tl.to("#scene-4", { opacity: 1, duration: 0.4 }, 14.5);
+  tl.to("#wordmark", { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" }, 15.2);
+  tl.to("#tagline", { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 16.0);
+  tl.to("#install", { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 16.7);
+  tl.to("#credit", { opacity: 1, duration: 0.5 }, 17.47);
+
+  window.__timelines["main"] = tl;
+  tl.seek(0);
+</script>
+
+</body>
+</html>
