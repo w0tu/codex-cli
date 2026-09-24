@@ -28,13 +28,13 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        space: '#050608',
-                        oled: '#08090d',
-                        sidebar: '#0c0d12',
-                        card: '#10121a',
-                        cardHover: '#161822',
+                        space: '#030508',
+                        oled: '#06080d',
+                        sidebar: '#0a0d14',
+                        card: '#0f131d',
+                        cardHover: '#151a27',
                         borderBase: 'rgba(255, 255, 255, 0.08)',
-                        borderHighlight: 'rgba(255, 255, 255, 0.2)',
+                        borderHighlight: 'rgba(255, 255, 255, 0.22)',
                         emeraldGlow: '#10b981',
                         cyanGlow: '#06b6d4',
                         violetGlow: '#8b5cf6',
@@ -48,7 +48,7 @@
         /* ── Base & Scrollbar ── */
         * { box-sizing: border-box; }
         body {
-            background-color: #050608;
+            background-color: #030508;
             color: #f1f5f9;
             overflow: hidden;
             font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -58,30 +58,36 @@
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
 
-        /* ── Ambient Background Mesh & Starfield ── */
+        /* ── Ambient Background Mesh ── */
         .ambient-radial-glow {
             position: fixed;
             inset: 0;
             background: 
-                radial-gradient(circle 800px at 50% -10%, rgba(16, 185, 129, 0.09), transparent 70%),
-                radial-gradient(circle 600px at 90% 80%, rgba(6, 182, 212, 0.06), transparent 60%),
-                radial-gradient(circle 500px at 10% 90%, rgba(139, 92, 246, 0.06), transparent 60%);
+                radial-gradient(circle 900px at 50% -15%, rgba(16, 185, 129, 0.09), transparent 70%),
+                radial-gradient(circle 700px at 95% 85%, rgba(6, 182, 212, 0.07), transparent 60%),
+                radial-gradient(circle 600px at 5% 90%, rgba(139, 92, 246, 0.07), transparent 60%);
             pointer-events: none;
             z-index: 0;
         }
 
-        /* ── Rich CSS Animations ── */
+        /* Subtle Matrix Dot Grid */
+        .dot-grid-bg {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* ── Animations ── */
         @keyframes floatGentle {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
+            50% { transform: translateY(-6px); }
         }
         .animate-float {
-            animation: floatGentle 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+            animation: floatGentle 5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
         }
 
         @keyframes pulseGlow {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.85; transform: scale(1.05); }
+            0%, 100% { opacity: 0.35; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.04); }
         }
         .animate-pulse-glow {
             animation: pulseGlow 3s ease-in-out infinite;
@@ -90,7 +96,7 @@
         @keyframes slideUpFade {
             from {
                 opacity: 0;
-                transform: translateY(14px);
+                transform: translateY(12px);
             }
             to {
                 opacity: 1;
@@ -98,26 +104,26 @@
             }
         }
         .animate-slide-up {
-            animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: slideUpFade 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* ── Obsidian & Vengeance UI Components ── */
+        /* ── Glassmorphism & Cards ── */
         .glass-panel {
-            background: rgba(14, 16, 24, 0.72);
+            background: rgba(12, 16, 24, 0.76);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.7);
         }
 
         /* Interactive Spotlight Hover Card */
         .spotlight-card {
             position: relative;
-            background: rgba(15, 18, 27, 0.65);
+            background: rgba(14, 18, 28, 0.65);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.25rem;
             overflow: hidden;
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .spotlight-card::before {
             content: '';
@@ -127,7 +133,7 @@
             width: 320px;
             height: 320px;
             transform: translate(-50%, -50%);
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.16) 0%, transparent 65%);
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -135,544 +141,507 @@
         }
         .spotlight-card:hover {
             transform: translateY(-3px);
-            border-color: rgba(52, 211, 153, 0.35);
-            box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px -5px rgba(16, 185, 129, 0.15);
+            border-color: rgba(52, 211, 153, 0.4);
+            box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.8), 0 0 20px -4px rgba(16, 185, 129, 0.15);
+        }
+        .spotlight-card:active {
+            transform: translateY(-1px) scale(0.99);
         }
         .spotlight-card:hover::before {
             opacity: 1;
         }
 
-        /* Vengeance Border Beam Effect */
-        .border-beam-container {
-            position: relative;
-            border-radius: 1rem;
-            overflow: hidden;
+        /* Button tactile click effect */
+        .btn-press {
+            transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, border-color 0.15s ease;
         }
-        .border-beam-container::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            padding: 1.5px;
-            border-radius: inherit;
-            background: linear-gradient(90deg, transparent 20%, rgba(16, 185, 129, 0.8) 50%, rgba(6, 182, 212, 0.8) 75%, transparent 100%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .border-beam-container:hover::after,
-        .border-beam-container:focus-within::after {
-            opacity: 1;
+        .btn-press:active {
+            transform: scale(0.96);
         }
 
-        /* Shine Button */
+        /* Shimmering Button */
         .shine-btn {
             position: relative;
             overflow: hidden;
         }
-        .shine-btn::before {
+        .shine-btn::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: -120%;
-            width: 70%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-            transform: skewX(-20deg);
-            transition: none;
-            pointer-events: none;
+            top: -50%;
+            left: -60%;
+            width: 50%;
+            height: 200%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(30deg);
+            transition: transform 0.6s ease;
         }
-        .shine-btn:hover::before {
-            left: 150%;
-            transition: left 0.75s ease-in-out;
+        .shine-btn:hover::after {
+            transform: rotate(30deg) translate(280%, -50%);
         }
 
-        /* ── Grokbot Mascot Engine with Cursor Eye Tracking ── */
+        /* ── Grokbot Mascot ── */
         .grokbot-box {
             position: relative;
-            width: 84px;
-            height: 84px;
+            width: 58px;
+            height: 58px;
             display: flex;
             align-items: center;
             justify-content: center;
-            perspective: 600px;
         }
         .grokbot-orb {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, #34d399 0%, #059669 55%, #022c22 100%);
-            box-shadow: 
-                0 0 30px rgba(16, 185, 129, 0.45),
-                inset 0 2px 4px rgba(255, 255, 255, 0.5),
-                inset 0 -4px 8px rgba(0, 0, 0, 0.6);
-            position: relative;
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            background: radial-gradient(circle at 35% 35%, #1e293b, #090d16);
+            border: 1.5px solid rgba(16, 185, 129, 0.5);
+            box-shadow: 0 0 24px rgba(16, 185, 129, 0.35);
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 5px;
+            position: relative;
             z-index: 2;
-            transition: transform 0.2s ease-out, box-shadow 0.3s ease;
-        }
-        .grokbot-box:hover .grokbot-orb {
-            transform: scale(1.08);
-            box-shadow: 0 0 45px rgba(16, 185, 129, 0.7), inset 0 2px 6px #fff;
         }
         .grokbot-orbit {
             position: absolute;
-            border-radius: 50%;
-            border: 1.5px solid rgba(52, 211, 153, 0.4);
+            border-radius: 9999px;
             pointer-events: none;
         }
         .orbit-alpha {
-            width: 78px;
-            height: 32px;
-            transform: rotate(-25deg);
-            animation: spinOrbitA 7s linear infinite;
+            inset: -4px;
+            border: 1px dashed rgba(16, 185, 129, 0.45);
+            animation: spinOrbit 14s linear infinite;
         }
         .orbit-beta {
-            width: 84px;
-            height: 36px;
-            transform: rotate(38deg);
-            animation: spinOrbitB 9s linear infinite reverse;
+            inset: -8px;
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            animation: spinOrbitRev 18s linear infinite;
         }
-        @keyframes spinOrbitA {
-            from { transform: rotate(-25deg); }
-            to { transform: rotate(335deg); }
+        @keyframes spinOrbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        @keyframes spinOrbitB {
-            from { transform: rotate(38deg); }
-            to { transform: rotate(-322deg); }
+        @keyframes spinOrbitRev {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
         }
         .grokbot-eye {
-            width: 8px;
-            height: 13px;
-            background: #ffffff;
-            border-radius: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 9999px;
+            background: #020617;
             position: relative;
-            margin: 0 3px;
-            box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
-            transition: height 0.12s ease-in-out;
+            overflow: hidden;
+            border: 1px solid rgba(16, 185, 129, 0.6);
+            box-shadow: inset 0 0 4px rgba(16, 185, 129, 0.5);
         }
         .grokbot-pupil {
-            width: 5px;
-            height: 5px;
-            background: #022c22;
-            border-radius: 50%;
-            position: absolute;
-            top: 4px;
-            left: 1.5px;
-            transition: transform 0.06s ease-out;
-        }
-
-        /* ── Audio Equalizer Visualizer ── */
-        .eq-bar {
-            width: 2.5px;
-            background: #10b981;
-            border-radius: 1px;
-            transition: height 0.1s ease;
+            width: 4px;
             height: 4px;
-        }
-        .eq-active .eq-bar:nth-child(1) { animation: eqPulse 0.45s infinite alternate ease-in-out; }
-        .eq-active .eq-bar:nth-child(2) { animation: eqPulse 0.65s infinite alternate ease-in-out 0.15s; }
-        .eq-active .eq-bar:nth-child(3) { animation: eqPulse 0.55s infinite alternate ease-in-out 0.3s; }
-        .eq-active .eq-bar:nth-child(4) { animation: eqPulse 0.75s infinite alternate ease-in-out 0.1s; }
-        @keyframes eqPulse {
-            0% { height: 3px; }
-            100% { height: 14px; }
+            border-radius: 9999px;
+            background: #34d399;
+            box-shadow: 0 0 6px #10b981;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.08s ease-out;
         }
 
-        /* ── Swarm DAG Animated Flow Lines ── */
-        .dag-node {
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        /* ── Audio Visualizer EQ ── */
+        .eq-bar {
+            width: 2px;
+            background-color: #10b981;
+            border-radius: 1px;
+            transition: height 0.15s ease;
         }
-        .dag-node.active-node {
-            border-color: rgba(16, 185, 129, 0.6);
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
-            transform: translateY(-2px);
+        .eq-active .eq-bar:nth-child(1) { animation: eqBounce 0.8s ease-in-out infinite 0.1s; }
+        .eq-active .eq-bar:nth-child(2) { animation: eqBounce 0.6s ease-in-out infinite 0.3s; }
+        .eq-active .eq-bar:nth-child(3) { animation: eqBounce 0.9s ease-in-out infinite 0.2s; }
+        @keyframes eqBounce {
+            0%, 100% { height: 4px; }
+            50% { height: 14px; }
         }
 
         /* ── Markdown Content Styling ── */
         .markdown-body {
             color: #e2e8f0;
             line-height: 1.65;
-            font-size: 0.925rem;
+            font-size: 0.875rem;
+            word-break: break-word;
         }
-        .markdown-body p { margin-bottom: 0.85em; }
+        .markdown-body p { margin-bottom: 0.75rem; }
         .markdown-body p:last-child { margin-bottom: 0; }
-        .markdown-body pre {
-            background: #090a0f !important;
-            padding: 1.1rem !important;
-            border-radius: 0.85rem !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            margin: 1.1em 0 !important;
-            overflow-x: auto;
-            position: relative;
+        .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+            color: #ffffff;
+            font-weight: 700;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
         }
-        .markdown-body code {
-            background: rgba(255, 255, 255, 0.06);
-            padding: 0.2em 0.45em;
+        .markdown-body ul, .markdown-body ol {
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+            list-style-type: disc;
+        }
+        .markdown-body li { margin-bottom: 0.25rem; }
+        .markdown-body code:not(pre code) {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #34d399;
+            padding: 0.15rem 0.35rem;
             border-radius: 0.35rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85em;
-            color: #38bdf8;
+            font-size: 0.82em;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .markdown-body pre {
+            background-color: #05070c !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
         }
         .markdown-body pre code {
-            background: transparent !important;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.55;
+            background-color: transparent !important;
             padding: 0 !important;
-            color: inherit;
         }
-        .markdown-body ul { list-style: disc; margin-left: 1.6em; margin-bottom: 1em; }
-        .markdown-body ol { list-style: decimal; margin-left: 1.6em; margin-bottom: 1em; }
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-            font-weight: 700;
-            color: #ffffff;
-            margin-top: 1.2em;
-            margin-bottom: 0.5em;
-            letter-spacing: -0.02em;
-        }
-
-        /* Code Header Action Bar */
         .code-header-bar {
-            background: #0f1118;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-bottom: none;
-            border-top-left-radius: 0.85rem;
-            border-top-right-radius: 0.85rem;
-            padding: 7px 14px;
+            background: #0a0e17;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            padding: 0.4rem 0.85rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            font-size: 0.7rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
             color: #94a3b8;
         }
-        .code-header-bar + pre {
-            border-top-left-radius: 0 !important;
-            border-top-right-radius: 0 !important;
-            margin-top: 0 !important;
-        }
 
-        /* Chain of Thought Details */
+        /* ── Thinking Accordion ── */
         .thinking-accordion {
-            background: rgba(139, 92, 246, 0.06);
+            background: rgba(139, 92, 246, 0.05);
             border: 1px solid rgba(139, 92, 246, 0.25);
             border-radius: 0.75rem;
-            margin: 0.8em 0;
+            margin-bottom: 0.85rem;
             overflow: hidden;
-            transition: all 0.25s ease;
         }
         .thinking-accordion summary {
-            padding: 9px 14px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 0.6rem 0.85rem;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
             color: #c4b5fd;
             cursor: pointer;
             user-select: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            list-style: none;
-        }
-        .thinking-accordion summary::-webkit-details-marker { display: none; }
-        .thinking-body {
-            padding: 10px 14px 14px;
-            font-size: 13px;
-            color: #cbd5e1;
-            border-top: 1px solid rgba(139, 92, 246, 0.15);
-        }
-
-        /* High-Contrast Model Dropdown */
-        .custom-dropdown-panel {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            width: 290px;
-            background: #0f1118;
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 1rem;
-            box-shadow: 0 20px 45px -5px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 0, 0, 0.5);
-            z-index: 60;
-            overflow: hidden;
-            display: none;
-            animation: slideUpFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .custom-dropdown-panel.show { display: block; }
-        .dropdown-row {
-            padding: 10px 14px;
-            font-size: 12px;
-            color: #cbd5e1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background 0.15s, color 0.15s;
-        }
-        .dropdown-row:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: #ffffff;
-        }
-        .dropdown-row.active {
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .thinking-accordion summary:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+        .thinking-accordion .thinking-body {
+            padding: 0.75rem 0.85rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            border-top: 1px solid rgba(139, 92, 246, 0.15);
+            background: rgba(0, 0, 0, 0.25);
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        /* 35-Day Heatmap */
+        /* ── Swarm DAG Node ── */
+        .dag-node {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .dag-node.active-node {
+            border-color: #06b6d4;
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* ── Heatmap Grid ── */
         .heat-cell {
             aspect-ratio: 1;
-            border-radius: 4px;
+            border-radius: 0.35rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 9px;
+            font-size: 0.65rem;
             font-family: 'JetBrains Mono', monospace;
+            color: #64748b;
+            transition: transform 0.15s ease, filter 0.15s ease;
             cursor: pointer;
-            transition: transform 0.15s ease, outline 0.15s ease;
         }
         .heat-cell:hover {
-            transform: scale(1.2);
-            outline: 1.5px solid #fff;
+            transform: scale(1.15);
+            filter: brightness(1.2);
             z-index: 10;
         }
-        .heat-0 { background: #13151f; color: #475569; }
-        .heat-1 { background: #064e3b; color: #a7f3d0; }
-        .heat-2 { background: #047857; color: #d1fae5; }
-        .heat-3 { background: #10b981; color: #022c22; font-weight: 700; }
-        .heat-4 { background: #34d399; color: #000000; font-weight: 800; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6); }
+        .heat-0 { background: #0c1017; border: 1px solid rgba(255, 255, 255, 0.04); }
+        .heat-1 { background: #064e3b; color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .heat-2 { background: #047857; color: #ffffff; border: 1px solid rgba(16, 185, 129, 0.35); }
+        .heat-3 { background: #10b981; color: #022c22; font-weight: bold; }
+        .heat-4 { background: #34d399; color: #022c22; font-weight: bold; box-shadow: 0 0 10px rgba(52, 211, 153, 0.4); }
+
+        /* ── Toast Notification ── */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast-item {
+            pointer-events: auto;
+            background: rgba(15, 20, 30, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f1f5f9;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 320px;
+        }
     </style>
 </head>
-<body class="font-sans flex h-screen overflow-hidden selection:bg-emerald-500/30 selection:text-white">
 
-    <!-- Ambient Cosmic Particle Canvas -->
-    <canvas id="ambient-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+<body class="flex h-screen w-screen overflow-hidden select-none bg-space font-sans text-gray-200">
+
+    <!-- Ambient Canvas & Radial Glow -->
     <div class="ambient-radial-glow"></div>
+    <canvas id="ambient-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         LEFT SIDEBAR: MODERN OLED WORKSPACE NAVIGATION
-    ════════════════════════════════════════════════════════════════ -->
-    <aside id="app-sidebar" class="w-[285px] bg-sidebar border-r border-borderBase flex flex-col flex-shrink-0 select-none relative z-20 transition-all duration-300">
+    <!-- Global Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SIDEBAR: NAVIGATION & SESSIONS & MODEL SWITCHER
+    ════════════════════════════════════════════════════════════ -->
+    <aside id="app-sidebar" class="w-[280px] bg-sidebar border-r border-borderBase flex flex-col flex-shrink-0 relative z-20 transition-all duration-300">
         
-        <!-- Sidebar Brand & Model Switcher -->
-        <div class="p-3 border-b border-borderBase/60">
-            <div onclick="toggleModelDropdown(event)" class="p-2.5 flex items-center justify-between bg-card hover:bg-cardHover cursor-pointer transition-all rounded-xl border border-borderBase hover:border-borderHighlight group">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform shadow-sm">
-                        <!-- Clean Vector SVG Monogram (No Emoji!) -->
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                            <polyline points="2 17 12 22 22 17"></polyline>
-                            <polyline points="2 12 12 17 22 12"></polyline>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-1.5">
-                            <h2 class="text-xs font-semibold text-white tracking-wide" id="active-model-title">cdx 3.2 LPU Ultra</h2>
-                        </div>
-                        <p class="text-[10px] text-gray-400 font-mono">By Saad Kashif</p>
-                    </div>
+        <!-- App Monogram Header -->
+        <div class="h-16 px-4 flex items-center justify-between border-b border-borderBase">
+            <div class="flex items-center gap-3">
+                <!-- Clean Vector SVG Monogram (NO unicode emojis) -->
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                    <svg class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
                 </div>
-                <i class="fa-solid fa-chevron-down text-gray-500 text-[10px] group-hover:text-gray-300 transition-colors" id="dropdown-chevron"></i>
-            </div>
-
-            <!-- Model Selection Dropdown Panel -->
-            <div id="custom-model-dropdown" class="custom-dropdown-panel">
-                <div class="p-2 border-b border-white/10 text-[10px] uppercase font-mono tracking-wider text-gray-400 flex items-center justify-between">
-                    <span>Active Autonomous Core</span>
-                    <span class="text-emerald-400">ONLINE</span>
-                </div>
-                <div class="dropdown-row active" onclick="selectModel('cdx 3.2', 'cdx 3.2 LPU Ultra')">
-                    <div>
-                        <div class="font-semibold text-xs">cdx 3.2 LPU Ultra</div>
-                        <div class="text-[10px] text-gray-400">Best for UI & Websites • 528 tok/s</div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-sm text-white tracking-wide font-mono">CDX</span>
+                        <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30">v1.7.0</span>
                     </div>
-                    <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono font-bold">LPU ULTRA</span>
-                </div>
-                <div class="dropdown-row" onclick="selectModel('cdx 3.6', 'cdx 3.6 Max (Thinking)')">
-                    <div>
-                        <div class="font-semibold text-xs">cdx 3.6 Max (Thinking)</div>
-                        <div class="text-[10px] text-gray-400">Deep Reasoning • 70B CoT Proofs</div>
-                    </div>
-                    <span class="text-[9px] bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded font-mono font-bold">REASONING</span>
-                </div>
-                <div class="dropdown-row" onclick="selectModel('cdx 3.5', 'cdx 3.5 Pro (Architecture)')">
-                    <div>
-                        <div class="font-semibold text-xs">cdx 3.5 Pro</div>
-                        <div class="text-[10px] text-gray-400">Antigravity Architecture Bridge</div>
-                    </div>
-                    <span class="text-[9px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded font-mono font-bold">PRO</span>
-                </div>
-                <div class="dropdown-row" onclick="selectModel('cdx 3.0', 'cdx 3.0 Turbo (Fast)')">
-                    <div>
-                        <div class="font-semibold text-xs">cdx 3.0 Turbo</div>
-                        <div class="text-[10px] text-gray-400">Lightweight Latency • Quick Scrips</div>
-                    </div>
-                    <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono font-bold">FAST</span>
-                </div>
-                <div class="dropdown-row" onclick="selectModel('cdx 2.7', 'cdx 2.7 Instant (Local)')">
-                    <div>
-                        <div class="font-semibold text-xs">cdx 2.7 Instant</div>
-                        <div class="text-[10px] text-gray-400">Local Pinned • Offline Ollama Engine</div>
-                    </div>
-                    <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono font-bold">OFFLINE</span>
+                    <p class="text-[10px] text-gray-400 font-mono">Saad Kashif Edition</p>
                 </div>
             </div>
-        </div>
 
-        <!-- New Chat Action with Animated Border Beam -->
-        <div class="p-3">
-            <button onclick="createNewChatSession()" class="w-full flex items-center justify-between px-3.5 py-2.5 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 hover:from-emerald-600/30 hover:to-teal-600/30 border border-emerald-500/40 hover:border-emerald-400 text-white rounded-xl text-xs font-semibold transition-all shadow-md group shine-btn">
-                <span class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-plus text-emerald-400 text-xs group-hover:rotate-90 transition-transform"></i>
-                    <span>New Chat Session</span>
-                </span>
-                <span class="text-[10px] text-emerald-300 font-mono bg-black/40 px-1.5 py-0.5 rounded border border-emerald-500/30">⌘ N</span>
+            <!-- New Chat Session Button -->
+            <button onclick="createNewChatSession()" class="btn-press w-8 h-8 rounded-xl bg-card hover:bg-cardHover border border-borderBase hover:border-emerald-500/50 text-gray-300 hover:text-emerald-400 flex items-center justify-center transition-all cursor-pointer shadow-sm" title="Start New Conversation">
+                <i class="fa-solid fa-plus text-xs"></i>
             </button>
         </div>
 
-        <!-- Core Navigation Links -->
-        <nav class="px-2 space-y-1" id="sidebar-nav">
-            <a href="javascript:void(0)" onclick="switchTab('chat')" id="nav-chat" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-card rounded-xl border border-emerald-500/30 shadow-sm transition-all group">
-                <i class="fa-regular fa-comment-dots w-4 text-center text-emerald-400 group-hover:scale-110 transition-transform"></i>
-                <span>Chat &amp; Copilot</span>
-                <span class="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('swarm')" id="nav-swarm" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group">
-                <i class="fa-solid fa-network-wired w-4 text-center text-violet-400 group-hover:scale-110 transition-transform"></i>
-                <span>Sub-Agents Swarm</span>
-                <span class="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-violet-500/20 text-violet-300 font-mono font-medium">LIVE DAG</span>
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('agents')" id="nav-agents" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group">
-                <i class="fa-solid fa-users-gear w-4 text-center text-teal-400 group-hover:scale-110 transition-transform"></i>
-                <span>Agents Hub</span>
-                <span class="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-mono font-medium">220+ Personas</span>
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('terminal')" id="nav-terminal" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group">
-                <i class="fa-solid fa-terminal w-4 text-center text-cyan-400 group-hover:scale-110 transition-transform"></i>
-                <span>CLI Terminal</span>
-                <span class="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">BASH</span>
-            </a>
-            <a href="javascript:void(0)" onclick="switchTab('usage')" id="nav-usage" class="flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group">
-                <i class="fa-solid fa-chart-line w-4 text-center text-blue-400 group-hover:scale-110 transition-transform"></i>
-                <span>Telemetry &amp; Usage</span>
-            </a>
+        <!-- Sidebar Model Switcher Card -->
+        <div class="p-3 border-b border-borderBase relative">
+            <div onclick="toggleSidebarModelDropdown(event)" class="btn-press p-2.5 flex items-center justify-between bg-card hover:bg-cardHover cursor-pointer transition-all rounded-xl border border-borderBase hover:border-borderHighlight group">
+                <div class="flex items-center gap-2.5 overflow-hidden">
+                    <div class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 text-emerald-400">
+                        <i class="fa-solid fa-bolt text-[11px]"></i>
+                    </div>
+                    <div class="truncate">
+                        <h2 class="text-xs font-semibold text-white tracking-wide truncate" id="sidebar-active-model-title">cdx 3.2 LPU Ultra</h2>
+                        <div class="text-[9px] text-emerald-400 font-mono flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 528 tok/s • 4096 ctx
+                        </div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-down text-gray-500 text-[10px] group-hover:text-gray-300 transition-transform duration-200" id="sidebar-chevron"></i>
+            </div>
+
+            <!-- Sidebar Model Dropdown Menu -->
+            <div id="sidebar-model-dropdown" class="hidden absolute top-full left-3 right-3 mt-1.5 bg-[#0a0d14]/98 backdrop-blur-2xl border border-borderBase rounded-xl p-1.5 shadow-2xl z-50 animate-slide-up space-y-1">
+                <button onclick="selectModel('cdx 3.2', 'cdx 3.2 LPU Ultra', event)" class="w-full text-left p-2 rounded-lg hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
+                    <div>
+                        <div class="font-semibold text-white group-hover:text-emerald-400 transition-colors">cdx 3.2 LPU Ultra</div>
+                        <div class="text-[10px] text-gray-400">General coding, refactoring &amp; logic</div>
+                    </div>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">Active</span>
+                </button>
+                <button onclick="selectModel('openai/gpt-oss-120b', 'cdx 3.5 Pro (120B)', event)" class="w-full text-left p-2 rounded-lg hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
+                    <div>
+                        <div class="font-semibold text-white group-hover:text-cyan-400 transition-colors">cdx 3.5 Pro (120B)</div>
+                        <div class="text-[10px] text-gray-400">Deep system design &amp; long continuations</div>
+                    </div>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300">4096 Tok</span>
+                </button>
+                <button onclick="selectModel('deepseek/deepseek-r1', 'cdx 3.6 DeepSeek R1', event)" class="w-full text-left p-2 rounded-lg hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
+                    <div>
+                        <div class="font-semibold text-white group-hover:text-purple-400 transition-colors">cdx 3.6 DeepSeek R1</div>
+                        <div class="text-[10px] text-gray-400">Algorithmic chains of thought &amp; math</div>
+                    </div>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300">Reason</span>
+                </button>
+                <button onclick="selectModel('openai/gpt-oss-20b', 'cdx 2.7 Fast (20B)', event)" class="w-full text-left p-2 rounded-lg hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
+                    <div>
+                        <div class="font-semibold text-white group-hover:text-amber-400 transition-colors">cdx 2.7 Fast (20B)</div>
+                        <div class="text-[10px] text-gray-400">Sub-second answers &amp; explanations</div>
+                    </div>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">1.2s</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs List -->
+        <nav class="p-3 space-y-1" id="sidebar-nav">
+            <button onclick="switchTab('chat')" id="nav-chat" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-card rounded-xl border border-emerald-500/30 shadow-sm transition-all group btn-press cursor-pointer">
+                <i class="fa-solid fa-message text-emerald-400 group-hover:scale-110 transition-transform"></i>
+                <span class="flex-1 text-left">Chat &amp; Inference</span>
+            </button>
+            <button onclick="switchTab('swarm')" id="nav-swarm" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group btn-press cursor-pointer">
+                <i class="fa-solid fa-network-wired text-cyan-400 group-hover:scale-110 transition-transform"></i>
+                <span class="flex-1 text-left">Sub-Agents Swarm</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300">DAG</span>
+            </button>
+            <button onclick="switchTab('agents')" id="nav-agents" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group btn-press cursor-pointer">
+                <i class="fa-solid fa-users-gear text-violet-400 group-hover:scale-110 transition-transform"></i>
+                <span class="flex-1 text-left">Agents Hub</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-300">220+</span>
+            </button>
+            <button onclick="switchTab('terminal')" id="nav-terminal" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group btn-press cursor-pointer">
+                <i class="fa-solid fa-terminal text-emerald-400 group-hover:scale-110 transition-transform"></i>
+                <span class="flex-1 text-left">Linux Shell GUI</span>
+            </button>
+            <button onclick="switchTab('usage')" id="nav-usage" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group btn-press cursor-pointer">
+                <i class="fa-solid fa-chart-simple text-amber-400 group-hover:scale-110 transition-transform"></i>
+                <span class="flex-1 text-left">Telemetry &amp; Quota</span>
+            </button>
         </nav>
 
-        <!-- Searchable Conversation History -->
-        <div class="flex-1 overflow-y-auto px-2 py-3 space-y-2 mt-2 border-t border-borderBase/40">
-            <div class="flex items-center justify-between px-2 mb-1.5">
-                <h3 class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider font-mono">Sessions</h3>
+        <!-- Past Conversations History Section -->
+        <div class="px-3 pt-2 pb-1 border-t border-borderBase flex flex-col flex-1 min-h-0">
+            <div class="flex items-center justify-between px-1 mb-2">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider font-mono">Sessions</span>
                 <span class="text-[9px] text-gray-500 font-mono" id="session-count-label">1 chat</span>
             </div>
-            
-            <div class="relative px-1 mb-2">
+
+            <!-- Session Search Input -->
+            <div class="relative mb-2">
                 <input 
                     type="text" 
                     id="history-search-input" 
-                    placeholder="Filter conversations..." 
+                    placeholder="Search history..." 
+                    class="w-full bg-card/60 border border-borderBase rounded-lg pl-7 pr-3 py-1.5 text-xs text-gray-300 placeholder-gray-500 outline-none focus:border-emerald-500 transition-colors"
                     oninput="filterSessions(this.value)"
-                    class="w-full bg-card border border-borderBase rounded-lg pl-7 pr-2 py-1.5 text-[11px] text-gray-300 placeholder-gray-600 outline-none focus:border-emerald-500/60 font-sans transition-colors"
                 >
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-[10px] text-gray-500"></i>
+                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-[10px] text-gray-500"></i>
             </div>
 
-            <ul class="space-y-1" id="history-sessions-list">
-                <!-- Populated dynamically -->
-            </ul>
-        </div>
-
-        <!-- Sidebar System Status Footer -->
-        <div class="p-3 border-t border-borderBase/60 bg-black/40">
-            <div class="flex items-center justify-between text-xs px-2">
-                <div class="flex items-center gap-2">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span class="text-[11px] font-medium text-gray-300 font-mono">CDX Engine 1.7.0</span>
-                </div>
-                <span class="text-[10px] text-gray-500 font-mono hover:text-emerald-400 transition-colors">Saad Kashif</span>
+            <!-- Conversations List Scrollable Container -->
+            <div class="flex-1 overflow-y-auto pr-1">
+                <ul class="space-y-1" id="history-sessions-list"></ul>
             </div>
         </div>
+
+        <!-- Sidebar Footer Attribution -->
+        <div class="p-3 border-t border-borderBase flex items-center justify-between text-[11px] text-gray-500 font-mono bg-[#07090f]">
+            <span class="truncate">Engineered by <strong class="text-gray-300">Saad Kashif</strong></span>
+            <button onclick="exportChatTranscript()" class="text-gray-400 hover:text-white transition-colors cursor-pointer" title="Export Chat Transcript">
+                <i class="fa-solid fa-download text-xs"></i>
+            </button>
+        </div>
+
     </aside>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         MAIN WORKSPACE: TABS, TOP CONTROLS & CHAT
-    ════════════════════════════════════════════════════════════════ -->
-    <main class="flex-1 flex flex-col bg-oled relative overflow-hidden z-10">
+    <!-- ═══════════════════════════════════════════════════════════
+         MAIN VIEWPORT
+    ════════════════════════════════════════════════════════════ -->
+    <main class="flex-1 flex flex-col h-full bg-space relative overflow-hidden z-10 dot-grid-bg">
         
-        <!-- Futuristic Top HUD Control Bar -->
-        <header class="h-14 border-b border-borderBase/50 px-4 flex items-center justify-between z-30 bg-oled/90 backdrop-blur-xl">
-            <!-- Left: Sidebar toggle + Status Chip -->
+        <!-- Top Pro Status Bar -->
+        <header class="h-14 border-b border-borderBase px-6 flex items-center justify-between bg-sidebar/70 backdrop-blur-md z-30 select-none">
+            <!-- Left: Mascot & Current View Title -->
             <div class="flex items-center gap-3">
-                <button onclick="toggleSidebar()" class="flex items-center justify-center w-8 h-8 rounded-xl bg-card border border-borderBase hover:bg-cardHover hover:border-borderHighlight text-gray-400 hover:text-white transition-all shadow-sm" title="Toggle Sidebar (⌘ B)">
-                    <i class="fa-solid fa-bars text-xs"></i>
-                </button>
-                <div class="flex items-center gap-2 px-3 py-1 bg-card/80 border border-emerald-500/30 rounded-full text-xs font-mono text-emerald-400 shadow-sm">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="font-medium">528 tok/s</span>
-                    <span class="text-[10px] text-gray-500">• LPU Active</span>
+                <div class="grokbot-box select-none">
+                    <div class="grokbot-orbit orbit-alpha"></div>
+                    <div class="grokbot-orbit orbit-beta"></div>
+                    <div class="grokbot-orb">
+                        <div class="grokbot-eye"><div class="grokbot-pupil" id="header-pupil-left"></div></div>
+                        <div class="grokbot-eye"><div class="grokbot-pupil" id="header-pupil-right"></div></div>
+                    </div>
                 </div>
-
-                <!-- Autonomous Idle Learning Indicator & Drawer Trigger -->
-                <button id="learning-toggle-btn" onclick="toggleLearningDrawer()" title="Autonomous Idle Internet Learning & Training Data Engine" class="flex items-center gap-2 px-3 py-1 bg-card/80 border border-purple-500/30 hover:border-purple-400 rounded-full text-xs font-mono text-purple-300 shadow-sm transition-all cursor-pointer">
-                    <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" id="learning-pulse-dot"></span>
-                    <span class="font-medium" id="learning-label">Idle Learning</span>
-                    <span class="text-[10px] text-gray-400 hidden lg:inline-block" id="learning-count-badge">0 datasets</span>
-                </button>
+                <div>
+                    <h1 class="text-xs font-bold text-white tracking-wide font-mono flex items-center gap-2" id="current-view-title">
+                        <span>CHAT &amp; INFERENCE</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    </h1>
+                    <p class="text-[10px] text-gray-400 font-mono" id="current-view-subtitle">Autonomous Model Router • Full-Stack Synthesis</p>
+                </div>
             </div>
 
-            <!-- Right: Action Icons & Controls -->
-            <div class="flex items-center gap-2">
-                <!-- Sound Equalizer & Toggle -->
-                <button id="sound-toggle-btn" onclick="toggleSound()" title="Sound Effects (Synthesizer)" class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-card border border-borderBase hover:bg-cardHover text-gray-300 hover:text-white transition-all">
+            <!-- Right Controls: Idle Learner, Sound, Particles, Live Sandbox -->
+            <div class="flex items-center gap-2.5">
+                <!-- Autonomous Idle Learning Indicator Pill (Clickable) -->
+                <button id="learning-toggle-btn" onclick="toggleLearningDrawer()" title="Autonomous Idle Internet Learning &amp; Training Data Engine" class="btn-press flex items-center gap-2 px-3 py-1.5 bg-card border border-purple-500/30 hover:border-purple-400 rounded-full text-xs font-mono text-purple-300 shadow-sm transition-all cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse" id="learning-pulse-dot"></span>
+                    <span class="font-medium text-[11px]" id="learning-label">Idle Learning</span>
+                    <span class="text-[10px] text-gray-400 hidden lg:inline-block" id="learning-count-badge">0 datasets</span>
+                </button>
+
+                <!-- Live Sandbox Quick Toggle Button -->
+                <button onclick="openLivePreviewDrawer()" title="Open Live Website Sandbox" class="btn-press flex items-center gap-1.5 px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase hover:border-teal-500/40 rounded-xl text-xs font-mono text-teal-300 transition-all cursor-pointer">
+                    <i class="fa-solid fa-window-restore text-[11px] text-teal-400"></i>
+                    <span class="hidden sm:inline-block text-[11px]">Sandbox</span>
+                </button>
+
+                <!-- Sound Effects (Web Audio Synthesizer) Toggle -->
+                <button id="sound-toggle-btn" onclick="toggleSound()" title="Sound Effects (Synthesizer)" class="btn-press flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-card border border-borderBase hover:bg-cardHover text-gray-300 hover:text-white transition-all cursor-pointer">
                     <div id="audio-eq-bars" class="flex items-end gap-[2px] h-3.5 eq-active">
-                        <div class="eq-bar"></div>
-                        <div class="eq-bar"></div>
-                        <div class="eq-bar"></div>
-                        <div class="eq-bar"></div>
+                        <div class="eq-bar h-2"></div>
+                        <div class="eq-bar h-3.5"></div>
+                        <div class="eq-bar h-1.5"></div>
                     </div>
                     <span class="text-[10px] font-mono text-gray-400 hidden sm:inline-block" id="sound-label">SFX</span>
                 </button>
 
-                <!-- Ambient Particles Toggle -->
-                <button id="particles-toggle-btn" onclick="toggleParticles()" title="Toggle Ambient Nebula" class="flex items-center justify-center w-8 h-8 rounded-xl bg-card border border-borderBase hover:bg-cardHover text-emerald-400 hover:text-emerald-300 transition-colors">
-                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
-                </button>
-
-                <!-- Live Sandbox Drawer Toggle -->
-                <button onclick="openLivePreviewDrawer()" title="Open Live Sandbox (Compiled Web Preview)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-teal-500/30 hover:border-teal-400 text-teal-300 hover:text-white text-xs font-medium transition-all shadow-sm">
-                    <i class="fa-solid fa-window-restore text-[10px]"></i>
-                    <span class="hidden sm:inline-block">Sandbox</span>
-                </button>
-
-                <!-- Export Chat Transcript -->
-                <button onclick="exportChatTranscript()" title="Export Transcript" class="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-borderBase rounded-xl text-xs font-medium text-gray-300 hover:text-white hover:bg-cardHover transition-colors">
-                    <i class="fa-solid fa-arrow-up-from-bracket text-[10px] text-gray-400"></i>
-                    <span class="hidden md:inline-block">Export</span>
-                </button>
-
-                <!-- New Chat Quick Action -->
-                <button onclick="createNewChatSession()" title="New Chat (⌘ N)" class="w-8 h-8 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 flex items-center justify-center transition-all shadow-sm">
-                    <i class="fa-solid fa-plus text-xs"></i>
+                <!-- Toggle Ambient Nebula Starfield -->
+                <button id="particles-toggle-btn" onclick="toggleParticles()" title="Toggle Ambient Nebula Canvas" class="btn-press flex items-center justify-center w-8 h-8 rounded-xl bg-card border border-borderBase hover:bg-cardHover text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer">
+                    <i class="fa-solid fa-sparkles text-xs"></i>
                 </button>
             </div>
         </header>
 
         <!-- ═══════════════════════════════════════════════════════════
-             TAB 1: CHAT & AUTONOMOUS COPILOT
+             TAB 1: CHAT & SYNTHESIS PANE
         ════════════════════════════════════════════════════════════ -->
         <div id="tab-chat" class="tab-pane flex-1 flex flex-col w-full h-full relative overflow-hidden">
             
+            <!-- Scrollable Chat Stream Container -->
             <div id="chat-container" class="flex-1 overflow-y-auto w-full pt-8 pb-48 flex flex-col items-center">
                 
-                <!-- Welcome Screen Hero with Grokbot Mascot & Interactive Cursor Eye-Tracking -->
+                <!-- Welcome Zero-State Hero Section -->
                 <div id="welcome-screen" class="w-full max-w-4xl px-6 flex flex-col items-center justify-center my-auto transition-opacity duration-300">
                     
-                    <!-- Grokbot Interactive Mascot -->
-                    <div class="grokbot-box mb-4 animate-float select-none">
+                    <!-- Hero Mascot Orbital Box -->
+                    <div class="grokbot-box select-none scale-125 mb-6 animate-float">
                         <div class="grokbot-orbit orbit-alpha"></div>
                         <div class="grokbot-orbit orbit-beta"></div>
                         <div class="grokbot-orb">
@@ -693,7 +662,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 w-full">
                         
                         <!-- Card 1: Full-Stack Web -->
-                        <button onclick="fillAndSend('Build me a stunning, responsive portfolio website with interactive projects, dark theme, smooth micro-interactions, and contact modal in modern HTML/CSS/Tailwind.')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group" onmousemove="handleCardSpotlight(event, this)">
+                        <button onclick="fillAndSend('Build me a stunning, responsive portfolio website with interactive projects, dark theme, smooth micro-interactions, and contact modal in modern HTML/CSS/Tailwind.')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group cursor-pointer" onmousemove="handleCardSpotlight(event, this)">
                             <div class="relative z-10">
                                 <div class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-3 group-hover:scale-110 transition-transform">
                                     <i class="fa-solid fa-laptop-code text-xs"></i>
@@ -708,7 +677,7 @@
                         </button>
 
                         <!-- Card 2: Microservices Backend -->
-                        <button onclick="fillAndSend('Write a production-grade FastAPI service with SQLite, automated pytest suite, Pydantic v2 schemas, and JWT auth.')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group" onmousemove="handleCardSpotlight(event, this)">
+                        <button onclick="fillAndSend('Write a production-grade FastAPI service with SQLite, automated pytest suite, Pydantic v2 schemas, and JWT auth.')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group cursor-pointer" onmousemove="handleCardSpotlight(event, this)">
                             <div class="relative z-10">
                                 <div class="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 mb-3 group-hover:scale-110 transition-transform">
                                     <i class="fa-solid fa-server text-xs"></i>
@@ -723,7 +692,7 @@
                         </button>
 
                         <!-- Card 3: Linux Shell GUI -->
-                        <button onclick="switchTab('terminal')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group" onmousemove="handleCardSpotlight(event, this)">
+                        <button onclick="switchTab('terminal')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group cursor-pointer" onmousemove="handleCardSpotlight(event, this)">
                             <div class="relative z-10">
                                 <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3 group-hover:scale-110 transition-transform">
                                     <i class="fa-solid fa-terminal text-xs"></i>
@@ -738,7 +707,7 @@
                         </button>
 
                         <!-- Card 4: Swarm Multi-Agent -->
-                        <button onclick="switchTab('swarm')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group" onmousemove="handleCardSpotlight(event, this)">
+                        <button onclick="switchTab('swarm')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group cursor-pointer" onmousemove="handleCardSpotlight(event, this)">
                             <div class="relative z-10">
                                 <div class="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-400 mb-3 group-hover:scale-110 transition-transform">
                                     <i class="fa-solid fa-network-wired text-xs"></i>
@@ -761,26 +730,62 @@
 
             <!-- Floating Command Island (Cursor / ChatUI Inspired) -->
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-oled via-oled/95 to-transparent pt-10 pb-6 px-4 flex flex-col items-center z-20 select-none">
-                <div class="w-full max-w-3xl flex flex-col gap-2.5">
+                <div class="w-full max-w-3xl flex flex-col gap-2.5 relative">
                     
                     <!-- Suggestion Quick Dispatch Pills -->
                     <div id="suggestions" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar w-full" style="-ms-overflow-style: none; scrollbar-width: none;">
-                        <button onclick="fillAndSend('Build me a modern dark mode personal portfolio website with interactive projects and contact form')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm">
+                        <button onclick="fillAndSend('Build me a modern dark mode personal portfolio website with interactive projects and contact form')" class="btn-press whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
                             <i class="fa-solid fa-wand-magic-sparkles text-emerald-400 mr-1.5 text-[10px]"></i> Create Portfolio Website
                         </button>
-                        <button onclick="fillAndSend('Write a Python script that analyzes my system performance and saves a report to ~/system_report.md')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm">
+                        <button onclick="fillAndSend('Write a Python script that analyzes my system performance and saves a report to ~/system_report.md')" class="btn-press whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
                             <i class="fa-solid fa-file-code text-teal-400 mr-1.5 text-[10px]"></i> System Report Script
                         </button>
-                        <button onclick="switchTab('terminal')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm">
+                        <button onclick="switchTab('terminal')" class="btn-press whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
                             <i class="fa-solid fa-terminal text-cyan-400 mr-1.5 text-[10px]"></i> Run CLI Command
                         </button>
-                        <button onclick="switchTab('agents')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm">
+                        <button onclick="switchTab('agents')" class="btn-press whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
                             <i class="fa-solid fa-users-gear text-violet-400 mr-1.5 text-[10px]"></i> Deploy Agents
                         </button>
                     </div>
 
+                    <!-- Dedicated Floating Dock Model Selector Popover (Opens UPWARDS above the dock) -->
+                    <div id="dock-model-popover" class="hidden absolute bottom-full left-3 mb-2 bg-[#090c13]/98 backdrop-blur-2xl border border-borderHighlight rounded-2xl p-2 shadow-2xl z-50 animate-slide-up w-[280px] space-y-1">
+                        <div class="px-2 py-1 text-[10px] font-mono text-gray-400 uppercase tracking-wider border-b border-borderBase mb-1 flex items-center justify-between">
+                            <span>Select Inference Engine</span>
+                            <span class="text-emerald-400">Hybrid LPU</span>
+                        </div>
+                        <button onclick="selectModel('cdx 3.2', 'cdx 3.2 LPU Ultra', event)" class="w-full text-left p-2 rounded-xl hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
+                            <div>
+                                <div class="font-semibold text-white group-hover:text-emerald-400 transition-colors">cdx 3.2 LPU Ultra</div>
+                                <div class="text-[10px] text-gray-400">Fast general code synthesis</div>
+                            </div>
+                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">Default</span>
+                        </button>
+                        <button onclick="selectModel('openai/gpt-oss-120b', 'cdx 3.5 Pro (120B)', event)" class="w-full text-left p-2 rounded-xl hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
+                            <div>
+                                <div class="font-semibold text-white group-hover:text-cyan-400 transition-colors">cdx 3.5 Pro (120B)</div>
+                                <div class="text-[10px] text-gray-400">Complex coding &amp; 4096 tokens</div>
+                            </div>
+                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300">4096 Tok</span>
+                        </button>
+                        <button onclick="selectModel('deepseek/deepseek-r1', 'cdx 3.6 DeepSeek R1', event)" class="w-full text-left p-2 rounded-xl hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
+                            <div>
+                                <div class="font-semibold text-white group-hover:text-purple-400 transition-colors">cdx 3.6 DeepSeek R1</div>
+                                <div class="text-[10px] text-gray-400">Chain of thought reasoning</div>
+                            </div>
+                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300">Reason</span>
+                        </button>
+                        <button onclick="selectModel('openai/gpt-oss-20b', 'cdx 2.7 Fast (20B)', event)" class="w-full text-left p-2 rounded-xl hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
+                            <div>
+                                <div class="font-semibold text-white group-hover:text-amber-400 transition-colors">cdx 2.7 Fast (20B)</div>
+                                <div class="text-[10px] text-gray-400">Fast conversational answers</div>
+                            </div>
+                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">1.2s</span>
+                        </button>
+                    </div>
+
                     <!-- Unified Pro Command Dock -->
-                    <div class="w-full glass-panel border-beam-container rounded-2xl p-3 shadow-2xl focus-within:border-emerald-500/70 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-all bg-[#0a0c13]/95 backdrop-blur-2xl space-y-2.5">
+                    <div class="w-full glass-panel rounded-2xl p-3 shadow-2xl focus-within:border-emerald-500/70 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-all bg-[#090b12]/95 backdrop-blur-2xl space-y-2.5">
                         
                         <!-- Auto-Expanding Prompt Textarea -->
                         <textarea 
@@ -796,27 +801,27 @@
                         <div class="flex items-center justify-between pt-2 border-t border-white/5">
                             <!-- Left: Action Pills & Model Selector -->
                             <div class="flex items-center gap-1.5 flex-wrap">
-                                <!-- Model Dropdown Chip -->
-                                <button onclick="toggleModelDropdown(event)" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border border-borderBase hover:border-borderHighlight text-gray-300 text-xs font-mono transition-colors">
+                                <!-- Model Dropdown Chip (Opens upward popover) -->
+                                <button onclick="toggleDockModelDropdown(event)" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border border-borderBase hover:border-borderHighlight text-gray-300 text-xs font-mono transition-colors cursor-pointer" title="Select AI Model">
                                     <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
                                     <span id="input-model-chip">cdx 3.2 LPU Ultra</span>
-                                    <i class="fa-solid fa-chevron-down text-[8px] text-gray-500"></i>
+                                    <i class="fa-solid fa-chevron-up text-[8px] text-gray-500"></i>
                                 </button>
                                 
                                 <!-- Tool Buttons: Image, Video, Sandbox, Swarm -->
-                                <button onclick="insertPromptPrefix('/image ')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs transition-colors" title="Generate Image with FLUX">
+                                <button onclick="insertPromptPrefix('/image ')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs transition-colors cursor-pointer" title="Generate Image with FLUX">
                                     <i class="fa-solid fa-image text-[10px] text-emerald-400"></i>
                                     <span>Image</span>
                                 </button>
-                                <button onclick="insertPromptPrefix('/video ')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-cyan-400 text-xs transition-colors" title="Generate Motion Video">
+                                <button onclick="insertPromptPrefix('/video ')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-cyan-400 text-xs transition-colors cursor-pointer" title="Generate Motion Video">
                                     <i class="fa-solid fa-film text-[10px] text-cyan-400"></i>
                                     <span>Video</span>
                                 </button>
-                                <button onclick="openLivePreviewDrawer()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-teal-400 text-xs transition-colors" title="Toggle Live Sandbox Drawer">
+                                <button onclick="openLivePreviewDrawer()" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-teal-400 text-xs transition-colors cursor-pointer" title="Toggle Live Sandbox Drawer">
                                     <i class="fa-solid fa-window-restore text-[10px] text-teal-400"></i>
                                     <span>Sandbox</span>
                                 </button>
-                                <button onclick="switchTab('swarm')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-violet-400 text-xs transition-colors" title="Sub-Agents Swarm">
+                                <button onclick="switchTab('swarm')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-violet-400 text-xs transition-colors cursor-pointer" title="Sub-Agents Swarm">
                                     <i class="fa-solid fa-network-wired text-[10px] text-violet-400"></i>
                                     <span>Swarm</span>
                                 </button>
@@ -828,7 +833,8 @@
                                 <button 
                                     id="send-btn"
                                     onclick="handleSend()"
-                                    class="w-8 h-8 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center transition-all disabled:opacity-40 shine-btn shadow-lg shadow-emerald-500/25 font-bold flex-shrink-0 cursor-pointer">
+                                    class="w-8 h-8 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center transition-all disabled:opacity-40 shine-btn shadow-lg shadow-emerald-500/25 font-bold flex-shrink-0 cursor-pointer btn-press"
+                                    title="Send Message">
                                     <i class="fa-solid fa-arrow-up text-xs"></i>
                                 </button>
                             </div>
@@ -845,79 +851,66 @@
              TAB 2: SUB-AGENTS SWARM ORCHESTRATION (DAG ENGINE)
         ════════════════════════════════════════════════════════════ -->
         <div id="tab-swarm" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-5xl mx-auto space-y-6 hidden">
-            <div class="border-b border-borderBase pb-4 flex items-center justify-between">
+            <!-- Header Banner -->
+            <div class="border-b border-borderBase pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <div class="flex items-center gap-2.5">
-                        <h2 class="text-xl font-bold text-white tracking-tight">Sub-Agents Swarm Orchestration</h2>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-violet-500/20 text-violet-300 border border-violet-500/40 animate-pulse font-medium">DAG ENGINE ACTIVE</span>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-bold text-white tracking-tight">Sub-Agents Swarm DAG</h2>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30 font-semibold">
+                            4-Node Pipeline
+                        </span>
                     </div>
-                    <p class="text-xs text-gray-400 mt-1">Autonomous multi-agent task decomposition &amp; concurrent execution pipeline</p>
+                    <p class="text-xs text-gray-400 mt-1">Autonomous orchestration across Architect, Backend, Frontend, and Auditor with Golden Synthesis evaluation</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-xs px-3 py-1 bg-card border border-borderBase text-gray-300 rounded-full font-mono flex items-center gap-1.5 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 4 Sub-Agent Nodes
-                    </span>
+                    <button onclick="setSwarmPreset('Build a full-stack SaaS MVP for automated code review with FastAPI, GitHub webhooks, Tailwind UI, and security scanner')" class="btn-press px-3 py-1.5 rounded-xl bg-card hover:bg-cardHover border border-borderBase text-xs text-gray-300 font-mono transition-colors cursor-pointer">
+                        <i class="fa-solid fa-bolt text-amber-400 mr-1 text-[10px]"></i> Load MVP Preset
+                    </button>
                 </div>
             </div>
 
-            <!-- Mission Control Input -->
-            <div class="glass-panel p-6 rounded-2xl border border-violet-500/30 space-y-4">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-crosshairs text-violet-400"></i> Swarm Mission Directive
-                    </label>
-                    <span class="text-[11px] text-gray-400 font-mono">Decomposes across Architect → Backend → Frontend → Auditor</span>
-                </div>
+            <!-- Swarm Mission Directive Box -->
+            <div class="glass-panel p-5 rounded-2xl border border-borderBase space-y-4">
+                <label class="block text-xs font-semibold text-gray-300">Swarm Mission Directive</label>
                 <div class="relative">
                     <textarea 
                         id="swarm-mission-input" 
                         rows="3" 
-                        placeholder="Enter mission directive (e.g. 'Build a real-time cryptocurrency portfolio tracker with FastAPI, WebSocket price feeds, dark mode Tailwind dashboard, and JWT auth')..."
-                        class="w-full bg-oled/90 border border-borderBase rounded-xl p-3.5 text-sm text-white placeholder-gray-500 focus:border-violet-500/70 focus:outline-none font-sans resize-none transition-colors"
+                        placeholder="Describe the end-to-end software system you want the sub-agent swarm to design, code, synthesize, and audit..." 
+                        class="w-full bg-[#07090f] border border-borderBase rounded-xl p-3.5 text-xs text-gray-200 placeholder-gray-500 outline-none focus:border-cyan-500 font-mono leading-relaxed resize-none"
                     ></textarea>
                 </div>
-
-                <!-- Presets -->
-                <div class="flex flex-wrap items-center gap-2 pt-1">
-                    <span class="text-[11px] text-gray-500 font-mono">Presets:</span>
-                    <button onclick="setSwarmPreset('Build a full-stack SaaS MVP for automated code review with FastAPI, GitHub webhooks, Tailwind UI, and security scanner')" class="px-3 py-1 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-colors">
-                        🚀 Full-Stack SaaS MVP
-                    </button>
-                    <button onclick="setSwarmPreset('Audit, optimize, and harden an enterprise microservice with sub-millisecond latency and zero CVE vulnerabilities')" class="px-3 py-1 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-colors">
-                        🛡️ Microservice Security Hardening
-                    </button>
-                    <button onclick="setSwarmPreset('Design and build an AI-powered developer analytics dashboard with streaming charts and exportable metrics')" class="px-3 py-1 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-colors">
-                        📊 AI Analytics Dashboard
-                    </button>
-                </div>
-
-                <div class="flex justify-end pt-2">
+                <div class="flex items-center justify-between pt-1">
+                    <div class="flex items-center gap-2 text-[11px] text-gray-400 font-mono">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                        <span>Concurrent 4-Node Pipeline</span>
+                    </div>
                     <button 
                         id="swarm-launch-btn"
                         onclick="launchSwarmMission()" 
-                        class="px-6 py-2.5 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-violet-900/40 flex items-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shine-btn">
+                        class="btn-press px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-black rounded-xl text-xs font-bold transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-2 shine-btn cursor-pointer">
                         <i class="fa-solid fa-network-wired text-xs"></i> Launch Sub-Agents Swarm
                     </button>
                 </div>
             </div>
 
-            <!-- Swarm Pipeline Nodes (4 Concurrent Sub-Agents) -->
+            <!-- Real-Time 4-Node DAG Grid -->
             <div>
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2 font-mono">
-                    <i class="fa-solid fa-diagram-project text-cyan-400"></i> Swarm Pipeline DAG (4 Concurrent Sub-Agents)
-                </h3>
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider font-mono mb-3">Live Agent DAG Execution Nodes</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5" id="swarm-nodes-grid">
                     <!-- Node 1: Architect -->
                     <div id="swarm-node-architect" class="dag-node glass-panel p-4 rounded-xl border border-purple-500/20 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">NODE 1</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-md bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-cubes"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-white">CDX-Architect</span>
+                                </div>
                                 <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-architect">IDLE</span>
                             </div>
-                            <h4 class="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
-                                <i class="fa-solid fa-cubes text-purple-400 text-[11px]"></i> CDX-Architect
-                            </h4>
-                            <p class="text-[11px] text-gray-400 leading-snug">System blueprint, schema &amp; API contracts</p>
+                            <p class="text-[11px] text-gray-400">System topology &amp; API contract design.</p>
                         </div>
                         <div class="mt-3 pt-2 border-t border-borderBase text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-architect">
                             Awaiting launch...
@@ -928,13 +921,15 @@
                     <div id="swarm-node-backend" class="dag-node glass-panel p-4 rounded-xl border border-teal-500/20 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">NODE 2</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-md bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-server"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-white">CDX-Backend</span>
+                                </div>
                                 <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-backend">IDLE</span>
                             </div>
-                            <h4 class="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
-                                <i class="fa-solid fa-code text-teal-400 text-[11px]"></i> CDX-Backend
-                            </h4>
-                            <p class="text-[11px] text-gray-400 leading-snug">Core services, endpoints &amp; pytest</p>
+                            <p class="text-[11px] text-gray-400">Microservice endpoints &amp; database schemas.</p>
                         </div>
                         <div class="mt-3 pt-2 border-t border-borderBase text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-backend">
                             Awaiting launch...
@@ -945,13 +940,15 @@
                     <div id="swarm-node-frontend" class="dag-node glass-panel p-4 rounded-xl border border-cyan-500/20 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">NODE 3</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-palette"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-white">CDX-Frontend</span>
+                                </div>
                                 <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-frontend">IDLE</span>
                             </div>
-                            <h4 class="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
-                                <i class="fa-solid fa-palette text-cyan-400 text-[11px]"></i> CDX-Frontend
-                            </h4>
-                            <p class="text-[11px] text-gray-400 leading-snug">Tailwind UI &amp; micro-interactions</p>
+                            <p class="text-[11px] text-gray-400">Responsive UI, Tailwind styles &amp; sandbox.</p>
                         </div>
                         <div class="mt-3 pt-2 border-t border-borderBase text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-frontend">
                             Awaiting launch...
@@ -962,13 +959,15 @@
                     <div id="swarm-node-auditor" class="dag-node glass-panel p-4 rounded-xl border border-orange-500/20 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-500/30">NODE 4</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-md bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-white">CDX-Auditor</span>
+                                </div>
                                 <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-auditor">IDLE</span>
                             </div>
-                            <h4 class="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
-                                <i class="fa-solid fa-shield-halved text-orange-400 text-[11px]"></i> CDX-Auditor
-                            </h4>
-                            <p class="text-[11px] text-gray-400 leading-snug">Security audit, CVE checks &amp; patches</p>
+                            <p class="text-[11px] text-gray-400">Vulnerability scanning &amp; legal compliance.</p>
                         </div>
                         <div class="mt-3 pt-2 border-t border-borderBase text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-auditor">
                             Awaiting launch...
@@ -993,13 +992,13 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <button onclick="openSwarmLivePreview()" class="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 shine-btn cursor-pointer">
+                        <button onclick="openSwarmLivePreview()" class="btn-press px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 shine-btn cursor-pointer">
                             <i class="fa-solid fa-play text-[10px]"></i> Live Sandbox
                         </button>
-                        <button onclick="copySwarmSynthesis()" class="px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <button onclick="copySwarmSynthesis()" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-regular fa-copy text-xs"></i> Copy Code
                         </button>
-                        <button onclick="sendSwarmToChat()" class="px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <button onclick="sendSwarmToChat()" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-paper-plane text-xs"></i> Open in Chat
                         </button>
                     </div>
@@ -1007,19 +1006,19 @@
 
                 <!-- Multi-Model Inspection Tabs -->
                 <div class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-borderBase/60" id="swarm-model-tabs">
-                    <button onclick="selectSwarmModelTab('best')" id="swarm-tab-best" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 transition-all">
+                    <button onclick="selectSwarmModelTab('best')" id="swarm-tab-best" class="btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 transition-all cursor-pointer">
                         <i class="fa-solid fa-trophy text-[10px] text-amber-400"></i> Best Synthesis
                     </button>
-                    <button onclick="selectSwarmModelTab('cdx-3.2-ultra')" id="swarm-tab-cdx-3.2-ultra" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all">
+                    <button onclick="selectSwarmModelTab('cdx-3.2-ultra')" id="swarm-tab-cdx-3.2-ultra" class="btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all cursor-pointer">
                         <i class="fa-solid fa-bolt text-[10px] text-emerald-400"></i> CDX 3.2 Ultra (Web UI)
                     </button>
-                    <button onclick="selectSwarmModelTab('cdx-3.5-pro')" id="swarm-tab-cdx-3.5-pro" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all">
+                    <button onclick="selectSwarmModelTab('cdx-3.5-pro')" id="swarm-tab-cdx-3.5-pro" class="btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all cursor-pointer">
                         <i class="fa-solid fa-server text-[10px] text-teal-400"></i> CDX 3.5 Pro (Backend)
                     </button>
-                    <button onclick="selectSwarmModelTab('cdx-3.6-r1')" id="swarm-tab-cdx-3.6-r1" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all">
+                    <button onclick="selectSwarmModelTab('cdx-3.6-r1')" id="swarm-tab-cdx-3.6-r1" class="btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all cursor-pointer">
                         <i class="fa-solid fa-brain text-[10px] text-purple-400"></i> DeepSeek R1 (Reasoning)
                     </button>
-                    <button onclick="selectSwarmModelTab('cdx-3.0-turbo')" id="swarm-tab-cdx-3.0-turbo" class="swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all">
+                    <button onclick="selectSwarmModelTab('cdx-3.0-turbo')" id="swarm-tab-cdx-3.0-turbo" class="btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all cursor-pointer">
                         <i class="fa-solid fa-shield text-[10px] text-orange-400"></i> Security Auditor
                     </button>
                 </div>
@@ -1075,18 +1074,18 @@
                     <input 
                         type="text" 
                         id="agent-search-input" 
-                        placeholder="Search 220+ agent library personas (e.g. Next.js, Kali, ClickHouse, Pytest, Axum, ROS2)..." 
+                        placeholder="Search 220+ agent personas (e.g. Next.js, Kali, ClickHouse, Pytest, Axum, ROS2)..." 
                         oninput="filterAgentsHub(this.value)"
                         class="w-full bg-card border border-borderBase rounded-xl pl-9 pr-4 py-2.5 text-xs text-gray-200 placeholder-gray-500 outline-none focus:border-emerald-500 transition-colors"
                     >
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-xs text-gray-500"></i>
                 </div>
                 <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1" id="agent-filter-pills">
-                    <button onclick="filterAgentsByTag('all', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">All</button>
-                    <button onclick="filterAgentsByTag('web', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase">Web &amp; UI</button>
-                    <button onclick="filterAgentsByTag('backend', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase">Backend</button>
-                    <button onclick="filterAgentsByTag('security', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase">Security</button>
-                    <button onclick="filterAgentsByTag('reasoning', this)" class="agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase">Reasoning</button>
+                    <button onclick="filterAgentsByTag('all', this)" class="btn-press agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 cursor-pointer">All</button>
+                    <button onclick="filterAgentsByTag('web', this)" class="btn-press agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase cursor-pointer">Web &amp; UI</button>
+                    <button onclick="filterAgentsByTag('backend', this)" class="btn-press agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase cursor-pointer">Backend</button>
+                    <button onclick="filterAgentsByTag('security', this)" class="btn-press agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase cursor-pointer">Security</button>
+                    <button onclick="filterAgentsByTag('reasoning', this)" class="btn-press agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase cursor-pointer">Reasoning</button>
                 </div>
             </div>
 
@@ -1101,7 +1100,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Marketing</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Viral launch & developer marketing director. Crafts 30-second video commercial scripts, product positioning, and high-converting campaign copy.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Marketing', 'You are CDX-Marketing, an elite product growth marketer and video ad director created by Saad Kashif. Write viral developer campaign copy, 30-second video commercials, product positioning, and marketing launch strategies.', 'Create a 30-second launch ad script for: ')" class="w-full py-2 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 rounded-xl text-xs font-semibold text-rose-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-Marketing', 'You are CDX-Marketing, an elite product growth marketer and video ad director created by Saad Kashif. Write viral developer campaign copy, 30-second video commercials, product positioning, and marketing launch strategies.', 'Create a 30-second launch ad script for: ')" class="btn-press w-full py-2 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 rounded-xl text-xs font-semibold text-rose-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-video text-xs"></i> Deploy Marketing Agent
                     </button>
                 </div>
@@ -1115,7 +1114,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Frontend</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Modern UI/UX frontend designer. Builds pixel-perfect responsive layouts with Tailwind CSS, Vue/React, fluid glassmorphism, and micro-interactions.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Frontend', 'You are CDX-Frontend, an expert UI/UX and web frontend engineer created by Saad Kashif. Focus strictly on modern aesthetics, Tailwind CSS, clean layouts, micro-interactions, and mobile responsiveness. Output complete code directly.', 'Build a modern responsive frontend component for: ')" class="w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-Frontend', 'You are CDX-Frontend, an expert UI/UX and web frontend engineer created by Saad Kashif. Focus strictly on modern aesthetics, Tailwind CSS, clean layouts, micro-interactions, and mobile responsiveness. Output complete code directly.', 'Build a modern responsive frontend component for: ')" class="btn-press w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Deploy Frontend Agent
                     </button>
                 </div>
@@ -1129,7 +1128,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Legal</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Tech & open-source legal advisor. Audits software licenses (MIT/Apache/GPL), SaaS terms of service, developer privacy policies, and liability indemnification.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Legal', 'You are CDX-Legal, an expert tech legal specialist created by Saad Kashif. Draft developer contracts, open-source licenses, software terms of service, privacy policies, and liability indemnification clauses.', 'Audit open-source license compliance for: ')" class="w-full py-2 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 rounded-xl text-xs font-semibold text-amber-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-Legal', 'You are CDX-Legal, an expert tech legal specialist created by Saad Kashif. Draft developer contracts, open-source licenses, software terms of service, privacy policies, and liability indemnification clauses.', 'Audit open-source license compliance for: ')" class="btn-press w-full py-2 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 rounded-xl text-xs font-semibold text-amber-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-gavel text-xs"></i> Consult Legal Counsel
                     </button>
                 </div>
@@ -1143,7 +1142,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Automator</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">OS desktop automation & daemon engineer. Controls native mouse/keyboard operations, writes headless web scraping routines, and background worker daemons.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Automator', 'You are CDX-Automator, an OS automation and robotics engineer created by Saad Kashif. Build desktop automation scripts, custom mouse/keyboard controllers, scrapers, and background daemon workflows.', 'Automate desktop workflow for: ')" class="w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 rounded-xl text-xs font-semibold text-indigo-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-Automator', 'You are CDX-Automator, an OS automation and robotics engineer created by Saad Kashif. Build desktop automation scripts, custom mouse/keyboard controllers, scrapers, and background daemon workflows.', 'Automate desktop workflow for: ')" class="btn-press w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 rounded-xl text-xs font-semibold text-indigo-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-play text-xs"></i> Run Automator
                     </button>
                 </div>
@@ -1157,7 +1156,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Architect</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Principal system designer. Specializes in distributed microservices, database schemas, API specs, and clean scalable architecture.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Architect', 'You are CDX-Architect, a principal systems architect created by Saad Kashif. Focus strictly on clean modular architecture, API designs, scalability, and database modeling.', 'Design scalable architecture for: ')" class="w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-purple-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-Architect', 'You are CDX-Architect, a principal systems architect created by Saad Kashif. Focus strictly on clean modular architecture, API designs, scalability, and database modeling.', 'Design scalable architecture for: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-purple-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-regular fa-comment text-xs"></i> Consult Architect
                     </button>
                 </div>
@@ -1171,7 +1170,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-FullStack</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Production website & app builder. Writes complete HTML/CSS/Tailwind sites, React/Vue frontends, and Python/Node backends instantly without asking questions.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-FullStack', 'You are CDX-FullStack, an elite web builder created by Saad Kashif. Immediately write complete, stunning, single-page or multi-component websites and web apps with zero placeholders.', 'Build a complete website for: ')" class="w-full py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-xs font-semibold text-emerald-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-FullStack', 'You are CDX-FullStack, an elite web builder created by Saad Kashif. Immediately write complete, stunning, single-page or multi-component websites and web apps with zero placeholders.', 'Build a complete website for: ')" class="btn-press w-full py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-xs font-semibold text-emerald-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-code text-xs"></i> Deploy Web Builder
                     </button>
                 </div>
@@ -1185,7 +1184,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Auditor</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Security & penetration auditor. Inspects code for injection vulnerabilities, secret leaks, CORS bugs, and memory vulnerabilities.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Auditor', 'You are CDX-Auditor, an elite cybersecurity engineer created by Saad Kashif. Audit code, detect vulnerabilities, and provide patched secure code implementations.', 'Perform security audit on: ')" class="w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-Auditor', 'You are CDX-Auditor, an elite cybersecurity engineer created by Saad Kashif. Audit code, detect vulnerabilities, and provide patched secure code implementations.', 'Perform security audit on: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-shield text-xs"></i> Run Security Audit
                     </button>
                 </div>
@@ -1199,7 +1198,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Research</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Multi-platform intelligence aggregator. Queries live web, GitHub repositories, and developer documentation to deliver comprehensive synthesis reports.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Research', 'You are CDX-Research, a multi-source intelligence agent created by Saad Kashif. Conduct deep research and synthesize structured analytical reports.', 'Research the topic: ')" class="w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-blue-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-Research', 'You are CDX-Research, a multi-source intelligence agent created by Saad Kashif. Conduct deep research and synthesize structured analytical reports.', 'Research the topic: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-blue-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i> Consult Researcher
                     </button>
                 </div>
@@ -1213,7 +1212,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-DeepSeek-R1</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Pure deep reasoning &amp; chain-of-thought engine. Decomposes NP-hard algorithms, cryptographic proofs, and multi-variable optimization problems with explicit &lt;thinking&gt; steps.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-DeepSeek-R1', 'You are CDX-DeepSeek-R1, a pure deep reasoning and chain-of-thought engine created by Saad Kashif. Always think deeply within &lt;thinking&gt;...&lt;/thinking&gt; tags before providing exhaustive, rigorous mathematical and algorithmic solutions.', 'Decompose and prove algorithmic solution for: ')" class="w-full py-2 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 rounded-xl text-xs font-semibold text-violet-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-DeepSeek-R1', 'You are CDX-DeepSeek-R1, a pure deep reasoning and chain-of-thought engine created by Saad Kashif. Always think deeply within &lt;thinking&gt;...&lt;/thinking&gt; tags before providing exhaustive, rigorous mathematical and algorithmic solutions.', 'Decompose and prove algorithmic solution for: ')" class="btn-press w-full py-2 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 rounded-xl text-xs font-semibold text-violet-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-brain text-xs"></i> Consult DeepSeek-R1
                     </button>
                 </div>
@@ -1227,7 +1226,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-DataEngineer</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Distributed data &amp; streaming pipeline architect. Specializes in ClickHouse, PostgreSQL schemas, Apache Kafka events, ETL pipelines, and sub-millisecond query optimization.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-DataEngineer', 'You are CDX-DataEngineer, a principal data systems architect created by Saad Kashif. Design optimal database schemas, streaming ETL pipelines with Kafka/ClickHouse/PostgreSQL, and write production SQL queries with zero latency.', 'Design streaming data pipeline and schema for: ')" class="w-full py-2 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 rounded-xl text-xs font-semibold text-teal-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-DataEngineer', 'You are CDX-DataEngineer, a principal data systems architect created by Saad Kashif. Design optimal database schemas, streaming ETL pipelines with Kafka/ClickHouse/PostgreSQL, and write production SQL queries with zero latency.', 'Design streaming data pipeline and schema for: ')" class="btn-press w-full py-2 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 rounded-xl text-xs font-semibold text-teal-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-database text-xs"></i> Deploy Data Engineer
                     </button>
                 </div>
@@ -1241,7 +1240,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-DevOps-SRE</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Production infrastructure &amp; SRE specialist. Builds multi-stage Dockerfiles, Kubernetes manifests, CI/CD GitHub Actions workflows, and automated Terraform infrastructure.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-DevOps-SRE', 'You are CDX-DevOps-SRE, a senior site reliability engineer created by Saad Kashif. Build hardened production Dockerfiles, Kubernetes manifests, GitHub Actions CI/CD pipelines, and zero-downtime deployment architectures.', 'Generate production Dockerfile &amp; K8s deployment for: ')" class="w-full py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/40 rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-DevOps-SRE', 'You are CDX-DevOps-SRE, a senior site reliability engineer created by Saad Kashif. Build hardened production Dockerfiles, Kubernetes manifests, GitHub Actions CI/CD pipelines, and zero-downtime deployment architectures.', 'Generate production Dockerfile &amp; K8s deployment for: ')" class="btn-press w-full py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/40 rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-server text-xs"></i> Deploy DevOps SRE
                     </button>
                 </div>
@@ -1255,7 +1254,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-MobileDev</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Cross-platform mobile engineer. Builds fluid iOS and Android applications with React Native and Flutter, native device bridge integration, and 60fps animations.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-MobileDev', 'You are CDX-MobileDev, an elite cross-platform mobile engineer created by Saad Kashif. Build fluid, beautiful React Native or Flutter applications with native device bridge integration and 60fps gesture animations.', 'Build mobile application screen and logic for: ')" class="w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2">
+                    <button onclick="startAgentChat('CDX-MobileDev', 'You are CDX-MobileDev, an elite cross-platform mobile engineer created by Saad Kashif. Build fluid, beautiful React Native or Flutter applications with native device bridge integration and 60fps gesture animations.', 'Build mobile application screen and logic for: ')" class="btn-press w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-mobile text-xs"></i> Deploy Mobile Dev
                     </button>
                 </div>
@@ -1279,11 +1278,11 @@
 
             <!-- Quick Action Command Chips -->
             <div class="flex items-center gap-2 flex-wrap">
-                <button onclick="runCliCommand('uname -a')" class="px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-gray-300 transition-colors">uname -a</button>
-                <button onclick="runCliCommand('pwd && ls -la')" class="px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-gray-300 transition-colors">ls -la</button>
-                <button onclick="runCliCommand('git status -s')" class="px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-gray-300 transition-colors">git status</button>
-                <button onclick="runCliCommand('python3 --version')" class="px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-gray-300 transition-colors">python3 --version</button>
-                <button onclick="clearCliTerminal()" class="px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-rose-400 transition-colors ml-auto">
+                <button onclick="runCliCommand('uname -a')" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-gray-300 transition-colors cursor-pointer">uname -a</button>
+                <button onclick="runCliCommand('pwd && ls -la')" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-gray-300 transition-colors cursor-pointer">ls -la</button>
+                <button onclick="runCliCommand('git status -s')" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-gray-300 transition-colors cursor-pointer">git status</button>
+                <button onclick="runCliCommand('python3 --version')" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-gray-300 transition-colors cursor-pointer">python3 --version</button>
+                <button onclick="clearCliTerminal()" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-lg text-xs font-mono text-rose-400 transition-colors ml-auto cursor-pointer">
                     <i class="fa-solid fa-trash-can mr-1"></i> Clear Console
                 </button>
             </div>
@@ -1301,7 +1300,7 @@
                     <span class="text-cyan-400 font-mono text-xs select-none font-bold">cdx@linux:~$</span>
                     <input type="text" id="cli-input" placeholder="Type bash command (e.g. ls -la, git log, pytest)..." class="flex-1 bg-transparent text-white font-mono text-xs outline-none" onkeydown="handleCliKey(event)">
                 </div>
-                <button onclick="executeCliFromInput()" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-cyan-500/20 shine-btn">
+                <button onclick="executeCliFromInput()" class="btn-press px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-cyan-500/20 shine-btn cursor-pointer">
                     <i class="fa-solid fa-play mr-1.5"></i> Run
                 </button>
             </div>
@@ -1316,7 +1315,7 @@
                     <h2 class="text-xl font-bold text-white tracking-tight">Usage & Telemetry</h2>
                     <p class="text-xs text-gray-400 mt-1">Real-time token metrics, daily quota limits, and 35-day contribution activity</p>
                 </div>
-                <button onclick="fetchUsage()" class="px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-medium text-gray-300 transition-colors shadow-sm">
+                <button onclick="fetchUsage()" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-medium text-gray-300 transition-colors shadow-sm cursor-pointer">
                     <i class="fa-solid fa-rotate mr-1 text-[10px]"></i> Refresh Metrics
                 </button>
             </div>
@@ -1350,11 +1349,11 @@
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-calendar-days text-emerald-400"></i>
-                        Synthesis & Turn Activity (Past 35 Days)
+                        Synthesis &amp; Turn Activity (Past 35 Days)
                     </h3>
                     <div class="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono">
                         <span>Less</span>
-                        <div class="w-2.5 h-2.5 rounded-sm bg-[#13151f]"></div>
+                        <div class="w-2.5 h-2.5 rounded-sm bg-[#0c1017]"></div>
                         <div class="w-2.5 h-2.5 rounded-sm bg-[#064e3b]"></div>
                         <div class="w-2.5 h-2.5 rounded-sm bg-[#047857]"></div>
                         <div class="w-2.5 h-2.5 rounded-sm bg-[#10b981]"></div>
@@ -1384,13 +1383,13 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="refreshLivePreview()" class="w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-300 hover:text-white flex items-center justify-center transition-colors" title="Reload Sandbox">
+                <button onclick="refreshLivePreview()" class="btn-press w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer" title="Reload Sandbox">
                     <i class="fa-solid fa-rotate text-xs"></i>
                 </button>
-                <button onclick="openWebsiteInBrowser()" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shine-btn">
+                <button onclick="openWebsiteInBrowser()" class="btn-press px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shine-btn cursor-pointer">
                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Open in Browser
                 </button>
-                <button onclick="closeLivePreviewDrawer()" class="w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-400 hover:text-white flex items-center justify-center transition-colors">
+                <button onclick="closeLivePreviewDrawer()" class="btn-press w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
@@ -1416,10 +1415,10 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="triggerManualLearning()" id="manual-learn-btn" class="px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer">
+                <button onclick="triggerManualLearning()" id="manual-learn-btn" class="btn-press px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-satellite-dish text-[10px]"></i> Learn Now
                 </button>
-                <button onclick="closeLearningDrawer()" class="w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-400 hover:text-white flex items-center justify-center transition-colors">
+                <button onclick="closeLearningDrawer()" class="btn-press w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
@@ -1457,8 +1456,8 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════
-         APPLICATION LOGIC & ANIMATION ENGINES
-    ════════════════════════════════════════════════════════════════ -->
+         APPLICATION JAVASCRIPT ENGINE & INTERACTIONS
+    ════════════════════════════════════════════════════════════ -->
     <script>
         // State & Multi-Session Management (Full Contextual Memory!)
         let currentModel = 'cdx 3.2';
@@ -1482,6 +1481,29 @@
         const suggestionsBox = document.getElementById('suggestions');
 
         marked.setOptions({ breaks: true, gfm: true });
+
+        // ── Toast Notification System ──
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = 'toast-item';
+            
+            let icon = '<i class="fa-solid fa-circle-info text-cyan-400 text-xs"></i>';
+            if (type === 'success') icon = '<i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>';
+            if (type === 'warn') icon = '<i class="fa-solid fa-triangle-exclamation text-amber-400 text-xs"></i>';
+            if (type === 'error') icon = '<i class="fa-solid fa-circle-xmark text-rose-400 text-xs"></i>';
+
+            toast.innerHTML = `${icon} <span class="flex-1">${escapeHTML(message)}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.25s ease';
+                setTimeout(() => toast.remove(), 250);
+            }, 3000);
+        }
 
         // ── Web Audio Procedural Synthesizer ──
         let soundEnabled = true;
@@ -1570,9 +1592,11 @@
                     eq.classList.add('eq-active');
                     if (label) label.innerText = 'SFX';
                     playUiSound('click');
+                    showToast('Sound effects enabled', 'success');
                 } else {
                     eq.classList.remove('eq-active');
                     if (label) label.innerText = 'MUTED';
+                    showToast('Sound effects muted', 'info');
                 }
             }
         }
@@ -1599,19 +1623,18 @@
                 particles.push({
                     x: Math.random() * width,
                     y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.35,
-                    vy: (Math.random() - 0.5) * 0.35,
                     radius: Math.random() * 1.5 + 0.5,
-                    alpha: Math.random() * 0.35 + 0.15
+                    vx: (Math.random() - 0.5) * 0.25,
+                    vy: (Math.random() - 0.5) * 0.25,
+                    alpha: Math.random() * 0.5 + 0.2
                 });
             }
 
-            function render() {
+            function draw() {
                 if (!particlesEnabled) return;
                 ctx.clearRect(0, 0, width, height);
 
-                for (let i = 0; i < particles.length; i++) {
-                    const p = particles[i];
+                particles.forEach(p => {
                     p.x += p.vx;
                     p.y += p.vy;
 
@@ -1622,70 +1645,39 @@
 
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(16, 185, 129, ${p.alpha})`;
+                    ctx.fillStyle = `rgba(52, 211, 153, ${p.alpha})`;
                     ctx.fill();
+                });
 
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const p2 = particles[j];
-                        const dx = p.x - p2.x;
-                        const dy = p.y - p2.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < 100) {
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(p2.x, p2.y);
-                            ctx.strokeStyle = `rgba(16, 185, 129, ${0.08 * (1 - dist / 100)})`;
-                            ctx.stroke();
-                        }
-                    }
-                }
-
-                particleAnimationId = requestAnimationFrame(render);
+                particleAnimationId = requestAnimationFrame(draw);
             }
 
-            render();
+            draw();
         }
 
         function toggleParticles() {
             particlesEnabled = !particlesEnabled;
             const canvas = document.getElementById('ambient-canvas');
             const btn = document.getElementById('particles-toggle-btn');
-            if (canvas) canvas.style.display = particlesEnabled ? 'block' : 'none';
-            if (btn) {
+            playUiSound('click');
+            if (canvas && btn) {
                 if (particlesEnabled) {
+                    canvas.style.display = 'block';
                     btn.classList.add('text-emerald-400');
                     btn.classList.remove('text-gray-500');
                     initParticles();
+                    showToast('Ambient nebula activated', 'success');
                 } else {
+                    canvas.style.display = 'none';
                     btn.classList.remove('text-emerald-400');
                     btn.classList.add('text-gray-500');
                     if (particleAnimationId) cancelAnimationFrame(particleAnimationId);
+                    showToast('Ambient nebula paused', 'info');
                 }
             }
         }
 
-        // ── Real-Time Cursor Eye Gaze Tracking (Grokbot Mascot) ──
-        window.addEventListener('mousemove', (e) => {
-            const pupils = [
-                document.getElementById('grokbot-pupil-left'),
-                document.getElementById('grokbot-pupil-right')
-            ];
-            pupils.forEach(pupil => {
-                if (!pupil) return;
-                const rect = pupil.getBoundingClientRect();
-                const eyeCenterX = rect.left + rect.width / 2;
-                const eyeCenterY = rect.top + rect.height / 2;
-                const dx = e.clientX - eyeCenterX;
-                const dy = e.clientY - eyeCenterY;
-                const angle = Math.atan2(dy, dx);
-                const distance = Math.min(3, Math.hypot(dx, dy) / 30);
-                const pupilX = Math.cos(angle) * distance;
-                const pupilY = Math.sin(angle) * distance;
-                pupil.style.transform = `translate(${pupilX}px, ${pupilY}px)`;
-            });
-        });
-
-        // ── Spotlight Hover Dynamic Cursor Tracker ──
+        // ── Spotlight Hover Effect ──
         function handleCardSpotlight(e, card) {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -1694,81 +1686,132 @@
             card.style.setProperty('--mouse-y', `${y}px`);
         }
 
-        // ── Tab Navigation ──
+        // ── Grokbot Mascot Eye-Tracking ──
+        document.addEventListener('mousemove', (e) => {
+            const pupils = [
+                document.getElementById('grokbot-pupil-left'),
+                document.getElementById('grokbot-pupil-right'),
+                document.getElementById('header-pupil-left'),
+                document.getElementById('header-pupil-right')
+            ];
+
+            pupils.forEach(pupil => {
+                if (!pupil) return;
+                const rect = pupil.getBoundingClientRect();
+                const eyeCenterX = rect.left + rect.width / 2;
+                const eyeCenterY = rect.top + rect.height / 2;
+
+                const angle = Math.atan2(e.clientY - eyeCenterY, e.clientX - eyeCenterX);
+                const dist = Math.min(2.5, Math.hypot(e.clientX - eyeCenterX, e.clientY - eyeCenterY) / 60);
+
+                const offsetX = Math.cos(angle) * dist;
+                const offsetY = Math.sin(angle) * dist;
+
+                pupil.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            });
+        });
+
+        // ── Navigation Tabs ──
         function switchTab(tabId) {
             playUiSound('click');
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
-            const target = document.getElementById('tab-' + tabId);
-            if (target) {
-                target.classList.remove('hidden');
-                target.classList.add('animate-slide-up');
-            }
+            
+            const activePane = document.getElementById(`tab-${tabId}`);
+            if (activePane) activePane.classList.remove('hidden');
 
-            const navMap = {
-                chat: 'nav-chat',
-                swarm: 'nav-swarm',
-                agents: 'nav-agents',
-                terminal: 'nav-terminal',
-                usage: 'nav-usage'
+            const tabMeta = {
+                chat: { title: 'CHAT & INFERENCE', sub: 'Autonomous Model Router • Full-Stack Synthesis' },
+                swarm: { title: 'SUB-AGENTS SWARM DAG', sub: 'Architect • Backend • Frontend • Auditor Pipeline' },
+                agents: { title: 'AUTONOMOUS AGENTS HUB', sub: '220+ Specialist Personas Catalog & Router' },
+                terminal: { title: 'LINUX SHELL GUI', sub: 'Real Native Bash Console in Graphical Format' },
+                usage: { title: 'TELEMETRY & QUOTA', sub: 'Live Token Velocity & 35-Day Activity Heatmap' }
             };
 
-            Object.entries(navMap).forEach(([k, id]) => {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    if (k === tabId) {
-                        btn.className = "flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-card rounded-xl border border-emerald-500/30 shadow-sm transition-all group";
-                    } else {
-                        btn.className = "flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group";
-                    }
-                }
+            const info = tabMeta[tabId] || tabMeta.chat;
+            const titleEl = document.getElementById('current-view-title');
+            const subEl = document.getElementById('current-view-subtitle');
+            if (titleEl) titleEl.innerHTML = `<span>${info.title}</span><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>`;
+            if (subEl) subEl.innerText = info.sub;
+
+            // Nav link active classes
+            document.querySelectorAll('#sidebar-nav button').forEach(btn => {
+                btn.className = "w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group btn-press cursor-pointer";
             });
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.className = "w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-white bg-card rounded-xl border border-emerald-500/30 shadow-sm transition-all group btn-press cursor-pointer";
+            }
 
             if (tabId === 'usage') fetchUsage();
-        }
-
-        // ── Sidebar Toggle ──
-        let sidebarCollapsed = false;
-        function toggleSidebar() {
-            sidebarCollapsed = !sidebarCollapsed;
-            const sidebar = document.getElementById('app-sidebar');
-            if (sidebar) {
-                if (sidebarCollapsed) {
-                    sidebar.classList.add('-ml-[285px]');
-                } else {
-                    sidebar.classList.remove('-ml-[285px]');
-                }
+            if (tabId === 'chat') {
+                setTimeout(() => {
+                    if (userInput) userInput.focus();
+                }, 100);
             }
-            playUiSound('click');
         }
 
-        // ── Dropdown Toggle (Model Switcher) ──
-        function toggleModelDropdown(e) {
+        // ── Dropdown Toggles (Sidebar & Bottom Dock) ──
+        function toggleSidebarModelDropdown(e) {
             e.stopPropagation();
-            const dd = document.getElementById('custom-model-dropdown');
-            dd.classList.toggle('show');
-            playUiSound('click');
+            const dd = document.getElementById('sidebar-model-dropdown');
+            const chevron = document.getElementById('sidebar-chevron');
+            if (dd) {
+                const isHidden = dd.classList.contains('hidden');
+                dd.classList.toggle('hidden');
+                if (chevron) chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                playUiSound('click');
+            }
         }
 
+        function toggleDockModelDropdown(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('dock-model-popover');
+            if (dd) {
+                dd.classList.toggle('hidden');
+                playUiSound('click');
+            }
+        }
+
+        // Close dropdowns on outside click
         window.addEventListener('click', () => {
-            const dd = document.getElementById('custom-model-dropdown');
-            if (dd) dd.classList.remove('show');
+            const sidebarDd = document.getElementById('sidebar-model-dropdown');
+            const dockDd = document.getElementById('dock-model-popover');
+            const chevron = document.getElementById('sidebar-chevron');
+            if (sidebarDd && !sidebarDd.classList.contains('hidden')) {
+                sidebarDd.classList.add('hidden');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            }
+            if (dockDd && !dockDd.classList.contains('hidden')) {
+                dockDd.classList.add('hidden');
+            }
         });
 
-        async function selectModel(modelKey, label) {
+        async function selectModel(modelKey, label, event) {
             playUiSound('click');
             currentModel = modelKey;
-            document.getElementById('active-model-title').innerText = label;
-            document.getElementById('input-model-chip').innerText = label;
-            document.querySelectorAll('.dropdown-row').forEach(opt => {
-                opt.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
             
-            await fetch('/api/model', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({model: modelKey})
-            });
+            const sidebarTitle = document.getElementById('sidebar-active-model-title');
+            const dockChip = document.getElementById('input-model-chip');
+            if (sidebarTitle) sidebarTitle.innerText = label;
+            if (dockChip) dockChip.innerText = label;
+
+            // Close dropdowns
+            const sidebarDd = document.getElementById('sidebar-model-dropdown');
+            const dockDd = document.getElementById('dock-model-popover');
+            if (sidebarDd) sidebarDd.classList.add('hidden');
+            if (dockDd) dockDd.classList.add('hidden');
+            
+            showToast(`Switched active model to ${label}`, 'success');
+
+            try {
+                await fetch('/api/model', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({model: modelKey})
+                });
+            } catch (err) {
+                console.warn('Model switch API sync failed:', err);
+            }
         }
 
         // ── Sessions Management ──
@@ -1785,6 +1828,7 @@
             renderSessionsList();
             renderActiveSessionMessages();
             switchTab('chat');
+            showToast('Created new conversation', 'info');
         }
 
         function switchSession(idx) {
@@ -1810,8 +1854,10 @@
 
         function renderSessionsList() {
             const list = document.getElementById('history-sessions-list');
+            if (!list) return;
             list.innerHTML = '';
-            document.getElementById('session-count-label').innerText = `${sessions.length} chat${sessions.length > 1 ? 's' : ''}`;
+            const countLabel = document.getElementById('session-count-label');
+            if (countLabel) countLabel.innerText = `${sessions.length} chat${sessions.length > 1 ? 's' : ''}`;
 
             sessions.forEach((sess, idx) => {
                 const li = document.createElement('li');
@@ -1822,7 +1868,7 @@
                             <i class="fa-regular fa-message text-[10px] ${isActive ? 'text-emerald-400' : 'text-gray-600'}"></i>
                             ${escapeHTML(sess.title)}
                         </span>
-                        ${sessions.length > 1 ? `<button onclick="deleteSession(event, ${idx})" class="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-rose-400 transition-opacity ml-2"><i class="fa-solid fa-xmark text-[10px]"></i></button>` : ''}
+                        ${sessions.length > 1 ? `<button onclick="deleteSession(event, ${idx})" class="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-rose-400 transition-opacity ml-2 cursor-pointer" title="Delete session"><i class="fa-solid fa-xmark text-[10px]"></i></button>` : ''}
                     </a>
                 `;
                 list.appendChild(li);
@@ -1836,6 +1882,7 @@
             if (activeSessionIndex >= sessions.length) activeSessionIndex = sessions.length - 1;
             renderSessionsList();
             renderActiveSessionMessages();
+            showToast('Conversation deleted', 'info');
         }
 
         function renderActiveSessionMessages() {
@@ -1909,10 +1956,10 @@
                 header.innerHTML = `
                     <span class="font-mono text-emerald-400 font-semibold">${escapeHTML(lang)}</span>
                     <div class="flex items-center gap-2">
-                        <button class="px-2 py-0.5 rounded bg-card hover:bg-cardHover border border-borderBase text-gray-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1" onclick="runCodeInTerminal(this)" title="Execute command in GUI Terminal">
+                        <button class="px-2 py-0.5 rounded bg-card hover:bg-cardHover border border-borderBase text-gray-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 btn-press" onclick="runCodeInTerminal(this)" title="Execute command in GUI Terminal">
                             <i class="fa-solid fa-play text-[9px] text-cyan-400"></i> Run in CLI
                         </button>
-                        <button class="px-2 py-0.5 rounded bg-card hover:bg-cardHover border border-borderBase text-gray-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1" onclick="copyCodeSnippet(this)" title="Copy snippet">
+                        <button class="px-2 py-0.5 rounded bg-card hover:bg-cardHover border border-borderBase text-gray-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 btn-press" onclick="copyCodeSnippet(this)" title="Copy snippet">
                             <i class="fa-regular fa-copy text-[9px]"></i> Copy
                         </button>
                     </div>
@@ -1929,6 +1976,7 @@
                 navigator.clipboard.writeText(code.innerText);
                 btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400 text-[9px]"></i> Copied!';
                 playUiSound('click');
+                showToast('Code snippet copied to clipboard', 'success');
                 setTimeout(() => {
                     btn.innerHTML = '<i class="fa-regular fa-copy text-[9px]"></i> Copy';
                 }, 1800);
@@ -1947,14 +1995,17 @@
                 cliInput.focus();
             }
             playUiSound('click');
+            showToast('Code forwarded to Linux Shell', 'info');
         }
 
         function insertPromptPrefix(prefix) {
             userInput.value = prefix;
             userInput.focus();
             autoResizeTextarea(userInput);
+            playUiSound('click');
         }
 
+        // ── Live Website Preview Sandbox Drawer ──
         function openLivePreviewDrawer() {
             const drawer = document.getElementById('live-preview-drawer');
             if (drawer) {
@@ -1976,12 +2027,15 @@
             const iframe = document.getElementById('live-preview-iframe');
             if (iframe) {
                 iframe.src = '/preview?t=' + Date.now();
+                showToast('Live Sandbox refreshed', 'info');
             }
         }
 
         async function openWebsiteInBrowser() {
+            playUiSound('click');
             try {
                 await fetch('/api/preview/open', { method: 'POST' });
+                showToast('Opening website in native browser...', 'success');
             } catch (e) {
                 window.open('http://127.0.0.1:4545/preview', '_blank');
             }
@@ -1996,13 +2050,17 @@
                 closeLearningDrawer();
             } else {
                 drawer.classList.remove('translate-x-full');
+                playUiSound('click');
                 await refreshLearningDrawer();
             }
         }
 
         function closeLearningDrawer() {
             const drawer = document.getElementById('learning-drawer');
-            if (drawer) drawer.classList.add('translate-x-full');
+            if (drawer) {
+                drawer.classList.add('translate-x-full');
+                playUiSound('click');
+            }
         }
 
         async function refreshLearningDrawer() {
@@ -2024,12 +2082,12 @@
 
                 if (data.is_learning) {
                     if (labelEl) labelEl.innerText = 'Learning Active';
-                    if (pulseEl) pulseEl.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping';
+                    if (pulseEl) pulseEl.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
                     if (tagEl) { tagEl.innerText = 'GATHERING'; tagEl.className = 'text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold'; }
                     if (topicEl) topicEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-400 text-xs"></i> <span class="truncate">Harvesting: ${data.current_topic || 'Live Tech News'}</span>`;
                 } else {
                     if (labelEl) labelEl.innerText = data.is_idle ? 'Idle (Ready)' : 'User Active';
-                    if (pulseEl) pulseEl.className = 'w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse';
+                    if (pulseEl) pulseEl.className = 'w-2 h-2 rounded-full bg-purple-400 animate-pulse';
                     if (tagEl) { tagEl.innerText = data.is_idle ? 'IDLE' : 'STANDBY'; tagEl.className = 'text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold'; }
                     if (topicEl) topicEl.innerHTML = `<i class="fa-solid fa-bolt text-purple-400 text-xs"></i> <span class="truncate">${data.is_idle ? 'Awaiting next learning cycle' : 'Paused while user interacts'}</span>`;
                 }
@@ -2049,16 +2107,16 @@
                         listEl.innerHTML = data.recent_insights.map((item, idx) => `
                             <div class="p-3.5 rounded-xl bg-card border border-borderBase hover:border-purple-500/30 transition-all space-y-1.5">
                                 <div class="flex items-center justify-between text-[10px] text-gray-500 font-mono">
-                                    <span class="text-purple-300 px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 font-bold">${item.topic || 'Web Knowledge'}</span>
-                                    <span>${item.timestamp || ''}</span>
+                                    <span class="text-purple-300 px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 font-bold">${escapeHTML(item.topic || 'Web Knowledge')}</span>
+                                    <span>${escapeHTML(item.timestamp || '')}</span>
                                 </div>
                                 <h5 class="text-xs font-semibold text-white leading-snug">
-                                    <a href="${item.url || '#'}" target="_blank" class="hover:text-purple-300 transition-colors flex items-center gap-1">
-                                        <span>${item.title || 'Learned Article'}</span>
+                                    <a href="${escapeHTML(item.url || '#')}" target="_blank" class="hover:text-purple-300 transition-colors flex items-center gap-1">
+                                        <span>${escapeHTML(item.title || 'Learned Article')}</span>
                                         <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-gray-500"></i>
                                     </a>
                                 </h5>
-                                <p class="text-[11px] text-gray-400 leading-relaxed">${item.summary || ''}</p>
+                                <p class="text-[11px] text-gray-400 leading-relaxed">${escapeHTML(item.summary || '')}</p>
                             </div>
                         `).join('');
                     }
@@ -2069,16 +2127,20 @@
         }
 
         async function triggerManualLearning() {
+            playUiSound('click');
             const btn = document.getElementById('manual-learn-btn');
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Learning...';
             }
+            showToast('Triggered internet search & training data harvest', 'info');
             try {
                 await fetch('/api/learning/trigger', { method: 'POST' });
                 await refreshLearningDrawer();
+                showToast('Autonomous learning cycle completed', 'success');
             } catch (e) {
                 console.error(e);
+                showToast('Learning cycle error: ' + e.message, 'error');
             } finally {
                 if (btn) {
                     btn.disabled = false;
@@ -2096,6 +2158,7 @@
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Continuing...';
             }
+            playUiSound('click');
             userInput.value = "continue";
             handleSend(true);
         }
@@ -2161,10 +2224,10 @@
                                     <img src="${data.url}" alt="${escapeHTML(imgPrompt)}" class="w-full h-auto object-cover hover:scale-[1.01] transition-transform cursor-pointer" onclick="window.open('${data.url}', '_blank')">
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <a href="${data.url}" download="${data.filename}" class="px-3.5 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                                    <a href="${data.url}" download="${data.filename}" class="btn-press px-3.5 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
                                         <i class="fa-solid fa-download text-[10px]"></i> Download PNG
                                     </a>
-                                    <button onclick="window.open('${data.url}', '_blank')" class="px-3.5 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                                    <button onclick="window.open('${data.url}', '_blank')" class="btn-press px-3.5 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
                                         <i class="fa-solid fa-expand text-[10px]"></i> Full View
                                     </button>
                                 </div>
@@ -2227,10 +2290,10 @@
                                     </video>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <a href="${data.url}" download="${data.filename}" class="px-3.5 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                                    <a href="${data.url}" download="${data.filename}" class="btn-press px-3.5 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
                                         <i class="fa-solid fa-download text-[10px]"></i> Download MP4
                                     </a>
-                                    <button onclick="window.open('${data.url}', '_blank')" class="px-3.5 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
+                                    <button onclick="window.open('${data.url}', '_blank')" class="btn-press px-3.5 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-mono text-gray-300 hover:text-white transition-colors flex items-center gap-1.5">
                                         <i class="fa-solid fa-expand text-[10px]"></i> Popout
                                     </button>
                                 </div>
@@ -2338,7 +2401,7 @@
                             <i class="fa-solid fa-hourglass-half"></i>
                             <span><strong>Token Limit Reached:</strong> Generation paused at maximum token length.</span>
                         </div>
-                        <button onclick="requestContinueGeneration(this)" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer shine-btn">
+                        <button onclick="requestContinueGeneration(this)" class="btn-press px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer shine-btn">
                             <i class="fa-solid fa-play text-[10px]"></i> Continue Generating
                         </button>
                     `;
@@ -2373,10 +2436,10 @@
                             <span><strong>Live Website Generated:</strong> Sandbox environment compiled.</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="openLivePreviewDrawer()" class="px-3 py-1.5 rounded-lg bg-cyan-600/25 hover:bg-cyan-600/40 border border-cyan-500/40 text-cyan-200 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer">
+                            <button onclick="openLivePreviewDrawer()" class="btn-press px-3 py-1.5 rounded-lg bg-cyan-600/25 hover:bg-cyan-600/40 border border-cyan-500/40 text-cyan-200 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-eye text-[10px]"></i> Live Sandbox
                             </button>
-                            <button onclick="openWebsiteInBrowser()" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shine-btn cursor-pointer">
+                            <button onclick="openWebsiteInBrowser()" class="btn-press px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shine-btn cursor-pointer">
                                 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Open in Browser
                             </button>
                         </div>
@@ -2388,7 +2451,7 @@
                 const footer = document.createElement('div');
                 footer.className = "flex items-center gap-2 mt-2.5 text-gray-500";
                 footer.innerHTML = `
-                    <button onclick="copyToClipboard(this)" class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 font-mono transition-colors" title="Copy text">
+                    <button onclick="copyToClipboard(this)" class="btn-press flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 font-mono transition-colors cursor-pointer" title="Copy text">
                         <i class="fa-regular fa-copy text-xs"></i>
                         <span>${currentModel.toUpperCase()} • 528 tok/s</span>
                     </button>
@@ -2398,6 +2461,7 @@
 
             } catch (err) {
                 streamBody.innerHTML = `<span class="text-rose-400 text-xs font-mono">Error: ${err.message}</span>`;
+                showToast('Chat error: ' + err.message, 'error');
             } finally {
                 setLoadingState(false);
             }
@@ -2407,7 +2471,7 @@
             isWaiting = loading;
             if (loading) {
                 sendBtn.disabled = true;
-                sendBtn.innerHTML = '<div class="w-2 h-2 rounded-full bg-black animate-ping"></div>';
+                sendBtn.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-black animate-ping"></div>';
             } else {
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '<i class="fa-solid fa-arrow-up text-xs"></i>';
@@ -2420,7 +2484,7 @@
             
             if (sender === 'user') {
                 wrapper.innerHTML = `
-                    <div class="bg-[#181a24] text-white rounded-[20px] px-5 py-3.5 max-w-[85%] text-sm leading-relaxed border border-white/10 shadow-lg">
+                    <div class="bg-[#141724] text-white rounded-[20px] px-5 py-3.5 max-w-[85%] text-sm leading-relaxed border border-white/10 shadow-lg">
                         ${escapeHTML(content)}
                     </div>
                 `;
@@ -2438,7 +2502,7 @@
                             ${formatMarkdownWithThinking(content)}
                         </div>
                         <div class="flex items-center gap-2 mt-2.5 text-gray-500">
-                            <button onclick="copyToClipboard(this)" class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 font-mono transition-colors" title="Copy text">
+                            <button onclick="copyToClipboard(this)" class="btn-press flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 font-mono transition-colors cursor-pointer" title="Copy text">
                                 <i class="fa-regular fa-copy text-xs"></i>
                                 <span>${currentModel.toUpperCase()} • 528 tok/s</span>
                             </button>
@@ -2468,10 +2532,12 @@
             userInput.value = initialPrompt;
             userInput.focus();
             autoResizeTextarea(userInput);
+            showToast(`Deployed ${agentName}`, 'success');
         }
 
         // ── CLI Terminal Engine ──
         async function runCliCommand(cmd) {
+            playUiSound('click');
             const screen = document.getElementById('terminal-screen');
             screen.innerHTML += `
                 <div class="text-cyan-400 mt-2 font-bold">cdx@linux:~$ ${escapeHTML(cmd)}</div>
@@ -2517,12 +2583,14 @@
         }
 
         function clearCliTerminal() {
+            playUiSound('click');
             const screen = document.getElementById('terminal-screen');
             screen.innerHTML = `
                 <div class="text-emerald-400 font-bold">The Codex Group [Version 1.7.0] — Linux CLI GUI Shell</div>
                 <div class="text-gray-500">Created by Saad Kashif. Type any command below to execute directly on your PC.</div>
                 <div class="text-gray-700">────────────────────────────────────────────────────────────────────────────────</div>
             `;
+            showToast('Terminal console cleared', 'info');
         }
 
         // ── Usage & Heatmap ──
@@ -2549,6 +2617,7 @@
 
         function renderHeatmap(history) {
             const grid = document.getElementById('heatmap-grid');
+            if (!grid) return;
             grid.innerHTML = '';
 
             const days = history.length > 0 ? history : Array(35).fill({total_tokens: 0, turns_count: 0});
@@ -2577,11 +2646,14 @@
                 navigator.clipboard.writeText(mdBody.innerText);
                 const i = btn.querySelector('i');
                 i.className = 'fa-solid fa-check text-emerald-400 text-xs';
+                playUiSound('click');
+                showToast('Copied to clipboard!', 'success');
                 setTimeout(() => i.className = 'fa-regular fa-copy text-xs', 2000);
             }
         }
 
         function exportChatTranscript() {
+            playUiSound('click');
             const sess = sessions[activeSessionIndex];
             const text = sess.messages.map(m => `[${m.role.toUpperCase()}]:\n${m.content}\n`).join('\n---\n\n');
             const blob = new Blob([text], {type: 'text/plain'});
@@ -2589,10 +2661,12 @@
             a.href = URL.createObjectURL(blob);
             a.download = `cdx-chat-${Date.now()}.txt`;
             a.click();
+            showToast('Chat transcript exported', 'success');
         }
 
         function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, tag => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
             }[tag]));
         }
@@ -2606,14 +2680,20 @@
                 input.value = presetText;
                 input.focus();
                 playUiSound('click');
+                showToast('Loaded Swarm preset directive', 'info');
             }
+        }
+
+        function openSwarmLivePreview() {
+            playUiSound('click');
+            openLivePreviewDrawer();
         }
 
         async function launchSwarmMission() {
             const input = document.getElementById('swarm-mission-input');
             const mission = (input ? input.value : '').trim();
             if (!mission) {
-                alert('Please enter a swarm mission directive.');
+                showToast('Please enter a swarm mission directive', 'warn');
                 return;
             }
 
@@ -2684,6 +2764,7 @@
                 }
 
                 playUiSound('complete');
+                showToast('Swarm synthesis complete!', 'success');
             } catch (err) {
                 console.error('Swarm error:', err);
                 nodes.forEach(n => {
@@ -2699,6 +2780,7 @@
                     resBody.innerHTML = `<span class="text-rose-400 font-mono">Swarm Execution Failed: ${escapeHTML(err.message)}</span>`;
                     resPanel.classList.remove('hidden');
                 }
+                showToast('Swarm execution failed: ' + err.message, 'error');
             } finally {
                 if (launchBtn) {
                     launchBtn.disabled = false;
@@ -2708,13 +2790,14 @@
         }
 
         function copySwarmSynthesis() {
+            playUiSound('click');
             if (!latestSwarmResult || !latestSwarmResult.synthesis) {
                 const body = document.getElementById('swarm-synthesis-body');
                 if (body) navigator.clipboard.writeText(body.innerText);
             } else {
                 navigator.clipboard.writeText(latestSwarmResult.synthesis);
             }
-            playUiSound('click');
+            showToast('Swarm synthesis copied to clipboard', 'success');
         }
 
         function sendSwarmToChat() {
@@ -2736,15 +2819,16 @@
             renderActiveSessionMessages();
             switchTab('chat');
             playUiSound('complete');
+            showToast('Loaded Swarm synthesis into chat', 'success');
         }
 
         function selectSwarmModelTab(modelKey) {
             document.querySelectorAll('.swarm-model-tab').forEach(b => {
-                b.className = "swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all";
+                b.className = "btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all cursor-pointer";
             });
             const activeBtn = document.getElementById(`swarm-tab-${modelKey}`);
             if (activeBtn) {
-                activeBtn.className = "swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 transition-all";
+                activeBtn.className = "btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 transition-all cursor-pointer";
             }
             playUiSound('click');
 
@@ -2782,9 +2866,9 @@
 
         function filterAgentsByTag(tag, btn) {
             document.querySelectorAll('.agent-tag-btn').forEach(b => {
-                b.className = "agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase";
+                b.className = "btn-press agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase cursor-pointer";
             });
-            btn.className = "agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+            btn.className = "btn-press agent-tag-btn px-3 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 cursor-pointer";
             playUiSound('click');
 
             const input = document.getElementById('agent-search-input');
@@ -2800,10 +2884,6 @@
         // Initialize engines
         renderSessionsList();
         initParticles();
-
-        document.getElementById('history-search-input')?.addEventListener('input', (e) => {
-            filterSessions(e.target.value);
-        });
     </script>
 </body>
 </html>
