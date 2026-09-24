@@ -453,8 +453,18 @@
     <!-- Main Content Container -->
     <main class="flex-1 flex flex-col bg-oled relative overflow-hidden z-10">
         
-        <!-- Header Actions with Audio & Particle Controls -->
-        <header class="absolute top-0 right-0 p-4 flex items-center gap-2 z-20">
+        <!-- Top Floating Control Header -->
+        <header class="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-20 pointer-events-none">
+            <div class="flex items-center gap-2 pointer-events-auto">
+                <button onclick="toggleSidebar()" class="flex items-center justify-center w-8 h-8 rounded-lg bg-surface border border-borderLight hover:bg-surfaceHover text-gray-400 hover:text-white transition-colors" title="Toggle Sidebar (⌘ B)">
+                    <i class="fa-solid fa-bars text-xs"></i>
+                </button>
+                <div class="hidden sm:flex items-center gap-2 px-3 py-1 bg-surface/90 border border-borderLight rounded-lg text-xs font-mono text-emerald-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>528 tok/s LPU Active</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 pointer-events-auto">
             <!-- Sound Effects Toggle -->
             <button id="sound-toggle-btn" onclick="toggleSound()" title="Toggle Sound FX" class="flex items-center justify-center w-8 h-8 rounded-lg bg-surface border border-borderLight hover:bg-surfaceHover text-gray-300 hover:text-white transition-colors">
                 <i class="fa-solid fa-volume-high text-xs" id="sound-icon"></i>
@@ -494,7 +504,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                         
                         <!-- Build Portfolio / Website -->
-                        <button onclick="fillAndSend('Build me a stunning, responsive portfolio website with hero section, project showcase, interactive dark mode, and contact form in modern HTML/CSS/Tailwind.')" class="glass-card card-emerald stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                        <button onclick="fillAndSend('Build me a stunning, responsive portfolio website with hero section, project showcase, interactive dark mode, and contact form in modern HTML/CSS/Tailwind.')" class="glass-card card-emerald stars-bg p-5 rounded-2xl text-left flex flex-col justify-between min-h-[165px] group">
                             <div class="card-content">
                                 <i class="fa-solid fa-laptop-code text-emerald-400 bg-emerald-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
                                 <h3 class="text-sm font-semibold text-white mb-1">Build Website / Portfolio</h3>
@@ -504,7 +514,7 @@
                         </button>
 
                         <!-- Code Synthesis -->
-                        <button onclick="fillAndSend('Write a production-grade FastAPI service with SQLite, automated pytest suite, and type annotations.')" class="glass-card card-teal stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                        <button onclick="fillAndSend('Write a production-grade FastAPI service with SQLite, automated pytest suite, and type annotations.')" class="glass-card card-teal stars-bg p-5 rounded-2xl text-left flex flex-col justify-between min-h-[165px] group">
                             <div class="card-content">
                                 <i class="fa-solid fa-code text-teal-400 bg-teal-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
                                 <h3 class="text-sm font-semibold text-white mb-1">Full-Stack Backend</h3>
@@ -514,7 +524,7 @@
                         </button>
 
                         <!-- CLI in GUI -->
-                        <button onclick="switchTab('terminal')" class="glass-card card-blue stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                        <button onclick="switchTab('terminal')" class="glass-card card-blue stars-bg p-5 rounded-2xl text-left flex flex-col justify-between min-h-[165px] group">
                             <div class="card-content">
                                 <i class="fa-solid fa-terminal text-blue-400 bg-blue-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
                                 <h3 class="text-sm font-semibold text-white mb-1">GUI Terminal Shell</h3>
@@ -524,7 +534,7 @@
                         </button>
 
                         <!-- Specialized Agents -->
-                        <button onclick="switchTab('agents')" class="glass-card card-purple stars-bg p-5 rounded-2xl text-left flex flex-col justify-between aspect-[4/3] group">
+                        <button onclick="switchTab('agents')" class="glass-card card-purple stars-bg p-5 rounded-2xl text-left flex flex-col justify-between min-h-[165px] group">
                             <div class="card-content">
                                 <i class="fa-solid fa-users-gear text-purple-400 bg-purple-500/10 p-2 rounded-lg text-sm mb-3 inline-block"></i>
                                 <h3 class="text-sm font-semibold text-white mb-1">Specialized Agents</h3>
@@ -559,47 +569,55 @@
                         </button>
                     </div>
 
-                    <!-- Quick Media Action Bar -->
-                    <div class="flex items-center justify-between px-2 text-xs">
-                        <div class="flex items-center gap-2">
-                            <button onclick="insertPromptPrefix('/image ')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface/80 hover:bg-surface border border-borderLight text-gray-400 hover:text-emerald-400 transition-colors">
-                                <i class="fa-solid fa-image text-[10px]"></i> Image
-                            </button>
-                            <button onclick="insertPromptPrefix('/video ')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface/80 hover:bg-surface border border-borderLight text-gray-400 hover:text-cyan-400 transition-colors">
-                                <i class="fa-solid fa-film text-[10px]"></i> Video
-                            </button>
-                            <button onclick="openLivePreviewDrawer()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface/80 hover:bg-surface border border-borderLight text-gray-400 hover:text-teal-400 transition-colors">
-                                <i class="fa-solid fa-window-restore text-[10px]"></i> Live Sandbox
-                            </button>
-                        </div>
-                        <div class="text-[10px] text-gray-500 font-mono hidden sm:block">
-                            Virtue: Never Refuses • Fully Legal &amp; Defensive
-                        </div>
-                    </div>
-
-                    <!-- Input Box -->
-                    <div class="relative bg-surface rounded-full border border-borderLight flex items-center p-1.5 focus-within:border-emerald-500/70 transition-colors shadow-2xl">
-                        <input 
-                            type="text" 
+                    <!-- Unified Pro Input Command Card (Cursor & shadcn style) -->
+                    <div class="w-full glass-card rounded-2xl border border-white/10 p-3 shadow-2xl focus-within:border-emerald-500/70 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-all bg-[#0d0f14]/95 backdrop-blur-2xl space-y-2.5">
+                        <!-- Auto-expanding Input Area -->
+                        <textarea 
                             id="user-input" 
-                            placeholder="Ask CDX anything or type /image or /video..." 
-                            class="w-full bg-transparent text-white pl-4 pr-12 py-2 outline-none text-sm placeholder-gray-500 font-sans"
-                            onkeydown="handleEnter(event)"
-                        >
-                        <button 
-                            id="send-btn"
-                            onclick="handleSend()"
-                            class="absolute right-2 w-8 h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-white transition-colors disabled:opacity-50">
-                            <i class="fa-solid fa-arrow-up text-sm"></i>
-                        </button>
-                    </div>
+                            rows="2" 
+                            placeholder="Ask CDX anything, or build a complete website/tool (Enter to send, Shift+Enter for newline)..." 
+                            class="w-full bg-transparent text-white px-2 py-1 outline-none text-sm placeholder-gray-500 font-sans resize-none leading-relaxed"
+                            onkeydown="handleTextareaKey(event)"
+                            oninput="autoResizeTextarea(this)"
+                        ></textarea>
 
-                    <!-- Bottom Status Bar -->
-                    <div class="flex items-center justify-between px-2 text-[11px] text-gray-500 mt-0.5">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] text-gray-500 font-mono">
-                                Created by Saad Kashif
-                            </span>
+                        <!-- Bottom Action Toolbar inside the input card -->
+                        <div class="flex items-center justify-between pt-2 border-t border-white/5">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <!-- Active Model Tag -->
+                                <button onclick="toggleModelDropdown(event)" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface border border-borderLight hover:border-gray-500 text-gray-300 text-xs font-mono transition-colors">
+                                    <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
+                                    <span id="input-model-chip">cdx 3.2 LPU Ultra</span>
+                                    <i class="fa-solid fa-chevron-down text-[9px] text-gray-500"></i>
+                                </button>
+                                <!-- Media Action Pills -->
+                                <button onclick="insertPromptPrefix('/image ')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-surfaceHover border border-borderLight text-gray-400 hover:text-emerald-400 text-xs transition-colors" title="Generate Image with FLUX">
+                                    <i class="fa-solid fa-image text-[10px] text-emerald-400"></i>
+                                    <span>Image</span>
+                                </button>
+                                <button onclick="insertPromptPrefix('/video ')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-surfaceHover border border-borderLight text-gray-400 hover:text-cyan-400 text-xs transition-colors" title="Generate Motion Video">
+                                    <i class="fa-solid fa-film text-[10px] text-cyan-400"></i>
+                                    <span>Video</span>
+                                </button>
+                                <button onclick="openLivePreviewDrawer()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-surfaceHover border border-borderLight text-gray-400 hover:text-teal-400 text-xs transition-colors" title="Toggle Live Sandbox Drawer">
+                                    <i class="fa-solid fa-window-restore text-[10px] text-teal-400"></i>
+                                    <span>Sandbox</span>
+                                </button>
+                                <button onclick="switchTab('swarm')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-surfaceHover border border-borderLight text-gray-400 hover:text-purple-400 text-xs transition-colors" title="Subagents Swarm">
+                                    <i class="fa-solid fa-network-wired text-[10px] text-purple-400"></i>
+                                    <span>Swarm</span>
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] text-gray-500 font-mono hidden sm:inline-block">Created by Saad Kashif</span>
+                                <button 
+                                    id="send-btn"
+                                    onclick="handleSend()"
+                                    class="w-8 h-8 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center transition-all disabled:opacity-40 shine-btn shadow-md shadow-emerald-500/20 font-bold flex-shrink-0 cursor-pointer">
+                                    <i class="fa-solid fa-arrow-up text-xs"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
