@@ -503,6 +503,100 @@
                 linear-gradient(90deg, rgba(0, 223, 216, 0.08) 1px, transparent 1px);
             background-size: 36px 36px;
         }
+
+        /* ═══════════════════════════════════════════════════════════
+           SKY THEME: 1:1 REPLICATION (CUMULUS CLOUDS & SKY BLUE)
+        ════════════════════════════════════════════════════════════ */
+        .sky-clouds-viewport {
+            background: 
+                radial-gradient(ellipse 90% 60% at 50% 18%, rgba(255, 255, 255, 0.88), transparent 65%),
+                radial-gradient(circle 500px at 15% 25%, rgba(255, 255, 255, 0.95), transparent 55%),
+                radial-gradient(circle 650px at 85% 28%, rgba(255, 255, 255, 0.92), transparent 55%),
+                radial-gradient(circle 450px at 50% 85%, rgba(255, 255, 255, 0.98), transparent 65%),
+                linear-gradient(180deg, #1d74e8 0%, #3b8cf5 22%, #68a9f8 44%, #b4d7fc 70%, #d8ebfd 88%, #edf5fe 100%) !important;
+            background-attachment: fixed !important;
+            background-size: 100% 100% !important;
+        }
+
+        /* Animated realistic clouds layer */
+        .cumulus-cloud-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.7) 0, transparent 40px),
+                radial-gradient(circle at 20% 15%, rgba(255,255,255,0.85) 0, transparent 70px),
+                radial-gradient(circle at 26% 22%, rgba(255,255,255,0.8) 0, transparent 60px),
+                radial-gradient(circle at 80% 18%, rgba(255,255,255,0.85) 0, transparent 75px),
+                radial-gradient(circle at 88% 25%, rgba(255,255,255,0.75) 0, transparent 65px),
+                radial-gradient(circle at 92% 16%, rgba(255,255,255,0.7) 0, transparent 50px),
+                radial-gradient(circle at 5% 45%, rgba(255,255,255,0.65) 0, transparent 80px),
+                radial-gradient(circle at 95% 50%, rgba(255,255,255,0.65) 0, transparent 90px);
+            filter: blur(14px);
+            opacity: 0.85;
+            z-index: 1;
+        }
+
+        /* Sky Header Promo Pill */
+        .sky-promo-capsule {
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Pure White Elevated Input Card */
+        .sky-input-box {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            box-shadow: 0 20px 45px -10px rgba(28, 78, 148, 0.28), 0 8px 16px -6px rgba(0, 0, 0, 0.08);
+            border-radius: 1.5rem;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .sky-input-box:focus-within {
+            box-shadow: 0 24px 55px -8px rgba(28, 78, 148, 0.36), 0 0 0 3px rgba(59, 130, 246, 0.25);
+            border-color: #60a5fa;
+        }
+
+        /* App Type Selector Tab (Active) */
+        .sky-app-tab-active {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1e293b;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+        }
+        .sky-app-tab-inactive {
+            background: rgba(255, 255, 255, 0.28);
+            color: #475569;
+            font-weight: 500;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+        }
+        .sky-app-tab-inactive:hover {
+            background: rgba(255, 255, 255, 0.45);
+            color: #0f172a;
+        }
+
+        /* Suggestion Star Pills */
+        .sky-starter-pill {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            color: #334155;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 3px 10px rgba(28, 78, 148, 0.08);
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .sky-starter-pill:hover {
+            background: #ffffff;
+            color: #0f172a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(28, 78, 148, 0.16);
+            border-color: #93c5fd;
+        }
     </style>
 </head>
 
@@ -727,6 +821,12 @@
                         <div class="eq-bar h-1.5"></div>
                     </div>
                     <span class="text-[10px] font-mono text-gray-400 hidden sm:inline-block" id="sound-label">SFX</span>
+                </button>
+
+                <!-- Theme Toggle Button (Sky Clouds 1:1 vs OLED Pro) -->
+                <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Toggle Sky Blue 1:1 Theme / OLED Pro" class="btn-press flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-card border border-sky-400/40 hover:border-sky-300 text-sky-300 hover:text-white transition-all cursor-pointer">
+                    <i class="fa-solid fa-cloud text-[11px] text-sky-400" id="theme-icon"></i>
+                    <span class="text-[10px] font-mono font-bold" id="theme-btn-label">Sky 1:1</span>
                 </button>
 
                 <!-- Toggle Ambient Nebula Starfield -->
