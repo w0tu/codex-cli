@@ -837,242 +837,165 @@
         </header>
 
         <!-- ═══════════════════════════════════════════════════════════
-             TAB 1: CHAT & SYNTHESIS PANE
+             TAB 1: CHAT & SYNTHESIS PANE (SKY THEME 1:1 VIEWPORT)
         ════════════════════════════════════════════════════════════ -->
-        <div id="tab-chat" class="tab-pane flex-1 flex flex-col w-full h-full relative overflow-hidden">
+        <div id="tab-chat" class="tab-pane flex-1 flex flex-col w-full h-full relative overflow-hidden sky-clouds-viewport">
             
+            <!-- Animated Cumulus Clouds Layer -->
+            <div class="cumulus-cloud-layer"></div>
+
             <!-- Scrollable Chat Stream Container -->
-            <div id="chat-container" class="flex-1 overflow-y-auto w-full pt-8 pb-48 flex flex-col items-center">
+            <div id="chat-container" class="flex-1 overflow-y-auto w-full pt-4 pb-48 flex flex-col items-center relative z-10">
                 
-                <!-- Welcome Zero-State Hero Section -->
-                <div id="welcome-screen" class="w-full max-w-4xl px-6 flex flex-col items-center justify-center my-auto transition-opacity duration-300">
-                    
-                    <!-- Hero Mascot Orbital Box -->
-                    <div class="grokbot-box select-none scale-125 mb-6 animate-float">
-                        <div class="grokbot-orbit orbit-alpha"></div>
-                        <div class="grokbot-orbit orbit-beta"></div>
-                        <div class="grokbot-orb">
-                            <div class="grokbot-eye"><div class="grokbot-pupil" id="grokbot-pupil-left"></div></div>
-                            <div class="grokbot-eye"><div class="grokbot-pupil" id="grokbot-pupil-right"></div></div>
-                        </div>
-                    </div>
-
-                    <!-- Kinetic Shimmer Headline -->
-                    <h1 class="text-3xl sm:text-4xl font-extrabold mb-2 text-white tracking-tight text-center bg-gradient-to-r from-white via-slate-200 to-gray-400 bg-clip-text text-transparent">
-                        What are we building today?
-                    </h1>
-                    <p class="text-gray-400 text-xs sm:text-sm mb-8 text-center max-w-md font-sans leading-relaxed">
-                        Autonomous AI engineered by <strong class="text-white">Saad Kashif</strong>. Production code synthesis with persistent memory across turns.
-                    </p>
-
-                    <!-- 4 Spotlight Feature Cards with Vengeance & Obsidian Glow -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 w-full">
-                        
-                        <!-- Card 1: Full-Stack Web -->
-                        <button onclick="fillAndSend('Build me a stunning, responsive portfolio website with interactive projects, dark theme, smooth micro-interactions, and contact modal in modern HTML/CSS/Tailwind.')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group cursor-pointer" onmousemove="handleCardSpotlight(event, this)">
-                            <div class="relative z-10">
-                                <div class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-laptop-code text-xs"></i>
-                                </div>
-                                <h3 class="text-xs font-bold text-white mb-1 tracking-wide">Build Modern Website</h3>
-                                <p class="text-[11px] text-gray-400 leading-relaxed">Instant generation of complete websites with live sandbox preview.</p>
-                            </div>
-                            <div class="relative z-10 flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-emerald-400 font-mono">
-                                <span>Interactive Sandbox</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
-                            </div>
-                        </button>
-
-                        <!-- Card 2: Microservices Backend -->
-                        <button onclick="fillAndSend('Write a production-grade FastAPI service with SQLite, automated pytest suite, Pydantic v2 schemas, and JWT auth.')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group cursor-pointer" onmousemove="handleCardSpotlight(event, this)">
-                            <div class="relative z-10">
-                                <div class="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-server text-xs"></i>
-                                </div>
-                                <h3 class="text-xs font-bold text-white mb-1 tracking-wide">Full-Stack Backend</h3>
-                                <p class="text-[11px] text-gray-400 leading-relaxed">FastAPI, Express, or Go microservices with zero placeholders and pytest.</p>
-                            </div>
-                            <div class="relative z-10 flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-teal-400 font-mono">
-                                <span>Zero Placeholders</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
-                            </div>
-                        </button>
-
-                        <!-- Card 3: Linux Shell GUI -->
-                        <button onclick="switchTab('terminal')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group cursor-pointer" onmousemove="handleCardSpotlight(event, this)">
-                            <div class="relative z-10">
-                                <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-terminal text-xs"></i>
-                                </div>
-                                <h3 class="text-xs font-bold text-white mb-1 tracking-wide">GUI Terminal Shell</h3>
-                                <p class="text-[11px] text-gray-400 leading-relaxed">Run live bash commands directly on Linux with real-time stream output.</p>
-                            </div>
-                            <div class="relative z-10 flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-cyan-400 font-mono">
-                                <span>Real Bash Console</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
-                            </div>
-                        </button>
-
-                        <!-- Card 4: Swarm Multi-Agent -->
-                        <button onclick="switchTab('swarm')" class="spotlight-card p-5 text-left flex flex-col justify-between min-h-[168px] group cursor-pointer" onmousemove="handleCardSpotlight(event, this)">
-                            <div class="relative z-10">
-                                <div class="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-400 mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-network-wired text-xs"></i>
-                                </div>
-                                <h3 class="text-xs font-bold text-white mb-1 tracking-wide">Sub-Agents Swarm</h3>
-                                <p class="text-[11px] text-gray-400 leading-relaxed">Concurrent 4-agent DAG pipeline with Golden Synthesis evaluation.</p>
-                            </div>
-                            <div class="relative z-10 flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-violet-400 font-mono">
-                                <span>4 Concurrent Nodes</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
-                            </div>
-                        </button>
-
+                <!-- Top Promo Notification Capsule (1:1 from screenshot) -->
+                <div class="w-full flex justify-center pt-2 pb-6 px-4">
+                    <div class="sky-promo-capsule rounded-full px-4 py-1.5 flex items-center gap-2.5 shadow-xl text-xs font-sans">
+                        <span class="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] text-black font-black">
+                            <i class="fa-solid fa-gift"></i>
+                        </span>
+                        <span class="text-white text-xs font-medium tracking-wide">
+                            FLAT 95% off on standard monthly plan.
+                        </span>
+                        <span class="bg-black/40 text-gray-300 text-[10px] px-2 py-0.5 rounded-full border border-white/10 font-mono">
+                            Discount auto applied
+                        </span>
                     </div>
                 </div>
 
-                <!-- Dynamic Chat Messages Flow -->
-                <div id="chat-messages" class="w-full max-w-3xl px-6 flex flex-col gap-6 hidden"></div>
-            </div>
-
-            <!-- Floating Command Island (Cursor / ChatUI Inspired) -->
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-oled via-oled/95 to-transparent pt-10 pb-6 px-4 flex flex-col items-center z-20 select-none">
-                <div class="w-full max-w-3xl flex flex-col gap-2.5 relative">
+                <!-- Welcome Zero-State Hero Section (1:1 with Screenshot) -->
+                <div id="welcome-screen" class="w-full max-w-3xl px-6 flex flex-col items-center justify-center my-auto transition-opacity duration-300 space-y-6">
                     
-                    <!-- Suggestion Quick Dispatch Pills -->
-                    <div id="suggestions" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar w-full" style="-ms-overflow-style: none; scrollbar-width: none;">
-                        <button onclick="fillAndSend('Build me a modern dark mode personal portfolio website with interactive projects and contact form')" class="btn-press whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
-                            <i class="fa-solid fa-wand-magic-sparkles text-emerald-400 mr-1.5 text-[10px]"></i> Create Portfolio Website
-                        </button>
-                        <button onclick="fillAndSend('Write a Python script that analyzes my system performance and saves a report to ~/system_report.md')" class="btn-press whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
-                            <i class="fa-solid fa-file-code text-teal-400 mr-1.5 text-[10px]"></i> System Report Script
-                        </button>
-                        <button onclick="switchTab('terminal')" class="btn-press whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
-                            <i class="fa-solid fa-terminal text-cyan-400 mr-1.5 text-[10px]"></i> Run CLI Command
-                        </button>
-                        <button onclick="switchTab('agents')" class="btn-press whitespace-nowrap px-3.5 py-1.5 rounded-full bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 hover:text-white transition-all shadow-sm cursor-pointer">
-                            <i class="fa-solid fa-users-gear text-violet-400 mr-1.5 text-[10px]"></i> Deploy Agents
-                        </button>
-                    </div>
+                    <!-- 1:1 Screenshot Headline -->
+                    <h1 class="text-2xl sm:text-3xl md:text-[32px] font-medium text-white tracking-normal text-center drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] select-none">
+                        You have received 10 free credits for your first prompt
+                    </h1>
 
-                    <!-- Dedicated Floating Dock Model Selector Popover (Opens UPWARDS above the dock) -->
-                    <div id="dock-model-popover" class="hidden absolute bottom-full left-3 mb-2 bg-[#090c13]/98 backdrop-blur-2xl border border-borderHighlight rounded-2xl p-2 shadow-2xl z-50 animate-slide-up w-[280px] space-y-1">
-                        <div class="px-2 py-1 text-[10px] font-mono text-gray-400 uppercase tracking-wider border-b border-borderBase mb-1 flex items-center justify-between">
-                            <span>Select Inference Engine</span>
-                            <span class="text-emerald-400">Hybrid LPU</span>
+                    <!-- Main Elevated Glass Prompt Box (1:1 Replication) -->
+                    <div class="w-full max-w-2xl sky-input-box p-4 pt-3 space-y-2 relative shadow-2xl">
+                        
+                        <!-- Top Category Tabs (Web App vs Mobile App) -->
+                        <div class="flex items-center gap-2 pb-2">
+                            <button onclick="selectAppCategory('web', this)" id="tab-app-web" class="sky-app-tab-active px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer">
+                                <i class="fa-solid fa-compass text-blue-500 text-xs"></i>
+                                <span>Web App</span>
+                            </button>
+                            <button onclick="selectAppCategory('mobile', this)" id="tab-app-mobile" class="sky-app-tab-inactive px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer">
+                                <i class="fa-solid fa-mobile-screen text-gray-500 text-xs"></i>
+                                <span>Mobile App</span>
+                            </button>
                         </div>
-                        <button onclick="selectModel('cdx 3.2', 'cdx 3.2 LPU Ultra', event)" class="w-full text-left p-2 rounded-xl hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
-                            <div>
-                                <div class="font-semibold text-white group-hover:text-emerald-400 transition-colors">cdx 3.2 LPU Ultra</div>
-                                <div class="text-[10px] text-gray-400">Fast general code synthesis</div>
-                            </div>
-                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">Default</span>
-                        </button>
-                        <button onclick="selectModel('openai/gpt-oss-120b', 'cdx 3.5 Pro (120B)', event)" class="w-full text-left p-2 rounded-xl hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
-                            <div>
-                                <div class="font-semibold text-white group-hover:text-cyan-400 transition-colors">cdx 3.5 Pro (120B)</div>
-                                <div class="text-[10px] text-gray-400">Complex coding &amp; 4096 tokens</div>
-                            </div>
-                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300">4096 Tok</span>
-                        </button>
-                        <button onclick="selectModel('deepseek/deepseek-r1', 'cdx 3.6 DeepSeek R1', event)" class="w-full text-left p-2 rounded-xl hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
-                            <div>
-                                <div class="font-semibold text-white group-hover:text-purple-400 transition-colors">cdx 3.6 DeepSeek R1</div>
-                                <div class="text-[10px] text-gray-400">Chain of thought reasoning</div>
-                            </div>
-                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300">Reason</span>
-                        </button>
-                        <button onclick="selectModel('openai/gpt-oss-20b', 'cdx 2.7 Fast (20B)', event)" class="w-full text-left p-2 rounded-xl hover:bg-card text-xs flex items-center justify-between transition-colors group cursor-pointer">
-                            <div>
-                                <div class="font-semibold text-white group-hover:text-amber-400 transition-colors">cdx 2.7 Fast (20B)</div>
-                                <div class="text-[10px] text-gray-400">Fast conversational answers</div>
-                            </div>
-                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">1.2s</span>
-                        </button>
-                    </div>
 
-                    <!-- Unified Pro Command Dock wrapped with Rainbow Glow Border -->
-                    <div class="rainbow-border-box w-full shadow-2xl">
-                        <div class="w-full rounded-[1.15rem] p-3 bg-[#080a10]/98 backdrop-blur-2xl space-y-2.5 relative">
-                            
-                            <!-- Slash Commands Autocomplete Palette Popover -->
-                            <div id="slash-commands-palette" class="hidden absolute bottom-full left-0 right-0 mb-3 bg-[#0a0d16]/98 backdrop-blur-2xl border border-borderHighlight rounded-2xl p-2.5 shadow-2xl z-50 animate-slide-up space-y-1 max-h-72 overflow-y-auto">
-                                <div class="px-2 py-1 text-[10px] font-mono text-gray-500 uppercase tracking-wider flex items-center justify-between border-b border-borderBase/60 pb-1.5 mb-1">
-                                    <span class="flex items-center gap-1.5 text-emerald-400 font-bold"><i class="fa-solid fa-terminal text-[10px]"></i> Quick Slash Commands</span>
-                                    <span class="text-gray-500">↑↓ to navigate • Enter to select</span>
-                                </div>
-                                <div id="slash-commands-list" class="space-y-1"></div>
-                            </div>
-
-                            <!-- Auto-Expanding Prompt Textarea -->
+                        <!-- Main White Prompt Textarea -->
+                        <div class="relative">
                             <textarea 
                                 id="user-input" 
-                                rows="2" 
-                                placeholder="Ask CDX anything, or build a complete website/tool (Type '/' for commands)..." 
-                                class="w-full bg-transparent text-white px-2 py-1 outline-none text-sm placeholder-gray-500 font-sans resize-none leading-relaxed"
+                                rows="3" 
+                                placeholder="Describe your idea we will bring it to life..." 
+                                class="w-full bg-transparent text-slate-900 placeholder-slate-400 text-sm font-sans resize-none outline-none leading-relaxed px-1"
                                 onkeydown="handleTextareaKey(event)"
                                 oninput="handleTextareaInput(this)"
                             ></textarea>
+                        </div>
 
-                            <!-- Bottom Action Dock -->
-                            <div class="flex items-center justify-between pt-2 border-t border-white/5">
-                                <!-- Left: Action Pills & Model Selector -->
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <!-- Model Dropdown Chip (Opens upward popover) -->
-                                    <button onclick="toggleDockModelDropdown(event)" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border border-borderBase hover:border-emerald-500/40 text-gray-300 text-xs font-mono transition-colors cursor-pointer" title="Select AI Model">
-                                        <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
-                                        <span id="input-model-chip">cdx 3.2 LPU Ultra</span>
-                                        <i class="fa-solid fa-chevron-up text-[8px] text-gray-500"></i>
-                                    </button>
-
-                                    <!-- Dedicated Modal Opener Chip -->
-                                    <button onclick="openModelSelectorModal()" class="btn-press px-2 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs font-mono transition-colors cursor-pointer" title="Open Full Model Selector">
-                                        <i class="fa-solid fa-sliders text-[10px]"></i>
-                                    </button>
-                                    
-                                    <!-- Slash Commands Palette Toggle Button -->
-                                    <button onclick="toggleSlashCommandsPalette(event)" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs transition-colors cursor-pointer" title="Browse /commands">
-                                        <i class="fa-solid fa-terminal text-[10px] text-emerald-400"></i>
-                                        <span>/commands</span>
-                                    </button>
-
-                                    <!-- Tool Buttons: Image, Video, Sandbox, Swarm, Brag -->
-                                    <button onclick="insertPromptPrefix('/image ')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs transition-colors cursor-pointer" title="Generate Image with FLUX">
-                                        <i class="fa-solid fa-image text-[10px] text-emerald-400"></i>
-                                        <span>Image</span>
-                                    </button>
-                                    <button onclick="insertPromptPrefix('/video ')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-cyan-400 text-xs transition-colors cursor-pointer" title="Generate Motion Video">
-                                        <i class="fa-solid fa-film text-[10px] text-cyan-400"></i>
-                                        <span>Video</span>
-                                    </button>
-                                    <button onclick="openLivePreviewDrawer()" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-teal-400 text-xs transition-colors cursor-pointer" title="Toggle Live Sandbox Drawer">
-                                        <i class="fa-solid fa-window-restore text-[10px] text-teal-400"></i>
-                                        <span>Sandbox</span>
-                                    </button>
-                                    <button onclick="switchTab('swarm')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-violet-400 text-xs transition-colors cursor-pointer" title="Sub-Agents Swarm">
-                                        <i class="fa-solid fa-network-wired text-[10px] text-violet-400"></i>
-                                        <span>Swarm</span>
-                                    </button>
-                                    <button onclick="openCinematicAdModal()" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs transition-colors cursor-pointer" title="Launch Cinematic Ad Showcase (/brag)">
-                                        <i class="fa-solid fa-clapperboard text-[10px] text-pink-400"></i>
-                                        <span>/brag</span>
-                                    </button>
-                                </div>
-
-                                <!-- Right: Creator Tag & Shine Send Button -->
-                                <div class="flex items-center gap-3">
-                                    <span class="text-[10px] text-gray-500 font-mono hidden sm:inline-block">Saad Kashif</span>
-                                    <button 
-                                        id="send-btn"
-                                        onclick="handleSend()"
-                                        class="w-8 h-8 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center transition-all disabled:opacity-40 shine-btn shadow-lg shadow-emerald-500/25 font-bold flex-shrink-0 cursor-pointer btn-press"
-                                        title="Send Message">
-                                        <i class="fa-solid fa-arrow-up text-xs"></i>
-                                    </button>
-                                </div>
+                        <!-- Bottom Controls inside White Box (1:1 with screenshot: Plus on left, Mic & Send on right) -->
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <!-- Left: Circular Attachment Button (+) -->
+                            <div class="flex items-center gap-2">
+                                <button onclick="triggerAttachFile()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer text-xs" title="Attach file or context">
+                                    <i class="fa-solid fa-plus text-[11px]"></i>
+                                </button>
+                                <!-- Model Pill -->
+                                <button onclick="openModelSelectorModal()" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-[11px] font-mono text-slate-700 font-medium flex items-center gap-1.5 cursor-pointer">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                    <span id="sky-model-label">cdx 3.2 LPU</span>
+                                </button>
                             </div>
 
+                            <!-- Right: Microphone & Arrow Send Button (1:1 with screenshot) -->
+                            <div class="flex items-center gap-2">
+                                <button onclick="toggleVoiceInput()" id="mic-btn" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer text-xs" title="Voice Dictation">
+                                    <i class="fa-solid fa-microphone text-[11px]"></i>
+                                </button>
+                                <button 
+                                    id="send-btn"
+                                    onclick="handleSend()" 
+                                    class="w-7 h-7 rounded-full bg-slate-200 hover:bg-blue-600 hover:text-white text-slate-700 flex items-center justify-center transition-all cursor-pointer text-xs shadow-sm font-bold"
+                                    title="Submit Prompt">
+                                    <i class="fa-solid fa-arrow-up text-[11px]"></i>
+                                </button>
+                            </div>
                         </div>
+
+                    </div>
+
+                    <!-- Starter Suggestions Section (1:1 with Screenshot) -->
+                    <div class="w-full max-w-2xl flex flex-col items-center space-y-3 pt-2">
+                        <div class="text-[11px] font-medium text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] tracking-wide">
+                            Not sure where to start? Try these <span>&rarr;</span>
+                        </div>
+                        
+                        <!-- 5 Starter Pills (Exact 1:1 text from user image) -->
+                        <div class="flex flex-wrap items-center justify-center gap-2.5 w-full">
+                            <!-- 1. Directory site for cafes in a city -->
+                            <button onclick="fillAndSend('Build a directory site for cafes in a city with interactive filters, reviews, and maps')" class="sky-starter-pill rounded-full px-3.5 py-1.5 text-xs font-medium flex items-center gap-2 cursor-pointer btn-press">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-orange-400 to-amber-300 shadow-sm"></span>
+                                <span>Directory site for cafes in a city</span>
+                            </button>
+
+                            <!-- 2. Listing site for a real estate agent -->
+                            <button onclick="fillAndSend('Build a listing site for a real estate agent with modern property cards and mortgage calculator')" class="sky-starter-pill rounded-full px-3.5 py-1.5 text-xs font-medium flex items-center gap-2 cursor-pointer btn-press">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-400 shadow-sm"></span>
+                                <span>Listing site for a real estate agent</span>
+                            </button>
+
+                            <!-- 3. Tutor marketplace for a single subject -->
+                            <button onclick="fillAndSend('Build a tutor marketplace for a single subject with teacher profiles, booking calendars, and ratings')" class="sky-starter-pill rounded-full px-3.5 py-1.5 text-xs font-medium flex items-center gap-2 cursor-pointer btn-press">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-purple-400 to-pink-400 shadow-sm"></span>
+                                <span>Tutor marketplace for a single subject</span>
+                            </button>
+
+                            <!-- 4. Wholesale order form for an indie food brand -->
+                            <button onclick="fillAndSend('Build a wholesale order form for an indie food brand with tier quantity pricing and invoice summary')" class="sky-starter-pill rounded-full px-3.5 py-1.5 text-xs font-medium flex items-center gap-2 cursor-pointer btn-press">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-indigo-400 to-violet-400 shadow-sm"></span>
+                                <span>Wholesale order form for an indie food brand</span>
+                            </button>
+
+                            <!-- 5. Portfolio dashboard for a crypto investor -->
+                            <button onclick="fillAndSend('Build a portfolio dashboard for a crypto investor with real-time token telemetry and profit charts')" class="sky-starter-pill rounded-full px-3.5 py-1.5 text-xs font-medium flex items-center gap-2 cursor-pointer btn-press">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-300 shadow-sm"></span>
+                                <span>Portfolio dashboard for a crypto investor</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Dynamic Chat Messages Flow (When conversation starts) -->
+                <div id="chat-messages" class="w-full max-w-3xl px-6 flex flex-col gap-6 hidden"></div>
+            </div>
+
+            <!-- Floating Command Island (Shown during active chat turns) -->
+            <div id="bottom-dock-container" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-transparent pt-8 pb-5 px-4 flex flex-col items-center z-20 select-none hidden">
+                <div class="w-full max-w-3xl flex flex-col gap-2 relative">
+                    
+                    <!-- Quick suggestions pill row -->
+                    <div id="suggestions" class="hidden"></div>
+
+                    <!-- Compact Dock Input Island -->
+                    <div class="w-full rounded-2xl p-2.5 bg-white/95 backdrop-blur-2xl border border-white/80 shadow-2xl flex items-center gap-2">
+                        <textarea 
+                            id="dock-user-input" 
+                            rows="1" 
+                            placeholder="Ask follow-up question, add features, or refine code..." 
+                            class="flex-1 bg-transparent text-slate-900 placeholder-slate-400 px-3 py-1 outline-none text-sm font-sans resize-none"
+                            onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendFromDock(); }"
+                        ></textarea>
+                        <button onclick="openLivePreviewDrawer()" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-window-restore text-[10px] text-blue-500"></i> Sandbox
+                        </button>
+                        <button onclick="sendFromDock()" class="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-all cursor-pointer font-bold shadow-md">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                        </button>
                     </div>
 
                 </div>
@@ -2340,8 +2263,10 @@
             
             const sidebarTitle = document.getElementById('sidebar-active-model-title');
             const dockChip = document.getElementById('input-model-chip');
+            const skyChip = document.getElementById('sky-model-label');
             if (sidebarTitle) sidebarTitle.innerText = label;
             if (dockChip) dockChip.innerText = label;
+            if (skyChip) skyChip.innerText = label;
 
             // Close dropdowns & modals
             const sidebarDd = document.getElementById('sidebar-model-dropdown');
@@ -2437,16 +2362,19 @@
         function renderActiveSessionMessages() {
             const sess = sessions[activeSessionIndex];
             chatMessages.innerHTML = '';
+            const bottomDock = document.getElementById('bottom-dock-container');
 
             if (sess.messages.length === 0) {
                 welcomeScreen.classList.remove('hidden');
                 welcomeScreen.classList.remove('opacity-0');
                 chatMessages.classList.add('hidden');
                 suggestionsBox.classList.remove('hidden');
+                if (bottomDock) bottomDock.classList.add('hidden');
             } else {
                 welcomeScreen.classList.add('hidden');
                 chatMessages.classList.remove('hidden');
                 suggestionsBox.classList.add('hidden');
+                if (bottomDock) bottomDock.classList.remove('hidden');
 
                 sess.messages.forEach(msg => {
                     appendMessageDOM(msg.content, msg.role);
@@ -2650,8 +2578,113 @@
             welcomeScreen.classList.remove('hidden', 'opacity-0');
             chatMessages.classList.add('hidden');
             suggestionsBox.classList.remove('hidden');
+            const bottomDock = document.getElementById('bottom-dock-container');
+            if (bottomDock) bottomDock.classList.add('hidden');
             playUiSound('click');
             showToast('Conversation cleared', 'info');
+        }
+
+        // ── Sky 1:1 Theme & Interaction Handlers ──
+        let activeAppCategory = 'web';
+        let currentTheme = 'sky'; // Default to user's 1:1 Sky Theme
+
+        function selectAppCategory(cat, btn) {
+            playUiSound('click');
+            activeAppCategory = cat;
+            const webBtn = document.getElementById('tab-app-web');
+            const mobileBtn = document.getElementById('tab-app-mobile');
+            if (webBtn && mobileBtn) {
+                if (cat === 'web') {
+                    webBtn.className = "sky-app-tab-active px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer";
+                    mobileBtn.className = "sky-app-tab-inactive px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer";
+                    userInput.placeholder = "Describe your web app idea we will bring it to life...";
+                } else {
+                    mobileBtn.className = "sky-app-tab-active px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer";
+                    webBtn.className = "sky-app-tab-inactive px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer";
+                    userInput.placeholder = "Describe your mobile app or React Native layout...";
+                }
+            }
+        }
+
+        function triggerAttachFile() {
+            playUiSound('click');
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.txt,.md,.py,.js,.html,.css,.json,.png,.jpg';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    showToast(`Attached file: ${file.name}`, 'success');
+                    userInput.value += `\n[Context attached: ${file.name}]\n`;
+                    autoResizeTextarea(userInput);
+                }
+            };
+            input.click();
+        }
+
+        function toggleVoiceInput() {
+            playUiSound('click');
+            const micBtn = document.getElementById('mic-btn');
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showToast('Speech Recognition not supported in this browser', 'warn');
+                return;
+            }
+            try {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                if (micBtn) micBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i>';
+                showToast('Listening... Speak your prompt', 'info');
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    userInput.value += (userInput.value ? ' ' : '') + transcript;
+                    autoResizeTextarea(userInput);
+                    showToast('Captured speech', 'success');
+                    if (micBtn) micBtn.innerHTML = '<i class="fa-solid fa-microphone text-[11px]"></i>';
+                };
+                recognition.onerror = () => {
+                    if (micBtn) micBtn.innerHTML = '<i class="fa-solid fa-microphone text-[11px]"></i>';
+                };
+                recognition.onend = () => {
+                    if (micBtn) micBtn.innerHTML = '<i class="fa-solid fa-microphone text-[11px]"></i>';
+                };
+                recognition.start();
+            } catch (err) {
+                showToast('Mic access error: ' + err.message, 'error');
+            }
+        }
+
+        function sendFromDock() {
+            const dockInput = document.getElementById('dock-user-input');
+            if (dockInput && dockInput.value.trim()) {
+                userInput.value = dockInput.value.trim();
+                dockInput.value = '';
+                handleSend();
+            }
+        }
+
+        function toggleThemeMode() {
+            playUiSound('click');
+            const tabChat = document.getElementById('tab-chat');
+            const themeBtn = document.getElementById('theme-toggle-btn');
+            const themeIcon = document.getElementById('theme-icon');
+            const themeLabel = document.getElementById('theme-btn-label');
+
+            if (currentTheme === 'sky') {
+                currentTheme = 'oled';
+                if (tabChat) tabChat.classList.remove('sky-clouds-viewport');
+                if (themeLabel) themeLabel.innerText = 'OLED Pro';
+                if (themeIcon) { themeIcon.className = 'fa-solid fa-moon text-[11px] text-purple-400'; }
+                showToast('Switched to OLED Dark Space theme', 'info');
+            } else {
+                currentTheme = 'sky';
+                if (tabChat) tabChat.classList.add('sky-clouds-viewport');
+                if (themeLabel) themeLabel.innerText = 'Sky 1:1';
+                if (themeIcon) { themeIcon.className = 'fa-solid fa-cloud text-[11px] text-sky-400'; }
+                showToast('Switched to 1:1 Sky Clouds theme', 'success');
+            }
         }
 
         // ── Deep Reasoning Collapsible & Code Block Enhancement ──
@@ -2907,6 +2940,8 @@
                     welcomeScreen.classList.add('hidden');
                     chatMessages.classList.remove('hidden');
                     suggestionsBox.classList.add('hidden');
+                    const bottomDock = document.getElementById('bottom-dock-container');
+                    if (bottomDock) bottomDock.classList.remove('hidden');
                 }, 150);
             }
 
