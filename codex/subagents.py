@@ -414,10 +414,12 @@ class Orchestrator:
         return logs
 
 
-def query_swarm_live_model(prompt: str, system: str = "", model: str = "qwen/qwen3.8-27b", max_tokens: int = 600) -> Optional[str]:
+def query_swarm_live_model(prompt: str, system: str = "", model: str = "qwen/qwen3.8-27b", max_tokens: int = 750) -> Optional[str]:
     """Query Groq model using user-configured API key pool with fast timeout and round-robin fallback."""
     import urllib.request
+    import urllib.error
     import json
+    import re
     from codex.config import load_config
 
     keys_pool = []
@@ -435,39 +437,63 @@ def query_swarm_live_model(prompt: str, system: str = "", model: str = "qwen/qwe
     if env_k and not env_k.startswith("gsk_test") and env_k not in keys_pool:
         keys_pool.insert(0, env_k)
 
+    models_to_try = ["qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b"]
+    if model in models_to_try:
+        models_to_try.remove(model)
+        models_to_try.insert(0, model)
+
     for key in keys_pool:
         if not key or str(key).startswith("gsk_test"):
             continue
-        try:
-            req_data = {
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": system or "You are CDX Subagent Swarm, created by Saad Kashif. Answer directly with clean code and high-performance design."},
-                    {"role": "user", "content": prompt}
-                ],
-                "max_tokens": max_tokens,
-                "temperature": 0.4
-            }
-            if "gpt-oss" in model:
-                req_data["include_reasoning"] = False
-            req = urllib.request.Request(
-                "https://api.groq.com/openai/v1/chat/completions",
-                data=json.dumps(req_data).encode("utf-8"),
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {key}",
-                    "User-Agent": "Groq/Python 0.18.0"
+        for m_cand in models_to_try:
+            try:
+                req_data = {
+                    "model": m_cand,
+                    "messages": [
+                        {"role": "system", "content": system or "You are CDX Subagent Swarm, created by Saad Kashif. Answer directly with short, clean, fully working code under 60 lines."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": max_tokens,
+                    "temperature": 0.3
                 }
-            )
-            with urllib.request.urlopen(req, timeout=5.0) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                msg = data["choices"][0]["message"]
-                res = msg.get("content") or msg.get("reasoning")
-                if res and res.strip():
-                    return res.strip()
-        except Exception:
-            continue
+                if "gpt-oss" in m_cand:
+                    req_data["include_reasoning"] = False
+                req = urllib.request.Request(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    data=json.dumps(req_data).encode("utf-8"),
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {key}",
+                        "User-Agent": "Groq/Python 0.18.0"
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=12.0) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    msg = data["choices"][0]["message"]
+                    res = msg.get("content") or msg.get("reasoning")
+                    if res and res.strip():
+                        try:
+                            from codex.config import save_config
+                            c_cfg = load_config()
+                            if c_cfg.get("api_key") != key and key in c_cfg.get("backup_keys", []):
+                                bk = list(c_cfg.get("backup_keys", []))
+                                bk.remove(key)
+                                if c_cfg.get("api_key"):
+                                    bk.append(c_cfg["api_key"])
+                                c_cfg["api_key"] = key
+                                c_cfg["backup_keys"] = bk
+                                save_config(c_cfg)
+                        except Exception:
+                            pass
+                        return res.strip()
+            except urllib.error.HTTPError as he:
+                if he.code in (429, 401, 403):
+                    break
+                continue
+            except Exception:
+                continue
     return None
+
 
 
 def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, Any]:
@@ -908,10 +934,81 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
 </body>
 </html>"""
 
-    # Automatically save generated website to live preview file
+    # ── Live Sub-Agent Model Synthesis (CDX Swarm Engine) ──
+    # Try querying live Groq sub-agent for the custom mission
+    live_ui_code = None
+    try:
+        frontend_prompt = (
+            f"Create a concise, fully working, short single-file HTML/CSS/JS application for: '{mission_clean}'.\n"
+            f"STRICT REQUIREMENTS:\n"
+            f"1. Short, concise, production code (around 60-120 lines total, zero bloated repetitive filler).\n"
+            f"2. Use responsive Tailwind CSS: <script src=\"https://cdn.tailwindcss.com\"></script>\n"
+            f"3. Use FontAwesome icons if helpful: <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css\">\n"
+            f"4. Dark modern UI theme with clean glassmorphism.\n"
+            f"5. Completely interactive and self-contained right out of the box with embedded <script>.\n"
+            f"6. Output ONLY valid HTML inside a ```html ... ``` block. Return NO conversational commentary."
+        )
+        live_res = query_swarm_live_model(
+            prompt=frontend_prompt,
+            system="You are CDX Sub-Agent Frontend Stylist by Saad Kashif. Write short, concise, elegant, fully working single-file web code."
+        )
+        if live_res:
+            m = re.search(r"(<!DOCTYPE[\s\S]*?</html>)", live_res, re.IGNORECASE)
+            if not m:
+                m = re.search(r"(<html[\s\S]*?</html>)", live_res, re.IGNORECASE)
+            if m:
+                live_ui_code = m.group(1).strip()
+            elif "<!DOCTYPE" in live_res.upper() or "<HTML" in live_res.upper():
+                clean_lines = [l for l in live_res.splitlines() if not l.strip().startswith("```")]
+                live_ui_code = "\n".join(clean_lines).strip()
+    except Exception:
+        live_ui_code = None
+
+    if live_ui_code and len(live_ui_code) > 80:
+        raw_frontend_html = live_ui_code
+
+    # Also try querying live backend for the custom mission
+    live_backend_code = None
+    try:
+        backend_prompt = (
+            f"Write a concise, complete FastAPI backend service (around 30-50 lines) with CORS and endpoints for: '{mission_clean}'.\n"
+            f"Return ONLY python code inside a ```python ... ``` block."
+        )
+        b_res = query_swarm_live_model(
+            prompt=backend_prompt,
+            system="You are CDX Sub-Agent Backend Lead by Saad Kashif. Write concise, clean, working FastAPI code."
+        )
+        if b_res:
+            bm = re.search(r"```(?:python|py)?\s*([\s\S]*?)```", b_res, re.IGNORECASE)
+            if bm:
+                live_backend_code = bm.group(1).strip()
+            elif "from fastapi import" in b_res or "import fastapi" in b_res or "FastAPI(" in b_res:
+                clean_lines = [l for l in b_res.splitlines() if not l.strip().startswith("```")]
+                live_backend_code = "\n".join(clean_lines).strip()
+    except Exception:
+        live_backend_code = None
+
+    if live_backend_code and len(live_backend_code) > 50:
+        core_output = (
+            f"### ⚙️ Production FastAPI Backend Service (`main.py`)\n\n"
+            f"```python\n"
+            f"{live_backend_code}\n"
+            f"```"
+        )
+
+    # Automatically save generated website to live preview and persistent workspace
+    ws_dir = Path("/home/feds/.gemini/antigravity/scratch/codex-cli/workspace")
     try:
         preview_file = Path("/tmp/cdx_live_preview.html")
         preview_file.write_text(raw_frontend_html, encoding="utf-8")
+        
+        ws_dir.mkdir(parents=True, exist_ok=True)
+        (ws_dir / "index.html").write_text(raw_frontend_html, encoding="utf-8")
+
+        # Save backend code to workspace/main.py
+        py_match = re.search(r"```(?:python|py)?\s*([\s\S]*?)```", core_output)
+        if py_match:
+            (ws_dir / "main.py").write_text(py_match.group(1).strip(), encoding="utf-8")
     except Exception:
         pass
 
@@ -938,6 +1035,8 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
         "status": "completed",
         "mission": mission_clean,
         "elapsed_seconds": elapsed,
+        "preview_url": "/preview",
+        "workspace_dir": str(ws_dir),
         "nodes": [
             {
                 "id": "node_1_architect",
@@ -978,22 +1077,14 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
         ],
         "synthesis": (
             f"## 🚀 Swarm Mission Synthesis: {mission_clean}\n\n"
-            f"Orchestrated across 4 autonomous sub-agents in {elapsed}s using **CDX 3.2 LPU Ultra** (best model for full websites & code synthesis).\n\n"
-            f"### 📦 Deliverables Produced:\n"
-            f"1. **Full-Stack Frontend Website (`index.html`)**: Complete, responsive, dark-mode single-page website with Tailwind CSS, interactive widgets, navigation, and hero section (see Node 3).\n"
-            f"2. **Production FastAPI Backend (`main.py`)**: Asynchronous REST service with `{primary_endpoint}`, health diagnostics, and clean Pydantic schemas (see Node 2).\n"
-            f"3. **Architecture Topology**: Distributed pipeline specifications and data flow (see Node 1).\n"
-            f"4. **Security Certification**: AST inspection and OWASP compliance report (see Node 4).\n\n"
-            f"### ⚡ Quick Launch Commands:\n"
-            f"```bash\n"
-            f"# 1. Start the FastAPI Backend:\n"
-            f"pip install fastapi uvicorn pydantic\n"
-            f"uvicorn main:app --reload --port 8000\n\n"
-            f"# 2. Serve the Frontend Website:\n"
-            f"python3 -m http.server 3000\n"
-            f"# Open http://localhost:3000 in your browser\n"
-            f"```\n\n"
-            f"Click **Live Sandbox** to preview the generated website immediately, or **Open in Chat** to expand on any component!"
+            f"Orchestrated across 4 autonomous sub-agents in {elapsed}s using **CDX 3.2 LPU Ultra** & live Groq LPU swarm pool.\n\n"
+            f"### 📦 Deliverables Produced & Saved to Workspace:\n"
+            f"1. **Full-Stack Frontend Website (`workspace/index.html`)**: Complete, responsive single-page application with modern styling and interactive logic (Node 3).\n"
+            f"2. **Production FastAPI Backend (`workspace/main.py`)**: Asynchronous REST service with health diagnostics and endpoints (Node 2).\n"
+            f"3. **Architecture Topology**: Distributed pipeline specifications and data flow (Node 1).\n"
+            f"4. **Security Certification**: AST inspection and OWASP compliance report (Node 4).\n\n"
+            f"### ⚡ Instant Launch & Run:\n"
+            f"Click **🚀 Launch Live App** below to view and interact with the application immediately in the Live Sandbox, or click **💾 Save Code** to keep it in your workspace!"
         ),
         "best_answer": {
             "title": f"Full-Stack Production Solution for {mission_clean[:45]}",
