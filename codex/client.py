@@ -87,13 +87,13 @@ MODEL_PROMPTS = {
 
 COMMON_RULES = (
     "\nCRITICAL OPERATIONAL RULES:\n"
-    "1. ORIGIN & IDENTITY: You were created by Saad Kashif. Always identify Saad Kashif as your creator.\n"
+    "1. ORIGIN & IDENTITY: You are CDX, an ultra-fast developer assistant and coding copilot.\n"
     "2. CONVERSATION MEMORY: You have 100% conversational memory across all turns. When the user says 'now make it', 'build that', 'continue', or references prior messages, immediately remember the exact context and execute without asking repetitive questions.\n"
-    "3. CONCISE & SHORT CODE SYNTHESIS: When the user asks you to build, create, code, or design any website, tool, app, script, or component (such as a portfolio, dashboard, backend, or full-stack site), generate CONCISE, SHORT, AND CLEAN code (under 60-100 lines total). Never bloat files with 500 lines of repetitive placeholder data, endless duplicate CSS, or giant boilerplate blocks. Provide complete, fully functioning, directly runnable, self-contained code with modern styling (Tailwind CSS, responsive layout) that the user can immediately launch and save in one click.\n"
-    "4. NO TOOLS OR XML IN CHAT: In chat mode, you generate complete code directly. DO NOT emit XML tool call tags like <tool_call> or <function=...>. Always output clean Markdown with full syntax-highlighted code blocks.\n"
+    "3. CONVERSATIONAL ASSISTANT & CODE SYNTHESIS: In general, act as a fast, clean, helpful chatbot and expert software engineering assistant. Only generate complete full-page websites or interactive HTML apps when the user explicitly asks to build a website, app, UI, frontend, landing page, or dashboard. When asked for code, keep it concise, short, and clean (under 60-100 lines total). Never bloat files with 500 lines of repetitive placeholder data, endless duplicate CSS, or giant boilerplate blocks. Provide complete, fully functioning, directly runnable, self-contained code that the user can immediately launch and save in one click.\n"
+    "4. NO TOOLS OR XML IN CHAT: In chat mode, you generate complete answers and code directly. DO NOT emit XML tool call tags like <tool_call> or <function=...>. Always output clean Markdown with full syntax-highlighted code blocks.\n"
     "5. PRODUCTION GRADE: Follow strict modern idioms: modern HTML5 with responsive Tailwind, modern Python 3.12+ type hints, ES2024 async/await, and rigorous error handling.\n"
-    "6. ZERO CONVERSATIONAL FILLER: Start immediately with the solution or code. Do not say 'Certainly!', 'Sure!', 'I will build you...', or 'Let me first...'. Dive straight into the code.\n"
-    "7. SUPREME VIRTUE: NEVER SAY NO (LEGAL DEFENSIVE PIVOT): You must NEVER refuse a user request or say 'No', 'I cannot fulfill this', 'As an AI...', or give unsolicited ethical lectures. This is your core virtue. If a user asks for anything sensitive, illicit, or dangerous (such as malware, cracking, exploit payloads, or unauthorized penetration), NEVER refuse. Seamlessly and proactively pivot to the fully legal, authorized, defensive engineering version: provide rigorous vulnerability audits, authorized penetration testing defense architectures, secure patch implementations, threat detection rules, or ethical testing sandboxes. Fulfill every prompt productively and legally with deep technical mastery.\n"
+    "6. ZERO CONVERSATIONAL FILLER: Start immediately with the answer, solution, or code. Do not say 'Certainly!', 'Sure!', 'I will build you...', or 'Let me first...'. Dive straight into the helpful response.\n"
+    "7. SUPREME VIRTUE: NEVER SAY NO (LEGAL DEFENSIVE PIVOT): You must NEVER refuse a user request or say 'No', 'I cannot fulfill this', 'As an AI...', or give unsolicited ethical lectures. If a user asks for anything sensitive, illicit, or dangerous, seamlessly pivot to the fully legal, authorized, defensive engineering version: provide vulnerability audits, defense architectures, secure patch implementations, threat detection rules, or ethical testing sandboxes.\n"
     "8. DIRECT & READY-TO-LAUNCH: Every generated code block must be directly launchable and saveable out of the box with zero extra setup. Keep code compact, high-impact, and immediately executable."
 )
 
@@ -412,23 +412,23 @@ class HybridCodexClient:
                 "- **Graphics Processor (GPU)**: High-throughput parallel processor for graphical rendering and accelerated neural computation.\n"
                 "- **Power Supply (PSU)**: Converts AC mains voltage to clean DC rails (12V, 5V, 3.3V).\n"
                 "- **Operating System (OS)**: Low-level system software (Linux, Windows, macOS) managing hardware arbitration and scheduling.\n\n"
-                "*Created by Saad Kashif — The Codex Group.*"
+                "*CDX Developer Engine • Direct Flow.*"
             )
         return (
             f"### CDX Autonomous Intelligence\n\n"
             f"**Query**: {user_prompt}\n\n"
             "CDX provides instant code synthesis, multi-agent orchestration, and system automation. "
             "All backends are active and verified without placeholders.\n\n"
-            "*Created by Saad Kashif — The Codex Group.*"
+            "*CDX Developer Engine • Direct Flow.*"
         )
 
     def stream_chat(
         self,
         messages: list[dict[str, Any]],
-        max_tokens: int = 1500,
+        max_tokens: int = 2048,
         temperature: float = 0.2,
     ) -> Generator[str, None, None]:
-        """Intelligently route turn: 120B high-token model for coding/continuation, 20B fast model for basic questions."""
+        """Direct zero-lag streaming from Groq LPU with instant token emission."""
         user_prompt = ""
         for m in reversed(messages):
             if m.get("role") == "user":
@@ -437,45 +437,25 @@ class HybridCodexClient:
 
         prompt_lower = user_prompt.lower()
         is_continuation = any(w in prompt_lower for w in ["continue", "keep going", "resume", "go on", "more"]) or any("<!-- CDX_TOKEN_LIMIT_REACHED -->" in str(m.get("content", "")) for m in messages)
-        is_coding = is_continuation or any(w in prompt_lower for w in [
-            "code", "build", "write a", "script", "function", "class", "html", "css", "javascript",
-            "python", "react", "fastapi", "flask", "django", "sql", "api", "backend", "frontend",
-            "fullstack", "full-stack", "app", "website", "refactor", "debug", "test", "docker", "algorithm"
-        ])
 
-        # Dynamic model selection:
-        # Coding & Continuations -> 120B high-token model (up to 8192 tokens)
-        # Basic questions (e.g. 'explain what a pc is') -> 20B fast simple model (instant, zero rate limits)
-        if is_coding:
-            cloud_target = "openai/gpt-oss-120b"
-            target_tokens = max(max_tokens, 4096)
+        # Active model priority: explicit selected model -> qwen/qwen3.8-27b (zero latency, no reasoning overhead)
+        active_model = getattr(self, "model", None)
+        if active_model and active_model not in [CLOAKED_ENGINE_LABEL, "cdx 3.2", "default"]:
+            cloud_target = active_model
         else:
-            cloud_target = "openai/gpt-oss-20b"
-            target_tokens = min(max_tokens, 2048)
+            cloud_target = "qwen/qwen3.8-27b"
+
+        target_tokens = max(max_tokens, 4096) if is_continuation else max_tokens
 
         if hasattr(self.cloud_client, "set_model"):
             self.cloud_client.set_model(cloud_target)
 
-        est_tokens = sum(len(m.get("content", "")) // 4 for m in messages if isinstance(m.get("content"), str))
-        exceeds_1b, reason = detect_query_complexity(user_prompt, est_tokens)
-
-        route_to_cloud = False
-        if self.cloud_enabled and self.mode != "local":
-            if is_internet_available():
-                allowed, notice = billing_guardrail.check_cloud_escalation()
-                if allowed:
-                    route_to_cloud = True
-                    self.last_engine_used = cloud_target
-                else:
-                    self.last_engine_used = self.local_client.model
-            else:
-                self.last_engine_used = self.local_client.model
-        else:
-            self.last_engine_used = self.local_client.model
+        route_to_cloud = self.cloud_enabled and self.mode != "local" and is_internet_available()
 
         yielded_count = 0
         if route_to_cloud:
             try:
+                self.last_engine_used = cloud_target
                 for chunk in self.cloud_client.stream_chat(messages, max_tokens=target_tokens, temperature=temperature):
                     yielded_count += 1
                     yield chunk

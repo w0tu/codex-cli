@@ -595,12 +595,231 @@
             color: #0f172a;
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(28, 78, 148, 0.16);
-            border-color: #93c5fd;
+        /* ═══════════════════════════════════════════════════════════
+           SYSTEM-WIDE SKY LIGHT THEME OVERRIDES
+        ════════════════════════════════════════════════════════════ */
+        body.theme-sky {
+            background-color: #f0f7fe !important;
+            color: #0f172a !important;
+        }
+
+        /* Sidebar Light Mode */
+        body.theme-sky #app-sidebar {
+            background: #ffffff !important;
+            border-right: 1px solid #e2e8f0 !important;
+            color: #0f172a !important;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03) !important;
+        }
+        body.theme-sky #app-sidebar .border-borderBase,
+        body.theme-sky #app-sidebar .border-b,
+        body.theme-sky #app-sidebar .border-t {
+            border-color: #e2e8f0 !important;
+        }
+        body.theme-sky #app-sidebar .bg-card {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            color: #1e293b !important;
+        }
+        body.theme-sky #app-sidebar .bg-card:hover {
+            background-color: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.theme-sky #app-sidebar span.text-white,
+        body.theme-sky #app-sidebar h2.text-white,
+        body.theme-sky #app-sidebar div.text-white {
+            color: #0f172a !important;
+        }
+        body.theme-sky #app-sidebar p.text-gray-400,
+        body.theme-sky #app-sidebar span.text-gray-400,
+        body.theme-sky #app-sidebar span.text-gray-500 {
+            color: #64748b !important;
+        }
+        body.theme-sky #app-sidebar #sidebar-nav button {
+            color: #475569 !important;
+            background: transparent !important;
+            border-color: transparent !important;
+        }
+        body.theme-sky #app-sidebar #sidebar-nav button:hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        body.theme-sky #app-sidebar #sidebar-nav button.bg-card,
+        body.theme-sky #app-sidebar #sidebar-nav button[id="nav-chat"].bg-card {
+            background-color: #eff6ff !important;
+            border-color: #93c5fd !important;
+            color: #1d4ed8 !important;
+            font-weight: 600 !important;
+        }
+        body.theme-sky #history-search-input {
+            background-color: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        body.theme-sky #history-search-input::placeholder {
+            color: #94a3b8 !important;
+        }
+        body.theme-sky #history-sessions-list li button {
+            color: #334155 !important;
+        }
+        body.theme-sky #history-sessions-list li button:hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        body.theme-sky #sidebar-model-dropdown {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+        }
+        body.theme-sky #sidebar-model-dropdown button:hover {
+            background-color: #f1f5f9 !important;
+        }
+        body.theme-sky #sidebar-model-dropdown .text-white {
+            color: #0f172a !important;
+        }
+        body.theme-sky #sidebar-model-dropdown .text-gray-400 {
+            color: #64748b !important;
+        }
+        body.theme-sky #app-sidebar div.bg-\[\#07090f\] {
+            background-color: #f8fafc !important;
+        }
+
+        /* Top Header Light Mode */
+        body.theme-sky header {
+            background: rgba(255, 255, 255, 0.90) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        body.theme-sky header h1 {
+            color: #0f172a !important;
+        }
+        body.theme-sky header p {
+            color: #475569 !important;
+        }
+        body.theme-sky header .bg-card {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #334155 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        }
+        body.theme-sky header .bg-card:hover {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.theme-sky .grokbot-pupil {
+            background: #0284c7 !important;
+            box-shadow: 0 0 6px #38bdf8 !important;
+        }
+
+        /* Main Viewport & Tabs Light Mode */
+        body.theme-sky main {
+            background-color: #f0f7fe !important;
+        }
+        body.theme-sky .dot-grid-bg {
+            background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px) !important;
+        }
+        body.theme-sky .ambient-radial-glow {
+            display: none !important;
+        }
+
+        /* Panels & Cards in Light Mode */
+        body.theme-sky .glass-panel {
+            background: rgba(255, 255, 255, 0.92) !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01) !important;
+            color: #0f172a !important;
+        }
+        body.theme-sky .glass-panel h2,
+        body.theme-sky .glass-panel h3,
+        body.theme-sky .glass-panel .text-white {
+            color: #0f172a !important;
+        }
+        body.theme-sky .glass-panel p,
+        body.theme-sky .glass-panel .text-gray-400,
+        body.theme-sky .glass-panel .text-gray-300 {
+            color: #475569 !important;
+        }
+        body.theme-sky .spotlight-card {
+            background: rgba(255, 255, 255, 0.92) !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+        }
+        body.theme-sky .spotlight-card h3,
+        body.theme-sky .spotlight-card .text-white {
+            color: #0f172a !important;
+        }
+        body.theme-sky .spotlight-card p,
+        body.theme-sky .spotlight-card .text-gray-400 {
+            color: #64748b !important;
+        }
+
+        /* Telemetry Tab Specific Light Mode */
+        body.theme-sky #tab-usage h2 { color: #0f172a !important; }
+        body.theme-sky #tab-usage p { color: #475569 !important; }
+        body.theme-sky #tab-usage .border-borderBase { border-color: #e2e8f0 !important; }
+        body.theme-sky #tab-usage .heat-cell { border-color: #e2e8f0 !important; }
+        body.theme-sky #tab-usage .heat-0 { background: #e2e8f0 !important; color: #64748b !important; }
+
+        /* Swarm Tab Light Mode */
+        body.theme-sky #tab-swarm h2 { color: #0f172a !important; }
+        body.theme-sky #tab-swarm p { color: #475569 !important; }
+        body.theme-sky #tab-swarm .border-borderBase { border-color: #e2e8f0 !important; }
+        body.theme-sky #tab-swarm input {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        /* Agents Hub Light Mode */
+        body.theme-sky #tab-agents h2 { color: #0f172a !important; }
+        body.theme-sky #tab-agents p { color: #475569 !important; }
+        body.theme-sky #tab-agents .border-borderBase { border-color: #e2e8f0 !important; }
+        body.theme-sky #tab-agents input {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        /* Chat messages in Light Mode */
+        body.theme-sky .chat-user-bubble {
+            background: #2563eb !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important;
+        }
+        body.theme-sky .chat-ai-card {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 1.25rem !important;
+            padding: 1.25rem !important;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06) !important;
+        }
+        body.theme-sky .markdown-body {
+            color: #0f172a !important;
+        }
+        body.theme-sky .markdown-body p,
+        body.theme-sky .markdown-body li {
+            color: #1e293b !important;
+        }
+        body.theme-sky .markdown-body h1,
+        body.theme-sky .markdown-body h2,
+        body.theme-sky .markdown-body h3,
+        body.theme-sky .markdown-body h4 {
+            color: #0f172a !important;
+        }
+        body.theme-sky .markdown-body code:not(pre code) {
+            background-color: #f1f5f9 !important;
+            color: #0284c7 !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.theme-sky #bottom-dock-container {
+            background: linear-gradient(to top, rgba(240, 247, 254, 0.95), rgba(240, 247, 254, 0.6), transparent) !important;
         }
     </style>
 </head>
 
-<body class="flex h-screen w-screen overflow-hidden select-none bg-space font-sans text-gray-200">
+<body class="theme-sky flex h-screen w-screen overflow-hidden select-none font-sans text-gray-800">
 
     <!-- Ambient Canvas & Radial Glow -->
     <div class="ambient-radial-glow"></div>
@@ -643,7 +862,7 @@
                         <span class="font-bold text-sm text-white tracking-wide font-mono">CDX</span>
                         <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30">v1.7.0</span>
                     </div>
-                    <p class="text-[10px] text-gray-400 font-mono">Saad Kashif Edition</p>
+                    <p class="text-[10px] text-gray-400 font-mono">Groq LPU Engine</p>
                 </div>
             </div>
 
