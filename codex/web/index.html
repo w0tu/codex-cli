@@ -756,6 +756,12 @@
             color: #64748b !important;
         }
 
+        /* Essential Visibility Primitives */
+        .hidden,
+        .tab-pane.hidden {
+            display: none !important;
+        }
+
         /* Telemetry Tab Specific Light Mode */
         body.theme-sky #tab-usage {
             color: #0f172a !important;
@@ -792,6 +798,10 @@
             background: #e2e8f0 !important;
             color: #64748b !important;
         }
+        body.theme-sky #tab-usage .heat-1 { background: #bbf7d0 !important; color: #166534 !important; }
+        body.theme-sky #tab-usage .heat-2 { background: #86efac !important; color: #15803d !important; }
+        body.theme-sky #tab-usage .heat-3 { background: #4ade80 !important; color: #166534 !important; }
+        body.theme-sky #tab-usage .heat-4 { background: #22c55e !important; color: #ffffff !important; }
 
         /* Swarm Tab Light Mode */
         body.theme-sky #tab-swarm h2 { color: #0f172a !important; }
@@ -804,12 +814,72 @@
         }
 
         /* Agents Hub Light Mode */
-        body.theme-sky #tab-agents h2 { color: #0f172a !important; }
-        body.theme-sky #tab-agents p { color: #475569 !important; }
-        body.theme-sky #tab-agents .border-borderBase { border-color: #e2e8f0 !important; }
+        body.theme-sky #tab-agents {
+            color: #0f172a !important;
+        }
+        body.theme-sky #tab-agents h2,
+        body.theme-sky #tab-agents h3,
+        body.theme-sky #tab-agents .text-white {
+            color: #0f172a !important;
+        }
+        body.theme-sky #tab-agents p,
+        body.theme-sky #tab-agents .text-gray-400,
+        body.theme-sky #tab-agents .text-gray-300,
+        body.theme-sky #tab-agents .text-gray-500 {
+            color: #475569 !important;
+        }
+        body.theme-sky #tab-agents .border-borderBase {
+            border-color: #e2e8f0 !important;
+        }
+        body.theme-sky #tab-agents .glass-panel {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+        }
+        body.theme-sky #tab-agents .agent-tag-btn {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #334155 !important;
+        }
+        body.theme-sky #tab-agents .agent-tag-btn:hover {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
         body.theme-sky #tab-agents input {
             background-color: #ffffff !important;
             border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        /* Linux Shell GUI Light Mode */
+        body.theme-sky #tab-terminal {
+            color: #0f172a !important;
+        }
+        body.theme-sky #tab-terminal h2,
+        body.theme-sky #tab-terminal .text-white {
+            color: #0f172a !important;
+        }
+        body.theme-sky #tab-terminal p,
+        body.theme-sky #tab-terminal .text-gray-400,
+        body.theme-sky #tab-terminal .text-gray-300 {
+            color: #475569 !important;
+        }
+        body.theme-sky #tab-terminal .border-borderBase {
+            border-color: #e2e8f0 !important;
+        }
+        body.theme-sky #tab-terminal .bg-card {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #1e293b !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        }
+        body.theme-sky #tab-terminal #terminal-screen {
+            background: #090d16 !important;
+            color: #e2e8f0 !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+        }
+        body.theme-sky #tab-terminal #cli-input {
             color: #0f172a !important;
         }
 
