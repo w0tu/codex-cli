@@ -417,6 +417,49 @@
             animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             max-width: 320px;
         }
+
+        /* ── Rainbow Flow Animation for Chat Input Box ── */
+        @keyframes rainbowFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .rainbow-border-box {
+            position: relative;
+            padding: 2px;
+            border-radius: 1.25rem;
+            background: linear-gradient(135deg, #ff007f, #7928ca, #0070f3, #00dfd8, #00f5a0, #ffb800, #ff007f);
+            background-size: 350% 350%;
+            animation: rainbowFlow 7s ease infinite;
+            box-shadow: 0 0 25px -4px rgba(0, 223, 216, 0.4), 0 0 45px -10px rgba(121, 40, 202, 0.35);
+        }
+
+        /* ── Neon Glow & After-Effects Typography ── */
+        @keyframes neonPulseGlow {
+            0%, 100% { text-shadow: 0 0 12px rgba(0, 245, 160, 0.75), 0 0 25px rgba(0, 223, 216, 0.45); }
+            50% { text-shadow: 0 0 20px rgba(121, 40, 202, 0.85), 0 0 40px rgba(255, 0, 127, 0.55); }
+        }
+        .neon-glow-text {
+            animation: neonPulseGlow 3.5s ease-in-out infinite;
+        }
+
+        /* ── Slash Commands Autocomplete Palette ── */
+        .slash-cmd-item:hover {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .slash-cmd-item.selected {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.6);
+        }
+
+        /* ── Laser Grid for Cinematic Showcase ── */
+        .laser-grid-bg {
+            background-image: 
+                linear-gradient(rgba(0, 245, 160, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 223, 216, 0.08) 1px, transparent 1px);
+            background-size: 36px 36px;
+        }
     </style>
 </head>
 
@@ -437,12 +480,25 @@
         <!-- App Monogram Header -->
         <div class="h-16 px-4 flex items-center justify-between border-b border-borderBase">
             <div class="flex items-center gap-3">
-                <!-- Clean Vector SVG Monogram (NO unicode emojis) -->
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-500/10">
-                    <svg class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                        <polyline points="2 17 12 22 22 17"></polyline>
-                        <polyline points="2 12 12 17 22 12"></polyline>
+                <!-- Futuristic Cyber Hex-Core SVG Monogram (NO unicode emojis) -->
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/25 via-cyan-500/15 to-purple-500/20 border border-emerald-500/50 flex items-center justify-center shadow-lg shadow-emerald-500/20 group cursor-pointer" onclick="openCinematicAdModal()" title="Launch Cinematic Showcase (/brag)">
+                    <svg class="w-5 h-5" viewBox="0 0 32 32" fill="none">
+                        <defs>
+                            <linearGradient id="sbCdxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f5a0" />
+                                <stop offset="50%" stop-color="#00dfd8" />
+                                <stop offset="100%" stop-color="#7928ca" />
+                            </linearGradient>
+                            <linearGradient id="sbCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00dfd8" />
+                                <stop offset="100%" stop-color="#0070f3" />
+                            </linearGradient>
+                        </defs>
+                        <polygon points="16,2 29,9.5 29,22.5 16,30 3,22.5 3,9.5" stroke="url(#sbCdxGrad)" stroke-width="2" fill="rgba(0, 223, 216, 0.08)" stroke-linejoin="round" />
+                        <polygon points="16,7 23,16 16,25 9,16" stroke="url(#sbCoreGrad)" stroke-width="1.8" fill="rgba(0, 245, 160, 0.18)" stroke-linejoin="round" />
+                        <circle cx="16" cy="16" r="2.5" fill="#00f5a0" />
+                        <line x1="16" y1="2" x2="16" y2="7" stroke="url(#sbCdxGrad)" stroke-width="1.5" />
+                        <line x1="16" y1="25" x2="16" y2="30" stroke="url(#sbCdxGrad)" stroke-width="1.5" />
                     </svg>
                 </div>
                 <div>
@@ -784,62 +840,88 @@
                         </button>
                     </div>
 
-                    <!-- Unified Pro Command Dock -->
-                    <div class="w-full glass-panel rounded-2xl p-3 shadow-2xl focus-within:border-emerald-500/70 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-all bg-[#090b12]/95 backdrop-blur-2xl space-y-2.5">
-                        
-                        <!-- Auto-Expanding Prompt Textarea -->
-                        <textarea 
-                            id="user-input" 
-                            rows="2" 
-                            placeholder="Ask CDX anything, or build a complete website/tool (Enter to send, Shift+Enter for newline)..." 
-                            class="w-full bg-transparent text-white px-2 py-1 outline-none text-sm placeholder-gray-500 font-sans resize-none leading-relaxed"
-                            onkeydown="handleTextareaKey(event)"
-                            oninput="autoResizeTextarea(this)"
-                        ></textarea>
-
-                        <!-- Bottom Action Dock -->
-                        <div class="flex items-center justify-between pt-2 border-t border-white/5">
-                            <!-- Left: Action Pills & Model Selector -->
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <!-- Model Dropdown Chip (Opens upward popover) -->
-                                <button onclick="toggleDockModelDropdown(event)" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border border-borderBase hover:border-borderHighlight text-gray-300 text-xs font-mono transition-colors cursor-pointer" title="Select AI Model">
-                                    <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
-                                    <span id="input-model-chip">cdx 3.2 LPU Ultra</span>
-                                    <i class="fa-solid fa-chevron-up text-[8px] text-gray-500"></i>
-                                </button>
-                                
-                                <!-- Tool Buttons: Image, Video, Sandbox, Swarm -->
-                                <button onclick="insertPromptPrefix('/image ')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs transition-colors cursor-pointer" title="Generate Image with FLUX">
-                                    <i class="fa-solid fa-image text-[10px] text-emerald-400"></i>
-                                    <span>Image</span>
-                                </button>
-                                <button onclick="insertPromptPrefix('/video ')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-cyan-400 text-xs transition-colors cursor-pointer" title="Generate Motion Video">
-                                    <i class="fa-solid fa-film text-[10px] text-cyan-400"></i>
-                                    <span>Video</span>
-                                </button>
-                                <button onclick="openLivePreviewDrawer()" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-teal-400 text-xs transition-colors cursor-pointer" title="Toggle Live Sandbox Drawer">
-                                    <i class="fa-solid fa-window-restore text-[10px] text-teal-400"></i>
-                                    <span>Sandbox</span>
-                                </button>
-                                <button onclick="switchTab('swarm')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-violet-400 text-xs transition-colors cursor-pointer" title="Sub-Agents Swarm">
-                                    <i class="fa-solid fa-network-wired text-[10px] text-violet-400"></i>
-                                    <span>Swarm</span>
-                                </button>
+                    <!-- Unified Pro Command Dock wrapped with Rainbow Glow Border -->
+                    <div class="rainbow-border-box w-full shadow-2xl">
+                        <div class="w-full rounded-[1.15rem] p-3 bg-[#080a10]/98 backdrop-blur-2xl space-y-2.5 relative">
+                            
+                            <!-- Slash Commands Autocomplete Palette Popover -->
+                            <div id="slash-commands-palette" class="hidden absolute bottom-full left-0 right-0 mb-3 bg-[#0a0d16]/98 backdrop-blur-2xl border border-borderHighlight rounded-2xl p-2.5 shadow-2xl z-50 animate-slide-up space-y-1 max-h-72 overflow-y-auto">
+                                <div class="px-2 py-1 text-[10px] font-mono text-gray-500 uppercase tracking-wider flex items-center justify-between border-b border-borderBase/60 pb-1.5 mb-1">
+                                    <span class="flex items-center gap-1.5 text-emerald-400 font-bold"><i class="fa-solid fa-terminal text-[10px]"></i> Quick Slash Commands</span>
+                                    <span class="text-gray-500">↑↓ to navigate • Enter to select</span>
+                                </div>
+                                <div id="slash-commands-list" class="space-y-1"></div>
                             </div>
 
-                            <!-- Right: Creator Tag & Shine Send Button -->
-                            <div class="flex items-center gap-3">
-                                <span class="text-[10px] text-gray-500 font-mono hidden sm:inline-block">Created by Saad Kashif</span>
-                                <button 
-                                    id="send-btn"
-                                    onclick="handleSend()"
-                                    class="w-8 h-8 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center transition-all disabled:opacity-40 shine-btn shadow-lg shadow-emerald-500/25 font-bold flex-shrink-0 cursor-pointer btn-press"
-                                    title="Send Message">
-                                    <i class="fa-solid fa-arrow-up text-xs"></i>
-                                </button>
+                            <!-- Auto-Expanding Prompt Textarea -->
+                            <textarea 
+                                id="user-input" 
+                                rows="2" 
+                                placeholder="Ask CDX anything, or build a complete website/tool (Type '/' for commands)..." 
+                                class="w-full bg-transparent text-white px-2 py-1 outline-none text-sm placeholder-gray-500 font-sans resize-none leading-relaxed"
+                                onkeydown="handleTextareaKey(event)"
+                                oninput="handleTextareaInput(this)"
+                            ></textarea>
+
+                            <!-- Bottom Action Dock -->
+                            <div class="flex items-center justify-between pt-2 border-t border-white/5">
+                                <!-- Left: Action Pills & Model Selector -->
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <!-- Model Dropdown Chip (Opens upward popover) -->
+                                    <button onclick="toggleDockModelDropdown(event)" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border border-borderBase hover:border-emerald-500/40 text-gray-300 text-xs font-mono transition-colors cursor-pointer" title="Select AI Model">
+                                        <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
+                                        <span id="input-model-chip">cdx 3.2 LPU Ultra</span>
+                                        <i class="fa-solid fa-chevron-up text-[8px] text-gray-500"></i>
+                                    </button>
+
+                                    <!-- Dedicated Modal Opener Chip -->
+                                    <button onclick="openModelSelectorModal()" class="btn-press px-2 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs font-mono transition-colors cursor-pointer" title="Open Full Model Selector">
+                                        <i class="fa-solid fa-sliders text-[10px]"></i>
+                                    </button>
+                                    
+                                    <!-- Slash Commands Palette Toggle Button -->
+                                    <button onclick="toggleSlashCommandsPalette(event)" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs transition-colors cursor-pointer" title="Browse /commands">
+                                        <i class="fa-solid fa-terminal text-[10px] text-emerald-400"></i>
+                                        <span>/commands</span>
+                                    </button>
+
+                                    <!-- Tool Buttons: Image, Video, Sandbox, Swarm, Brag -->
+                                    <button onclick="insertPromptPrefix('/image ')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-emerald-400 text-xs transition-colors cursor-pointer" title="Generate Image with FLUX">
+                                        <i class="fa-solid fa-image text-[10px] text-emerald-400"></i>
+                                        <span>Image</span>
+                                    </button>
+                                    <button onclick="insertPromptPrefix('/video ')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-cyan-400 text-xs transition-colors cursor-pointer" title="Generate Motion Video">
+                                        <i class="fa-solid fa-film text-[10px] text-cyan-400"></i>
+                                        <span>Video</span>
+                                    </button>
+                                    <button onclick="openLivePreviewDrawer()" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-teal-400 text-xs transition-colors cursor-pointer" title="Toggle Live Sandbox Drawer">
+                                        <i class="fa-solid fa-window-restore text-[10px] text-teal-400"></i>
+                                        <span>Sandbox</span>
+                                    </button>
+                                    <button onclick="switchTab('swarm')" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-gray-400 hover:text-violet-400 text-xs transition-colors cursor-pointer" title="Sub-Agents Swarm">
+                                        <i class="fa-solid fa-network-wired text-[10px] text-violet-400"></i>
+                                        <span>Swarm</span>
+                                    </button>
+                                    <button onclick="openCinematicAdModal()" class="btn-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs transition-colors cursor-pointer" title="Launch Cinematic Ad Showcase (/brag)">
+                                        <i class="fa-solid fa-clapperboard text-[10px] text-pink-400"></i>
+                                        <span>/brag</span>
+                                    </button>
+                                </div>
+
+                                <!-- Right: Creator Tag & Shine Send Button -->
+                                <div class="flex items-center gap-3">
+                                    <span class="text-[10px] text-gray-500 font-mono hidden sm:inline-block">Saad Kashif</span>
+                                    <button 
+                                        id="send-btn"
+                                        onclick="handleSend()"
+                                        class="w-8 h-8 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center transition-all disabled:opacity-40 shine-btn shadow-lg shadow-emerald-500/25 font-bold flex-shrink-0 cursor-pointer btn-press"
+                                        title="Send Message">
+                                        <i class="fa-solid fa-arrow-up text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
+
                         </div>
-
                     </div>
 
                 </div>
@@ -862,9 +944,18 @@
                     </div>
                     <p class="text-xs text-gray-400 mt-1">Autonomous orchestration across Architect, Backend, Frontend, and Auditor with Golden Synthesis evaluation</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="setSwarmPreset('Build a full-stack SaaS MVP for automated code review with FastAPI, GitHub webhooks, Tailwind UI, and security scanner')" class="btn-press px-3 py-1.5 rounded-xl bg-card hover:bg-cardHover border border-borderBase text-xs text-gray-300 font-mono transition-colors cursor-pointer">
-                        <i class="fa-solid fa-bolt text-amber-400 mr-1 text-[10px]"></i> Load MVP Preset
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="setSwarmPreset('Build a full-stack SaaS MVP for automated code review with FastAPI, GitHub webhooks, Tailwind UI, and security scanner')" class="btn-press px-2.5 py-1 rounded-xl bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 font-mono transition-colors cursor-pointer">
+                        <i class="fa-solid fa-code text-teal-400 mr-1 text-[10px]"></i> Code Review SaaS
+                    </button>
+                    <button onclick="setSwarmPreset('Build a cryptocurrency live trading dashboard with candlestick charts, order book depth, and WebSocket feed')" class="btn-press px-2.5 py-1 rounded-xl bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 font-mono transition-colors cursor-pointer">
+                        <i class="fa-solid fa-chart-line text-emerald-400 mr-1 text-[10px]"></i> Crypto Terminal
+                    </button>
+                    <button onclick="setSwarmPreset('Build a modern headless e-commerce store with product cards, interactive cart drawer, and Stripe checkout modal')" class="btn-press px-2.5 py-1 rounded-xl bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 font-mono transition-colors cursor-pointer">
+                        <i class="fa-solid fa-cart-shopping text-cyan-400 mr-1 text-[10px]"></i> E-Commerce Store
+                    </button>
+                    <button onclick="setSwarmPreset('Build an autonomous AI voice agent platform with real-time audio visualizer and TTS latency telemetry')" class="btn-press px-2.5 py-1 rounded-xl bg-card hover:bg-cardHover border border-borderBase text-[11px] text-gray-300 font-mono transition-colors cursor-pointer">
+                        <i class="fa-solid fa-microphone text-purple-400 mr-1 text-[10px]"></i> Neural Voice AI
                     </button>
                 </div>
             </div>
@@ -876,14 +967,15 @@
                     <textarea 
                         id="swarm-mission-input" 
                         rows="3" 
-                        placeholder="Describe the end-to-end software system you want the sub-agent swarm to design, code, synthesize, and audit..." 
+                        placeholder="Describe the end-to-end software system you want the sub-agent swarm to design, code, synthesize, and audit (Press Enter to launch)..." 
                         class="w-full bg-[#07090f] border border-borderBase rounded-xl p-3.5 text-xs text-gray-200 placeholder-gray-500 outline-none focus:border-cyan-500 font-mono leading-relaxed resize-none"
+                        onkeydown="if((event.key === 'Enter' && (event.metaKey || event.ctrlKey)) || (event.key === 'Enter' && !event.shiftKey)) { event.preventDefault(); launchSwarmMission(); }"
                     ></textarea>
                 </div>
                 <div class="flex items-center justify-between pt-1">
                     <div class="flex items-center gap-2 text-[11px] text-gray-400 font-mono">
                         <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                        <span>Concurrent 4-Node Pipeline</span>
+                        <span>Concurrent 4-Node Pipeline (Click any node to inspect code)</span>
                     </div>
                     <button 
                         id="swarm-launch-btn"
@@ -896,17 +988,17 @@
 
             <!-- Real-Time 4-Node DAG Grid -->
             <div>
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider font-mono mb-3">Live Agent DAG Execution Nodes</h3>
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider font-mono mb-3">Live Agent DAG Execution Nodes (Click Node to View Code)</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5" id="swarm-nodes-grid">
                     <!-- Node 1: Architect -->
-                    <div id="swarm-node-architect" class="dag-node glass-panel p-4 rounded-xl border border-purple-500/20 flex flex-col justify-between">
+                    <div id="swarm-node-architect" onclick="selectSwarmNode('architect')" class="dag-node glass-panel p-4 rounded-xl border border-purple-500/20 flex flex-col justify-between cursor-pointer hover:border-purple-500/50 transition-all group" title="Click to view Architecture Topology">
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-md bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs">
+                                    <div class="w-6 h-6 rounded-md bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs group-hover:scale-110 transition-transform">
                                         <i class="fa-solid fa-cubes"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-white">CDX-Architect</span>
+                                    <span class="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">CDX-Architect</span>
                                 </div>
                                 <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-architect">IDLE</span>
                             </div>
@@ -918,14 +1010,14 @@
                     </div>
 
                     <!-- Node 2: Backend -->
-                    <div id="swarm-node-backend" class="dag-node glass-panel p-4 rounded-xl border border-teal-500/20 flex flex-col justify-between">
+                    <div id="swarm-node-backend" onclick="selectSwarmNode('backend')" class="dag-node glass-panel p-4 rounded-xl border border-teal-500/20 flex flex-col justify-between cursor-pointer hover:border-teal-500/50 transition-all group" title="Click to view Backend FastAPI Service">
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-md bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
+                                    <div class="w-6 h-6 rounded-md bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs group-hover:scale-110 transition-transform">
                                         <i class="fa-solid fa-server"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-white">CDX-Backend</span>
+                                    <span class="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">CDX-Backend</span>
                                 </div>
                                 <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-backend">IDLE</span>
                             </div>
@@ -937,14 +1029,14 @@
                     </div>
 
                     <!-- Node 3: Frontend -->
-                    <div id="swarm-node-frontend" class="dag-node glass-panel p-4 rounded-xl border border-cyan-500/20 flex flex-col justify-between">
+                    <div id="swarm-node-frontend" onclick="selectSwarmNode('frontend')" class="dag-node glass-panel p-4 rounded-xl border border-cyan-500/20 flex flex-col justify-between cursor-pointer hover:border-cyan-500/50 transition-all group" title="Click to view Frontend Web Application">
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs">
+                                    <div class="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs group-hover:scale-110 transition-transform">
                                         <i class="fa-solid fa-palette"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-white">CDX-Frontend</span>
+                                    <span class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">CDX-Frontend</span>
                                 </div>
                                 <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-frontend">IDLE</span>
                             </div>
@@ -956,14 +1048,14 @@
                     </div>
 
                     <!-- Node 4: Auditor -->
-                    <div id="swarm-node-auditor" class="dag-node glass-panel p-4 rounded-xl border border-orange-500/20 flex flex-col justify-between">
+                    <div id="swarm-node-auditor" onclick="selectSwarmNode('auditor')" class="dag-node glass-panel p-4 rounded-xl border border-orange-500/20 flex flex-col justify-between cursor-pointer hover:border-orange-500/50 transition-all group" title="Click to view Security Audit">
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-md bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs">
+                                    <div class="w-6 h-6 rounded-md bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs group-hover:scale-110 transition-transform">
                                         <i class="fa-solid fa-shield-halved"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-white">CDX-Auditor</span>
+                                    <span class="text-xs font-bold text-white group-hover:text-orange-300 transition-colors">CDX-Auditor</span>
                                 </div>
                                 <span class="swarm-node-status text-[10px] font-mono text-gray-500" id="status-node-auditor">IDLE</span>
                             </div>
@@ -971,7 +1063,6 @@
                         </div>
                         <div class="mt-3 pt-2 border-t border-borderBase text-[10px] font-mono text-gray-500 swarm-node-output truncate" id="out-node-auditor">
                             Awaiting launch...
-                        </div>
                     </div>
                 </div>
             </div>

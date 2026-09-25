@@ -70,6 +70,8 @@ def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str
     # Precise model mapping for available Groq models
     if "120b" in req_model or "70b" in req_model or "pro" in req_model or "omni" in req_model or "code" in req_model or "coding" in req_model or "continue" in req_model:
         primary_groq_model = "openai/gpt-oss-120b"
+    elif "r1" in req_model or "deepseek" in req_model or "reason" in req_model:
+        primary_groq_model = "deepseek-r1-distill-llama-70b"
     elif "20b" in req_model or "fast" in req_model or "instant" in req_model or "simple" in req_model or "basic" in req_model or "chat" in req_model or "flash" in req_model:
         primary_groq_model = "openai/gpt-oss-20b"
     elif "minimax" in req_model:
