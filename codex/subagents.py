@@ -860,7 +860,6 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
         f"        'status': 'healthy',\n"
         f"        'app': '{app_title}',\n"
         f"        'engine': 'CDX 3.2 LPU Ultra',\n"
-        f"        'creator': 'Saad Kashif',\n"
         f"        'response_time': '0.03s'\n"
         f"    }}\n\n"
         f"@app.post('{primary_endpoint}')\n"
@@ -968,7 +967,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
     <!-- Footer -->
     <footer class="border-t border-white/10 py-8 bg-black/80">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500 font-mono">
-            <div>Created by Saad Kashif · CDX Autonomous Platform</div>
+            <div>CDX Autonomous Platform · Direct LPU Flow</div>
             <div class="flex items-center gap-6">
                 <span>0.03s Response Time</span>
                 <span>220+ Specialized Agents</span>
@@ -998,7 +997,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
         )
         live_res = query_swarm_live_model(
             prompt=frontend_prompt,
-            system="You are CDX Sub-Agent Frontend Stylist by Saad Kashif. Write short, concise, elegant, fully working single-file web code."
+            system="You are CDX Sub-Agent Frontend Stylist. Write short, concise, elegant, fully working single-file web code."
         )
         if live_res:
             live_ui_code = extract_html_code(live_res)

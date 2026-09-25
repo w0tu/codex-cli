@@ -72,11 +72,28 @@ class BillingGuardrail:
             pass
 
     def check_cloud_escalation(self) -> Tuple[bool, str]:
-        """Check if cloud escalation is permitted (100% free direct Groq tier).
+        """Check if cloud escalation is permitted under the $2.00 daily budget cap.
         
         Returns:
             (allowed: bool, notice: str)
         """
+        now = time.time()
+        self.data = self._load()
+
+        locked_until = self.data.get("locked_until", 0.0)
+        if locked_until > now:
+            remaining_secs = int(locked_until - now)
+            hrs = remaining_secs // 3600
+            mins = (remaining_secs % 3600) // 60
+            reason = self.data.get("lock_reason", "Daily cloud budget limit reached.")
+            return False, f"[BUDGET LOCK] Cloud escalation locked for {hrs}h {mins}m ({reason}). Routing to local Ollama."
+
+        if self.data.get("daily_spend", 0.0) >= DAILY_BUDGET_LIMIT:
+            self.data["locked_until"] = now + 86400.0  # 24-hour lock
+            self.data["lock_reason"] = f"Daily spend reached ${DAILY_BUDGET_LIMIT:.2f} limit"
+            self._save(self.data)
+            return False, f"[BUDGET ALERT] Daily spend limit ($2.00) reached. Cloud escalation locked for 24h. Falling back to local Ollama."
+
         return True, ""
 
     def record_cloud_spend(self, prompt_tokens: int, completion_tokens: int) -> Tuple[float, bool]:
@@ -93,6 +110,11 @@ class BillingGuardrail:
         self.data["daily_tokens"] = self.data.get("daily_tokens", 0) + total_tokens
 
         lock_triggered = False
+        if self.data["daily_spend"] >= DAILY_BUDGET_LIMIT:
+            self.data["locked_until"] = time.time() + 86400.0  # 24 hours lock
+            self.data["lock_reason"] = f"Budget ceiling reached (${self.data['daily_spend']:.2f} >= ${DAILY_BUDGET_LIMIT:.2f})"
+            lock_triggered = True
+
         self._save(self.data)
 
         # Sync to SQLite metrics db

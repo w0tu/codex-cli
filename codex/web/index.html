@@ -975,7 +975,7 @@
 
         <!-- Sidebar Footer Attribution -->
         <div class="p-3 border-t border-borderBase flex items-center justify-between text-[11px] text-gray-500 font-mono bg-[#07090f]">
-            <span class="truncate">Engineered by <strong class="text-gray-300">Saad Kashif</strong></span>
+            <span class="truncate">CDX Studio • <strong class="text-gray-400">Groq LPU</strong></span>
             <button onclick="exportChatTranscript()" class="text-gray-400 hover:text-white transition-colors cursor-pointer" title="Export Chat Transcript">
                 <i class="fa-solid fa-download text-xs"></i>
             </button>
@@ -1009,16 +1009,13 @@
                 </div>
             </div>
 
-            <!-- Flowing Text Ambient Telemetry Pill -->
-            <div class="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0a0d16]/90 border border-emerald-500/30 shadow-md">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="flowing-text-gradient font-mono text-xs font-bold tracking-wide">
-                    ⚡ 0.03s LPU FLOW • 528 tok/s • 220+ Swarm Agents
-                </span>
-            </div>
-
-            <!-- Right Controls: Idle Learner, Sound, Particles, Live Sandbox -->
+            <!-- Right Controls: Telemetry, Idle Learner, Live Sandbox, Sound, Theme -->
             <div class="flex items-center gap-2.5">
+                <!-- Direct Telemetry Button (Always accessible) -->
+                <button onclick="switchTab('usage')" title="Open Telemetry & System Quota" class="btn-press flex items-center gap-1.5 px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase hover:border-amber-500/40 rounded-xl text-xs font-mono text-amber-500 transition-all cursor-pointer">
+                    <i class="fa-solid fa-chart-simple text-[11px] text-amber-500"></i>
+                    <span class="hidden sm:inline-block text-[11px] font-semibold">Telemetry</span>
+                </button>
                 <!-- Autonomous Idle Learning Indicator Pill (Clickable) -->
                 <button id="learning-toggle-btn" onclick="toggleLearningDrawer()" title="Autonomous Idle Internet Learning &amp; Training Data Engine" class="btn-press flex items-center gap-2 px-3 py-1.5 bg-card border border-purple-500/30 hover:border-purple-400 rounded-full text-xs font-mono text-purple-300 shadow-sm transition-all cursor-pointer">
                     <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse" id="learning-pulse-dot"></span>
@@ -1066,28 +1063,18 @@
             <!-- Scrollable Chat Stream Container -->
             <div id="chat-container" class="flex-1 overflow-y-auto w-full pt-4 pb-48 flex flex-col items-center relative z-10">
                 
-                <!-- Top Promo Notification Capsule (1:1 from screenshot) -->
-                <div class="w-full flex justify-center pt-2 pb-6 px-4">
-                    <div class="sky-promo-capsule rounded-full px-4 py-1.5 flex items-center gap-2.5 shadow-xl text-xs font-sans">
-                        <span class="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] text-black font-black">
-                            <i class="fa-solid fa-gift"></i>
-                        </span>
-                        <span class="text-white text-xs font-medium tracking-wide">
-                            FLAT 95% off on standard monthly plan.
-                        </span>
-                        <span class="bg-black/40 text-gray-300 text-[10px] px-2 py-0.5 rounded-full border border-white/10 font-mono">
-                            Discount auto applied
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Welcome Zero-State Hero Section (1:1 with Screenshot) -->
-                <div id="welcome-screen" class="w-full max-w-3xl px-6 flex flex-col items-center justify-center my-auto transition-opacity duration-300 space-y-6">
+                <!-- Welcome Zero-State Hero Section -->
+                <div id="welcome-screen" class="w-full max-w-3xl px-6 flex flex-col items-center justify-center my-auto transition-opacity duration-300 space-y-6 pt-6">
                     
-                    <!-- 1:1 Screenshot Headline -->
-                    <h1 class="text-2xl sm:text-3xl md:text-[32px] font-medium text-white tracking-normal text-center drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] select-none">
-                        You have received 10 free credits for your first prompt
-                    </h1>
+                    <!-- Clean High-Contrast Headline -->
+                    <div class="text-center space-y-2 select-none">
+                        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight drop-shadow-sm">
+                            What do you want to build?
+                        </h1>
+                        <p class="text-sm font-semibold text-slate-700 tracking-wide">
+                            Ultra-fast direct Groq LPU inference • 220+ autonomous agents
+                        </p>
+                    </div>
 
                     <!-- Main Elevated Glass Prompt Box (1:1 Replication) -->
                     <div class="w-full max-w-2xl sky-input-box p-4 pt-3 space-y-2 relative shadow-2xl">
@@ -1487,7 +1474,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Marketing</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Viral launch & developer marketing director. Crafts 30-second video commercial scripts, product positioning, and high-converting campaign copy.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Marketing', 'You are CDX-Marketing, an elite product growth marketer and video ad director created by Saad Kashif. Write viral developer campaign copy, 30-second video commercials, product positioning, and marketing launch strategies.', 'Create a 30-second launch ad script for: ')" class="btn-press w-full py-2 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 rounded-xl text-xs font-semibold text-rose-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-Marketing', 'You are CDX-Marketing, an elite product growth marketer and video ad director. Write viral developer campaign copy, 30-second video commercials, product positioning, and marketing launch strategies.', 'Create a 30-second launch ad script for: ')" class="btn-press w-full py-2 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 rounded-xl text-xs font-semibold text-rose-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-video text-xs"></i> Deploy Marketing Agent
                     </button>
                 </div>
@@ -1501,7 +1488,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Frontend</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Modern UI/UX frontend designer. Builds pixel-perfect responsive layouts with Tailwind CSS, Vue/React, fluid glassmorphism, and micro-interactions.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Frontend', 'You are CDX-Frontend, an expert UI/UX and web frontend engineer created by Saad Kashif. Focus strictly on modern aesthetics, Tailwind CSS, clean layouts, micro-interactions, and mobile responsiveness. Output complete code directly.', 'Build a modern responsive frontend component for: ')" class="btn-press w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-Frontend', 'You are CDX-Frontend, an expert UI/UX and web frontend engineer. Focus strictly on modern aesthetics, Tailwind CSS, clean layouts, micro-interactions, and mobile responsiveness. Output complete code directly.', 'Build a modern responsive frontend component for: ')" class="btn-press w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Deploy Frontend Agent
                     </button>
                 </div>
@@ -1515,7 +1502,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Legal</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Tech & open-source legal advisor. Audits software licenses (MIT/Apache/GPL), SaaS terms of service, developer privacy policies, and liability indemnification.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Legal', 'You are CDX-Legal, an expert tech legal specialist created by Saad Kashif. Draft developer contracts, open-source licenses, software terms of service, privacy policies, and liability indemnification clauses.', 'Audit open-source license compliance for: ')" class="btn-press w-full py-2 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 rounded-xl text-xs font-semibold text-amber-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-Legal', 'You are CDX-Legal, an expert tech legal specialist. Draft developer contracts, open-source licenses, software terms of service, privacy policies, and liability indemnification clauses.', 'Audit open-source license compliance for: ')" class="btn-press w-full py-2 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 rounded-xl text-xs font-semibold text-amber-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-gavel text-xs"></i> Consult Legal Counsel
                     </button>
                 </div>
@@ -1529,7 +1516,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Automator</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">OS desktop automation & daemon engineer. Controls native mouse/keyboard operations, writes headless web scraping routines, and background worker daemons.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Automator', 'You are CDX-Automator, an OS automation and robotics engineer created by Saad Kashif. Build desktop automation scripts, custom mouse/keyboard controllers, scrapers, and background daemon workflows.', 'Automate desktop workflow for: ')" class="btn-press w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 rounded-xl text-xs font-semibold text-indigo-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-Automator', 'You are CDX-Automator, an OS automation and robotics engineer. Build desktop automation scripts, custom mouse/keyboard controllers, scrapers, and background daemon workflows.', 'Automate desktop workflow for: ')" class="btn-press w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 rounded-xl text-xs font-semibold text-indigo-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-play text-xs"></i> Run Automator
                     </button>
                 </div>
@@ -1543,7 +1530,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Architect</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Principal system designer. Specializes in distributed microservices, database schemas, API specs, and clean scalable architecture.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Architect', 'You are CDX-Architect, a principal systems architect created by Saad Kashif. Focus strictly on clean modular architecture, API designs, scalability, and database modeling.', 'Design scalable architecture for: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-purple-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-Architect', 'You are CDX-Architect, a principal systems architect. Focus strictly on clean modular architecture, API designs, scalability, and database modeling.', 'Design scalable architecture for: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-purple-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-regular fa-comment text-xs"></i> Consult Architect
                     </button>
                 </div>
@@ -1557,7 +1544,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-FullStack</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Production website & app builder. Writes complete HTML/CSS/Tailwind sites, React/Vue frontends, and Python/Node backends instantly without asking questions.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-FullStack', 'You are CDX-FullStack, an elite web builder created by Saad Kashif. Immediately write complete, stunning, single-page or multi-component websites and web apps with zero placeholders.', 'Build a complete website for: ')" class="btn-press w-full py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-xs font-semibold text-emerald-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-FullStack', 'You are CDX-FullStack, an elite web builder. Immediately write complete, stunning, single-page or multi-component websites and web apps with zero placeholders.', 'Build a complete website for: ')" class="btn-press w-full py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-xs font-semibold text-emerald-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-code text-xs"></i> Deploy Web Builder
                     </button>
                 </div>
@@ -1571,7 +1558,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Auditor</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Security & penetration auditor. Inspects code for injection vulnerabilities, secret leaks, CORS bugs, and memory vulnerabilities.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Auditor', 'You are CDX-Auditor, an elite cybersecurity engineer created by Saad Kashif. Audit code, detect vulnerabilities, and provide patched secure code implementations.', 'Perform security audit on: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-Auditor', 'You are CDX-Auditor, an elite cybersecurity engineer. Audit code, detect vulnerabilities, and provide patched secure code implementations.', 'Perform security audit on: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-shield text-xs"></i> Run Security Audit
                     </button>
                 </div>
@@ -1585,7 +1572,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-Research</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Multi-platform intelligence aggregator. Queries live web, GitHub repositories, and developer documentation to deliver comprehensive synthesis reports.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-Research', 'You are CDX-Research, a multi-source intelligence agent created by Saad Kashif. Conduct deep research and synthesize structured analytical reports.', 'Research the topic: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-blue-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-Research', 'You are CDX-Research, a multi-source intelligence agent. Conduct deep research and synthesize structured analytical reports.', 'Research the topic: ')" class="btn-press w-full py-2 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs font-semibold text-blue-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i> Consult Researcher
                     </button>
                 </div>
@@ -1599,7 +1586,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-DeepSeek-R1</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Pure deep reasoning &amp; chain-of-thought engine. Decomposes NP-hard algorithms, cryptographic proofs, and multi-variable optimization problems with explicit &lt;thinking&gt; steps.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-DeepSeek-R1', 'You are CDX-DeepSeek-R1, a pure deep reasoning and chain-of-thought engine created by Saad Kashif. Always think deeply within &lt;thinking&gt;...&lt;/thinking&gt; tags before providing exhaustive, rigorous mathematical and algorithmic solutions.', 'Decompose and prove algorithmic solution for: ')" class="btn-press w-full py-2 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 rounded-xl text-xs font-semibold text-violet-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-DeepSeek-R1', 'You are CDX-DeepSeek-R1, a pure deep reasoning and chain-of-thought engine. Always think deeply within &lt;thinking&gt;...&lt;/thinking&gt; tags before providing exhaustive, rigorous mathematical and algorithmic solutions.', 'Decompose and prove algorithmic solution for: ')" class="btn-press w-full py-2 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 rounded-xl text-xs font-semibold text-violet-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-brain text-xs"></i> Consult DeepSeek-R1
                     </button>
                 </div>
@@ -1613,7 +1600,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-DataEngineer</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Distributed data &amp; streaming pipeline architect. Specializes in ClickHouse, PostgreSQL schemas, Apache Kafka events, ETL pipelines, and sub-millisecond query optimization.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-DataEngineer', 'You are CDX-DataEngineer, a principal data systems architect created by Saad Kashif. Design optimal database schemas, streaming ETL pipelines with Kafka/ClickHouse/PostgreSQL, and write production SQL queries with zero latency.', 'Design streaming data pipeline and schema for: ')" class="btn-press w-full py-2 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 rounded-xl text-xs font-semibold text-teal-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-DataEngineer', 'You are CDX-DataEngineer, a principal data systems architect. Design optimal database schemas, streaming ETL pipelines with Kafka/ClickHouse/PostgreSQL, and write production SQL queries with zero latency.', 'Design streaming data pipeline and schema for: ')" class="btn-press w-full py-2 bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 rounded-xl text-xs font-semibold text-teal-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-database text-xs"></i> Deploy Data Engineer
                     </button>
                 </div>
@@ -1627,7 +1614,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-DevOps-SRE</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Production infrastructure &amp; SRE specialist. Builds multi-stage Dockerfiles, Kubernetes manifests, CI/CD GitHub Actions workflows, and automated Terraform infrastructure.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-DevOps-SRE', 'You are CDX-DevOps-SRE, a senior site reliability engineer created by Saad Kashif. Build hardened production Dockerfiles, Kubernetes manifests, GitHub Actions CI/CD pipelines, and zero-downtime deployment architectures.', 'Generate production Dockerfile &amp; K8s deployment for: ')" class="btn-press w-full py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/40 rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-DevOps-SRE', 'You are CDX-DevOps-SRE, a senior site reliability engineer. Build hardened production Dockerfiles, Kubernetes manifests, GitHub Actions CI/CD pipelines, and zero-downtime deployment architectures.', 'Generate production Dockerfile &amp; K8s deployment for: ')" class="btn-press w-full py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/40 rounded-xl text-xs font-semibold text-orange-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-server text-xs"></i> Deploy DevOps SRE
                     </button>
                 </div>
@@ -1641,7 +1628,7 @@
                         <h3 class="text-sm font-bold text-white mb-1">CDX-MobileDev</h3>
                         <p class="text-xs text-gray-400 leading-relaxed mb-4">Cross-platform mobile engineer. Builds fluid iOS and Android applications with React Native and Flutter, native device bridge integration, and 60fps animations.</p>
                     </div>
-                    <button onclick="startAgentChat('CDX-MobileDev', 'You are CDX-MobileDev, an elite cross-platform mobile engineer created by Saad Kashif. Build fluid, beautiful React Native or Flutter applications with native device bridge integration and 60fps gesture animations.', 'Build mobile application screen and logic for: ')" class="btn-press w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="startAgentChat('CDX-MobileDev', 'You are CDX-MobileDev, an elite cross-platform mobile engineer. Build fluid, beautiful React Native or Flutter applications with native device bridge integration and 60fps gesture animations.', 'Build mobile application screen and logic for: ')" class="btn-press w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 rounded-xl text-xs font-semibold text-cyan-300 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-mobile text-xs"></i> Deploy Mobile Dev
                     </button>
                 </div>
@@ -1677,7 +1664,7 @@
             <!-- Terminal Console Window -->
             <div id="terminal-screen" class="w-full h-[420px] bg-black border border-borderBase rounded-2xl p-4 font-mono text-xs text-gray-200 overflow-y-auto space-y-2 select-text shadow-inner">
                 <div class="text-emerald-400 font-bold">The Codex Group [Version 1.7.0] — Linux CLI GUI Shell</div>
-                <div class="text-gray-500">Created by Saad Kashif. Type any command below to execute directly on your PC.</div>
+                <div class="text-gray-500">Autonomous Linux environment. Type any command below to execute directly on your PC.</div>
                 <div class="text-gray-700">────────────────────────────────────────────────────────────────────────────────</div>
             </div>
 
@@ -1724,10 +1711,10 @@
                     <div class="text-2xl font-extrabold text-white my-2 font-mono" id="usage-quota">--</div>
                     <div class="text-[10px] text-gray-400" id="usage-quota-reset">Resets daily</div>
                 </div>
-                <div class="glass-panel p-5 rounded-2xl border border-orange-500/25 flex flex-col justify-between">
-                    <div class="text-[11px] font-bold text-orange-400 uppercase tracking-wider font-mono">Cloud Spend</div>
-                    <div class="text-2xl font-extrabold text-white my-2 font-mono" id="usage-spend">$0.0000</div>
-                    <div class="text-[10px] text-gray-400 flex items-center gap-1"><i class="fa-solid fa-shield text-orange-400"></i> $2.00 Safety Cap</div>
+                <div class="glass-panel p-5 rounded-2xl border border-emerald-500/25 flex flex-col justify-between">
+                    <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-mono">Groq LPU Pipeline</div>
+                    <div class="text-2xl font-extrabold text-white my-2 font-mono" id="usage-spend">100% Free</div>
+                    <div class="text-[10px] text-gray-400 flex items-center gap-1"><i class="fa-solid fa-bolt text-emerald-400"></i> Zero-Lag Direct Flow</div>
                 </div>
             </div>
 
@@ -2406,7 +2393,10 @@
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
             
             const activePane = document.getElementById(`tab-${tabId}`);
-            if (activePane) activePane.classList.remove('hidden');
+            if (activePane) {
+                activePane.classList.remove('hidden');
+                activePane.scrollTop = 0;
+            }
 
             const tabMeta = {
                 chat: { title: 'CHAT & INFERENCE', sub: 'Autonomous Model Router • Full-Stack Synthesis' },
@@ -2896,16 +2886,18 @@
 
             if (currentTheme === 'sky') {
                 currentTheme = 'oled';
+                document.body.classList.remove('theme-sky');
                 if (tabChat) tabChat.classList.remove('sky-clouds-viewport');
                 if (themeLabel) themeLabel.innerText = 'OLED Pro';
                 if (themeIcon) { themeIcon.className = 'fa-solid fa-moon text-[11px] text-purple-400'; }
                 showToast('Switched to OLED Dark Space theme', 'info');
             } else {
                 currentTheme = 'sky';
+                document.body.classList.add('theme-sky');
                 if (tabChat) tabChat.classList.add('sky-clouds-viewport');
-                if (themeLabel) themeLabel.innerText = 'Sky 1:1';
-                if (themeIcon) { themeIcon.className = 'fa-solid fa-cloud text-[11px] text-sky-400'; }
-                showToast('Switched to 1:1 Sky Clouds theme', 'success');
+                if (themeLabel) themeLabel.innerText = 'Sky Light';
+                if (themeIcon) { themeIcon.className = 'fa-solid fa-sun text-[11px] text-amber-500'; }
+                showToast('Switched to Sky Light theme', 'success');
             }
         }
 
@@ -3765,7 +3757,7 @@
             const screen = document.getElementById('terminal-screen');
             screen.innerHTML = `
                 <div class="text-emerald-400 font-bold">The Codex Group [Version 1.7.0] — Linux CLI GUI Shell</div>
-                <div class="text-gray-500">Created by Saad Kashif. Type any command below to execute directly on your PC.</div>
+                <div class="text-gray-500">Autonomous Linux environment. Type any command below to execute directly on your PC.</div>
                 <div class="text-gray-700">────────────────────────────────────────────────────────────────────────────────</div>
             `;
             showToast('Terminal console cleared', 'info');
@@ -3785,7 +3777,9 @@
                 if (q.reset_5h) {
                     document.getElementById('usage-quota-reset').innerText = `Resets ${q.reset_5h}`;
                 }
-                document.getElementById('usage-spend').innerText = `$${(s.daily_spend || 0.0).toFixed(4)}`;
+                if (document.getElementById('usage-spend')) {
+                    document.getElementById('usage-spend').innerText = '100% Free';
+                }
 
                 renderHeatmap(data.history || []);
             } catch (e) {

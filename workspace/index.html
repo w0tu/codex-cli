@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>what is a pc | Cloud Architecture</title>
+    <title>Lumina Store | Ultra-Fast Headless E-Commerce</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,7 @@
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold font-mono text-sm">
                     CDX
                 </div>
-                <span class="font-bold tracking-tight text-white text-base">what is a pc</span>
+                <span class="font-bold tracking-tight text-white text-base">Lumina Store</span>
                 <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full ml-1">v1.7.0</span>
             </div>
             <nav class="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400">
@@ -44,42 +44,61 @@
         <div class="text-center max-w-3xl mx-auto space-y-4">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                CDX 3.2 LPU Ultra • Production Scaled
+                Tailwind CSS • Instant Checkout • 0.03s Response
             </div>
             <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
-                Production System for what is a pc
+                Next-Gen Intelligent Storefront
             </h1>
             <p class="text-gray-400 text-sm md:text-base leading-relaxed">
-                Scalable microservices, asynchronous message queues, and responsive OLED user interface.
+                Instant catalog filtering, responsive cart drawer, and frictionless checkout powered by edge microservices.
             </p>
         </div>
 
         <!-- Interactive Sandbox -->
         <section id="interactive">
             
-        <div class="glass-panel p-6 rounded-2xl border border-emerald-500/20 space-y-4">
+        <div class="glass-panel p-6 rounded-2xl border border-cyan-500/20 space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-white/10">
-                <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="font-mono text-xs text-white font-bold">Interactive Sandbox: what is a pc</span>
-                </div>
-                <button onclick="runCustomAction()" class="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-lg transition-all flex items-center gap-1.5">
-                    <i class="fa-solid fa-play text-[10px]"></i> Execute Pipeline
+                <span class="font-bold text-white text-sm">Featured Collections</span>
+                <button onclick="toggleCartDrawer()" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-cart-shopping"></i> Cart (<span id="cart-count">0</span>)
                 </button>
             </div>
-            <div class="grid md:grid-cols-2 gap-4 font-mono text-xs">
-                <div>
-                    <label class="text-[10px] text-gray-400 uppercase">Input Directives</label>
-                    <textarea id="custom-action-input" rows="4" class="w-full bg-black/60 text-emerald-300 font-mono text-xs p-3 rounded-xl border border-white/10 outline-none resize-none mt-1">what is a pc</textarea>
-                </div>
-                <div class="bg-black/60 p-3 rounded-xl border border-white/5 flex flex-col justify-between">
-                    <div>
-                        <div class="text-[10px] text-gray-400 uppercase">Execution Output Log</div>
-                        <div id="custom-output-log" class="h-24 overflow-y-auto text-[11px] text-gray-300 space-y-1 mt-1">
-                            <div class="text-gray-500">Pipeline ready. Click 'Execute Pipeline' to simulate run.</div>
-                        </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-black/60 p-4 rounded-xl border border-white/5 space-y-3">
+                    <div class="h-28 rounded-lg bg-gradient-to-br from-cyan-900/30 to-blue-900/20 border border-white/5 flex items-center justify-center text-3xl">💻</div>
+                    <div class="font-bold text-white text-xs">CDX Developer Rig 16"</div>
+                    <div class="text-[11px] text-gray-400">128GB Unified RAM, M4 Max Silicon.</div>
+                    <div class="flex items-center justify-between pt-2">
+                        <span class="font-mono text-cyan-400 font-bold text-xs">$3,499</span>
+                        <button onclick="addToCart('CDX Developer Rig', 3499)" class="px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-[11px] rounded-lg">Add to Cart</button>
                     </div>
                 </div>
+                <div class="bg-black/60 p-4 rounded-xl border border-white/5 space-y-3">
+                    <div class="h-28 rounded-lg bg-gradient-to-br from-purple-900/30 to-pink-900/20 border border-white/5 flex items-center justify-center text-3xl">⌨️</div>
+                    <div class="font-bold text-white text-xs">CyberDeck Mechanical OLED</div>
+                    <div class="text-[11px] text-gray-400">Gateron Magnetic Jade switches.</div>
+                    <div class="flex items-center justify-between pt-2">
+                        <span class="font-mono text-cyan-400 font-bold text-xs">$249</span>
+                        <button onclick="addToCart('CyberDeck Keyboard', 249)" class="px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-[11px] rounded-lg">Add to Cart</button>
+                    </div>
+                </div>
+                <div class="bg-black/60 p-4 rounded-xl border border-white/5 space-y-3">
+                    <div class="h-28 rounded-lg bg-gradient-to-br from-emerald-900/30 to-teal-900/20 border border-white/5 flex items-center justify-center text-3xl">🎧</div>
+                    <div class="font-bold text-white text-xs">Acoustic Pro Planar Shield</div>
+                    <div class="text-[11px] text-gray-400">Active spatial ANC zero latency.</div>
+                    <div class="flex items-center justify-between pt-2">
+                        <span class="font-mono text-cyan-400 font-bold text-xs">$429</span>
+                        <button onclick="addToCart('Planar Headphones', 429)" class="px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-[11px] rounded-lg">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            <div id="cart-drawer" class="hidden bg-black/80 p-4 rounded-xl border border-cyan-500/30 space-y-2 font-mono text-xs">
+                <div class="flex items-center justify-between text-cyan-300 font-bold">
+                    <span>Order Summary</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+                <button onclick="checkoutSim()" class="w-full py-2 bg-gradient-to-r from-cyan-500 to-emerald-500 text-black font-bold rounded-lg text-xs">Instant Checkout with Apple Pay / Stripe</button>
             </div>
         </div>
         
@@ -114,7 +133,7 @@
     <!-- Footer -->
     <footer class="border-t border-white/10 py-8 bg-black/80">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500 font-mono">
-            <div>Created by Saad Kashif · CDX Autonomous Platform</div>
+            <div>CDX Autonomous Platform · Direct LPU Flow</div>
             <div class="flex items-center gap-6">
                 <span>0.03s Response Time</span>
                 <span>220+ Specialized Agents</span>
@@ -124,13 +143,24 @@
 
     <script>
         
-        function runCustomAction() {
-            const log = document.getElementById('custom-output-log');
-            const inp = document.getElementById('custom-action-input').value;
-            log.innerHTML = `
-                <div class="text-emerald-400 font-bold"><i class="fa-solid fa-check"></i> Executed pipeline successfully!</div>
-                <div class="text-gray-300">Task payload processed across 4 worker threads. Status: OK (0.02s).</div>
-            `;
+        let cartItems = [];
+        function addToCart(title, price) {
+            cartItems.push({ title, price });
+            document.getElementById('cart-count').innerText = cartItems.length;
+            const drawer = document.getElementById('cart-drawer');
+            drawer.classList.remove('hidden');
+            const total = cartItems.reduce((acc, c) => acc + c.price, 0);
+            document.getElementById('cart-total').innerText = '$' + total.toLocaleString();
+        }
+        function toggleCartDrawer() {
+            const drawer = document.getElementById('cart-drawer');
+            drawer.classList.toggle('hidden');
+        }
+        function checkoutSim() {
+            alert('🎉 Order Placed! Thank you for purchasing from Lumina Store.');
+            cartItems = [];
+            document.getElementById('cart-count').innerText = '0';
+            document.getElementById('cart-drawer').classList.add('hidden');
         }
         
     </script>
