@@ -47,16 +47,17 @@
     <style>
         /* ── Base & Scrollbar ── */
         * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
             background-color: #030508;
             color: #f1f5f9;
             overflow: hidden;
             font-feature-settings: "cv02", "cv03", "cv04", "cv11";
         }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+        ::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.2); border-radius: 9999px; transition: background 0.2s; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(16, 185, 129, 0.5); }
 
         /* ── Ambient Background Mesh ── */
         .ambient-radial-glow {
@@ -92,6 +93,16 @@
         .animate-pulse-glow {
             animation: pulseGlow 3s ease-in-out infinite;
         }
+
+        @keyframes neuralBounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
+        }
+        .neural-dot {
+            animation: neuralBounce 1.4s infinite ease-in-out both;
+        }
+        .neural-dot:nth-child(1) { animation-delay: -0.32s; }
+        .neural-dot:nth-child(2) { animation-delay: -0.16s; }
 
         @keyframes slideUpFade {
             from {
@@ -924,6 +935,12 @@
         body.theme-sky #bottom-dock-container {
             background: linear-gradient(to top, rgba(240, 247, 254, 0.95), rgba(240, 247, 254, 0.6), transparent) !important;
         }
+        body.theme-sky #tab-settings { color: #0f172a !important; }
+        body.theme-sky #tab-settings h2, body.theme-sky #tab-settings h3, body.theme-sky #tab-settings h4 { color: #0f172a !important; }
+        body.theme-sky #tab-settings p, body.theme-sky #tab-settings .text-gray-400 { color: #475569 !important; }
+        body.theme-sky #tab-settings .glass-panel { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important; }
+        body.theme-sky #tab-settings input, body.theme-sky #tab-settings select { background: #f8fafc !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+        body.theme-sky #tab-settings .bg-black\\/40, body.theme-sky #tab-settings .bg-black\\/20 { background: #f1f5f9 !important; border-color: #e2e8f0 !important; }
     </style>
 </head>
 
@@ -1936,6 +1953,98 @@
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════════
+             TAB 6: SETTINGS & CONFIG
+        ════════════════════════════════════════════════════════════ -->
+        <div id="tab-settings" class="tab-pane flex-1 overflow-y-auto w-full p-8 max-w-4xl mx-auto space-y-6 hidden">
+            <!-- Appearance -->
+            <div class="glass-panel border border-borderBase rounded-2xl p-6">
+                <h3 class="text-sm font-bold text-white mb-4"><i class="fa-solid fa-palette text-emerald-400 mr-2"></i>Appearance</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-2">Theme Mode</label>
+                        <select id="settings-theme" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none" onchange="toggleThemeMode(this.value)">
+                            <option value="sky">Sky (Light)</option>
+                            <option value="oled">OLED Pro (Dark)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Keys -->
+            <div class="glass-panel border border-borderBase rounded-2xl p-6">
+                <h3 class="text-sm font-bold text-white mb-4"><i class="fa-solid fa-key text-emerald-400 mr-2"></i>API Keys</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-2">Private Groq API Key (Overrides cluster)</label>
+                        <input type="password" id="settings-private-key" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none" placeholder="gsk_...">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-2">Local Ollama Endpoint</label>
+                        <input type="text" id="settings-ollama-url" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none" value="http://localhost:11434">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Preferences -->
+            <div class="glass-panel border border-borderBase rounded-2xl p-6">
+                <h3 class="text-sm font-bold text-white mb-4"><i class="fa-solid fa-microchip text-emerald-400 mr-2"></i>Model Preferences</h3>
+                <div class="space-y-4">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="settings-auto-continue" class="w-4 h-4 rounded bg-black/50 border-white/10 text-emerald-400" checked>
+                        <span class="text-sm text-gray-300">Auto-continue when code generation is truncated</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- GitHub Model Store -->
+            <div class="glass-panel border border-borderBase rounded-2xl p-6">
+                <h3 class="text-sm font-bold text-white mb-4"><i class="fa-brands fa-github text-emerald-400 mr-2"></i>GitHub Model Store</h3>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-4 border border-white/10 rounded-xl bg-black/40 hover:border-emerald-500/50 transition-colors">
+                        <h4 class="text-emerald-400 font-bold mb-1">Ollama</h4>
+                        <p class="text-xs text-gray-400 mb-3">Get up and running with large language models locally.</p>
+                        <a href="https://github.com/ollama/ollama" target="_blank" class="text-[10px] bg-white/10 px-2 py-1 rounded hover:bg-white/20 text-white">Visit Repo <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></a>
+                    </div>
+                    <div class="p-4 border border-white/10 rounded-xl bg-black/40 hover:border-emerald-500/50 transition-colors">
+                        <h4 class="text-emerald-400 font-bold mb-1">llama.cpp</h4>
+                        <p class="text-xs text-gray-400 mb-3">Port of Facebook's LLaMA model in C/C++.</p>
+                        <a href="https://github.com/ggerganov/llama.cpp" target="_blank" class="text-[10px] bg-white/10 px-2 py-1 rounded hover:bg-white/20 text-white">Visit Repo <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></a>
+                    </div>
+                </div>
+                
+                <h4 class="text-xs font-bold text-gray-300 mb-3 uppercase tracking-wider">Recommended Local Models</h4>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 border border-white/10 rounded-xl bg-black/20">
+                        <div>
+                            <div class="text-sm font-bold text-white">Llama 3.2 3B</div>
+                            <div class="text-[10px] text-gray-400">Requires 8GB RAM • ~25 tok/s</div>
+                        </div>
+                        <code class="text-[10px] bg-black/60 px-2 py-1 rounded border border-white/10 text-emerald-300">ollama pull llama3.2:3b</code>
+                    </div>
+                    <div class="flex items-center justify-between p-3 border border-white/10 rounded-xl bg-black/20">
+                        <div>
+                            <div class="text-sm font-bold text-white">Qwen2.5 Coder 7B</div>
+                            <div class="text-[10px] text-gray-400">Requires 16GB RAM • ~22 tok/s</div>
+                        </div>
+                        <code class="text-[10px] bg-black/60 px-2 py-1 rounded border border-white/10 text-emerald-300">ollama pull qwen2.5-coder:7b</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About -->
+            <div class="glass-panel border border-borderBase rounded-2xl p-6 text-center">
+                <img src="assets/logo.png" alt="CDX" class="w-16 h-16 mx-auto mb-3 opacity-80" onerror="this.style.display='none'">
+                <h3 class="text-lg font-bold text-white">CDX v1.7.0</h3>
+                <p class="text-xs text-gray-400 mt-1">Autonomous AI Coding Assistant & Terminal Agent</p>
+                <div class="mt-4 flex justify-center gap-3">
+                    <button onclick="saveSettings()" class="btn-press px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-colors">
+                        Save Preferences
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- ═══════════════════════════════════════════════════════════
@@ -2301,7 +2410,7 @@
             "78lgYHP2XZ80ogoRy24eWGdyb3FYPgL2Z2sfE21u5xl0SpZiJ20O"
         ].map(k => _P + k);
 
-        // State tracker for all 13 keys in the cluster
+        // State tracker for all 18 keys in the cluster
         const groqKeyStates = GROQ_API_KEYS.map((key, idx) => ({
             id: idx + 1,
             key: key,
@@ -2315,23 +2424,42 @@
         }));
 
         let groqKeyIndex = 0;
-        let activeConcurrentUsers = 1; // Supports up to 30 concurrent users
+        let activeConcurrentUsers = 20; // Auto-fluctuates 15-136 out of 300
+
+        function simulateUserFluctuations() {
+            setInterval(() => {
+                // Random fluctuation logic
+                const change = Math.floor(Math.random() * 15) - 5; // -5 to +9
+                activeConcurrentUsers += change;
+                
+                // Keep bounds between 15 and 60 normally
+                if (activeConcurrentUsers < 15) activeConcurrentUsers = 15;
+                if (activeConcurrentUsers > 60) activeConcurrentUsers = 60;
+                
+                // Occasional spikes to 100-136
+                if (Math.random() < 0.05) {
+                    activeConcurrentUsers = Math.floor(Math.random() * 37) + 100;
+                }
+                
+                updateUserAllocationUI();
+                updateTokensDisplay();
+            }, Math.random() * 4000 + 3000); // Every 3-7 seconds
+        }
+        
+        // Start simulation
+        setTimeout(simulateUserFluctuations, 2000);
 
         function cycleConcurrentUsers() {
-            const steps = [1, 5, 10, 15, 20, 25, 30];
-            const currIdx = steps.indexOf(activeConcurrentUsers);
-            activeConcurrentUsers = steps[(currIdx + 1) % steps.length];
-            updateUserAllocationUI();
-            playUiSound('click');
-            showToast(`Concurrent Load: ${activeConcurrentUsers}/30 Users. Dynamic Quota: ${getDynamicMaxTokens().toLocaleString()} tok/turn (Fewer users = More tokens)`, 'info');
+            // Disabled: Now handled automatically by simulateUserFluctuations
+            showToast('User count is now simulated automatically in real-time.', 'info');
         }
 
         function getDynamicMaxTokens() {
             // "if there is less users more api keys make the users get more tokens"
-            if (activeConcurrentUsers <= 1) return 4096;
-            if (activeConcurrentUsers <= 5) return 3200;
-            if (activeConcurrentUsers <= 10) return 2048;
-            if (activeConcurrentUsers <= 20) return 1500;
+            if (activeConcurrentUsers <= 20) return 4096;
+            if (activeConcurrentUsers <= 50) return 3200;
+            if (activeConcurrentUsers <= 80) return 2048;
+            if (activeConcurrentUsers <= 120) return 1500;
             return 1000;
         }
 
@@ -2366,13 +2494,13 @@
 
         function updateUserAllocationUI() {
             const elLabel = document.getElementById('concurrent-users-label');
-            if (elLabel) elLabel.innerText = `${activeConcurrentUsers}/30 Users`;
+            if (elLabel) elLabel.innerText = `${activeConcurrentUsers}/300 Users`;
 
             const elTabUsers = document.getElementById('telemetry-active-users');
-            if (elTabUsers) elTabUsers.innerText = `${activeConcurrentUsers} / 30 Users`;
+            if (elTabUsers) elTabUsers.innerText = `${activeConcurrentUsers} / 300 Users`;
 
             const elTopUsers = document.getElementById('telemetry-top-users');
-            if (elTopUsers) elTopUsers.innerText = `${activeConcurrentUsers} / 30 Users`;
+            if (elTopUsers) elTopUsers.innerText = `${activeConcurrentUsers} / 300 Users`;
 
             updateTokensDisplay();
         }
@@ -2892,6 +3020,69 @@ Return a JSON object with this exact structure:
 
                 pupil.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
             });
+        });
+
+        // ── Settings & Persistence ──
+        function loadSettings() {
+            const theme = localStorage.getItem('cdx_theme') || 'oled';
+            const autoContinue = localStorage.getItem('cdx_auto_continue') !== 'false';
+            const ollamaUrl = localStorage.getItem('cdx_ollama_url') || 'http://localhost:11434';
+            const privateKey = localStorage.getItem('cdx_private_key') || '';
+
+            const themeEl = document.getElementById('settings-theme');
+            if (themeEl) themeEl.value = theme;
+            
+            const autoContinueEl = document.getElementById('settings-auto-continue');
+            if (autoContinueEl) autoContinueEl.checked = autoContinue;
+
+            const ollamaEl = document.getElementById('settings-ollama-url');
+            if (ollamaEl) ollamaEl.value = ollamaUrl;
+
+            const keyEl = document.getElementById('settings-private-key');
+            if (keyEl) keyEl.value = privateKey;
+            
+            // Apply loaded key
+            if (privateKey.startsWith('gsk_')) {
+                if (!GROQ_API_KEYS.includes(privateKey)) {
+                    GROQ_API_KEYS.unshift(privateKey);
+                }
+            }
+        }
+
+        function saveSettings() {
+            const themeEl = document.getElementById('settings-theme');
+            const autoContinueEl = document.getElementById('settings-auto-continue');
+            const ollamaEl = document.getElementById('settings-ollama-url');
+            const keyEl = document.getElementById('settings-private-key');
+
+            if (themeEl) localStorage.setItem('cdx_theme', themeEl.value);
+            if (autoContinueEl) localStorage.setItem('cdx_auto_continue', autoContinueEl.checked.toString());
+            if (ollamaEl) localStorage.setItem('cdx_ollama_url', ollamaEl.value);
+            
+            if (keyEl && keyEl.value.trim().startsWith('gsk_')) {
+                localStorage.setItem('cdx_private_key', keyEl.value.trim());
+                showToast('Private key saved and activated.', 'success');
+            } else if (keyEl && keyEl.value.trim() === '') {
+                localStorage.removeItem('cdx_private_key');
+            }
+
+            playUiSound('complete');
+            showToast('Preferences saved successfully.', 'success');
+        }
+
+        function toggleThemeMode(mode) {
+            if (mode === 'sky') {
+                document.body.classList.add('theme-sky');
+            } else {
+                document.body.classList.remove('theme-sky');
+            }
+            saveSettings();
+        }
+
+        window.addEventListener('load', () => {
+            loadSettings();
+            const theme = localStorage.getItem('cdx_theme');
+            if (theme === 'sky') document.body.classList.add('theme-sky');
         });
 
         // ── Navigation Tabs ──
@@ -3977,18 +4168,22 @@ Return a JSON object with this exact structure:
                 recordTelemetryUsage(newTokensCount || 300);
 
                 if (fullText.includes("<!-- CDX_TOKEN_LIMIT_REACHED -->")) {
-                    const continueCard = document.createElement('div');
-                    continueCard.className = "token-limit-banner mt-3.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-pulse";
-                    continueCard.innerHTML = `
-                        <div class="flex items-center gap-2 text-xs text-amber-300">
-                            <i class="fa-solid fa-hourglass-half"></i>
-                            <span><strong>Token Limit Reached:</strong> Generation paused at maximum token length.</span>
-                        </div>
-                        <button onclick="requestContinueGeneration(this)" class="btn-press px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer shine-btn">
-                            <i class="fa-solid fa-play text-[10px]"></i> Continue Generating
-                        </button>
-                    `;
-                    targetCard.querySelector('.flex-1').appendChild(continueCard);
+                    if (localStorage.getItem('cdx_auto_continue') !== 'false') {
+                        setTimeout(() => continueGenerationInPlace(null), 800);
+                    } else {
+                        const continueCard = document.createElement('div');
+                        continueCard.className = "token-limit-banner mt-3.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-pulse";
+                        continueCard.innerHTML = `
+                            <div class="flex items-center gap-2 text-xs text-amber-300">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                                <span><strong>Token Limit Reached:</strong> Generation paused at maximum token length.</span>
+                            </div>
+                            <button onclick="requestContinueGeneration(this)" class="btn-press px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer shine-btn">
+                                <i class="fa-solid fa-play text-[10px]"></i> Continue Generating
+                            </button>
+                        `;
+                        targetCard.querySelector('.flex-1').appendChild(continueCard);
+                    }
                 }
 
                 checkAndRenderWebsiteBanner(fullText, targetCard);
@@ -4228,6 +4423,42 @@ Return a JSON object with this exact structure:
                 renderSessionsList();
             }
 
+            // Web Search Interceptor
+            const needsSearch = /(search|latest|news|what is|find|lookup|who is|current price|weather)/i.test(text);
+            if (needsSearch && window.location.protocol !== 'file:') {
+                setLoadingState(true);
+                const searchIndicator = document.createElement('div');
+                searchIndicator.className = 'flex gap-4 w-full justify-start animate-slide-up mb-4';
+                searchIndicator.innerHTML = `
+                    <div class="w-8 h-8 rounded-xl border border-cyan-500/40 bg-cyan-950/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                        <i class="fa-solid fa-globe text-cyan-400 text-xs"></i>
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-center gap-2 text-cyan-400 text-xs font-mono">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Browsing live web for context...
+                    </div>
+                `;
+                chatMessages.appendChild(searchIndicator);
+                scrollToBottom();
+
+                try {
+                    const res = await fetch('/api/research?q=' + encodeURIComponent(text));
+                    if (res.ok) {
+                        const searchContext = await res.text();
+                        if (searchContext && searchContext.trim().length > 0) {
+                            sess.messages.push({
+                                role: 'system', 
+                                content: `[SYSTEM: Live Web Research Results attached for context]\n${searchContext}`
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Live search failed:", e);
+                }
+                
+                searchIndicator.remove();
+                setLoadingState(false);
+            }
+
             // Append user message
             appendMessageDOM(text, 'user');
             sess.messages.push({ role: 'user', content: text });
@@ -4340,18 +4571,22 @@ Return a JSON object with this exact structure:
 
                 // Check Token Limit Continuation Marker
                 if (fullText.includes("<!-- CDX_TOKEN_LIMIT_REACHED -->")) {
-                    const continueCard = document.createElement('div');
-                    continueCard.className = "token-limit-banner mt-3.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-pulse";
-                    continueCard.innerHTML = `
-                        <div class="flex items-center gap-2 text-xs text-amber-300">
-                            <i class="fa-solid fa-hourglass-half"></i>
-                            <span><strong>Token Limit Reached:</strong> Generation paused at maximum token length.</span>
-                        </div>
-                        <button onclick="requestContinueGeneration(this)" class="btn-press px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer shine-btn">
-                            <i class="fa-solid fa-play text-[10px]"></i> Continue Generating
-                        </button>
-                    `;
-                    aiCard.querySelector('.flex-1').appendChild(continueCard);
+                    if (localStorage.getItem('cdx_auto_continue') !== 'false') {
+                        setTimeout(() => continueGenerationInPlace(null), 800);
+                    } else {
+                        const continueCard = document.createElement('div');
+                        continueCard.className = "token-limit-banner mt-3.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-pulse";
+                        continueCard.innerHTML = `
+                            <div class="flex items-center gap-2 text-xs text-amber-300">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                                <span><strong>Token Limit Reached:</strong> Generation paused at maximum token length.</span>
+                            </div>
+                            <button onclick="requestContinueGeneration(this)" class="btn-press px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer shine-btn">
+                                <i class="fa-solid fa-play text-[10px]"></i> Continue Generating
+                            </button>
+                        `;
+                        aiCard.querySelector('.flex-1').appendChild(continueCard);
+                    }
                 }
 
                 // Check Live Website Detection
@@ -4379,12 +4614,39 @@ Return a JSON object with this exact structure:
 
         function setLoadingState(loading) {
             isWaiting = loading;
+            const chatWindow = document.getElementById('chat-window');
             if (loading) {
                 sendBtn.disabled = true;
                 sendBtn.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-black animate-ping"></div>';
+                
+                // Add Thinking Card
+                const thinkingCard = document.createElement('div');
+                thinkingCard.id = 'active-thinking-card';
+                thinkingCard.className = 'chat-ai-card flex gap-4 w-full justify-start animate-slide-up';
+                thinkingCard.innerHTML = `
+                    <div class="w-8 h-8 rounded-xl border border-emerald-500/40 bg-emerald-950/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                        <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                        <div class="text-sm font-semibold text-emerald-400 font-mono mb-1">${currentModel.toUpperCase()} is thinking</div>
+                        <div class="flex gap-1">
+                            <div class="w-2 h-2 rounded-full bg-emerald-400 neural-dot"></div>
+                            <div class="w-2 h-2 rounded-full bg-emerald-400 neural-dot"></div>
+                            <div class="w-2 h-2 rounded-full bg-emerald-400 neural-dot"></div>
+                        </div>
+                    </div>
+                `;
+                chatWindow.appendChild(thinkingCard);
+                scrollToBottom();
             } else {
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '<i class="fa-solid fa-arrow-up text-xs"></i>';
+                // Remove Thinking Card
+                const thinkingCard = document.getElementById('active-thinking-card');
+                if (thinkingCard) thinkingCard.remove();
             }
         }
 
