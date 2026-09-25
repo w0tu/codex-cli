@@ -1542,6 +1542,250 @@
             <div class="text-xs text-gray-500 font-mono text-center py-8">
                 <i class="fa-solid fa-spinner fa-spin text-purple-400 mb-2 text-lg"></i>
                 <div>Loading learned knowledge index...</div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MODAL 1: CDX NEURAL MODEL MATRIX SELECTOR
+    ════════════════════════════════════════════════════════════ -->
+    <div id="model-selector-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden">
+        <div class="glass-panel max-w-2xl w-full rounded-2xl border border-emerald-500/30 bg-[#0a0d14]/95 shadow-2xl overflow-hidden flex flex-col animate-scale-up">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-borderBase flex items-center justify-between bg-card/60">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                        <i class="fa-solid fa-microchip text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white font-mono flex items-center gap-2">
+                            <span>CDX NEURAL MODEL MATRIX</span>
+                            <span class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">0.03s SWITCH</span>
+                        </h3>
+                        <p class="text-[11px] text-gray-400">Hot-swap local LPU and deep reasoning weights instantaneously with zero session loss</p>
+                    </div>
+                </div>
+                <button onclick="closeModelSelectorModal()" class="btn-press w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body: 4 Frontier Models -->
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[65vh]">
+                <!-- Card 1: cdx 3.2 LPU Ultra -->
+                <div onclick="selectModel('cdx 3.2', 'cdx 3.2 LPU Ultra')" class="group p-4 rounded-xl bg-card hover:bg-cardHover border border-emerald-500/40 hover:border-emerald-400 transition-all cursor-pointer flex flex-col justify-between space-y-3 relative overflow-hidden shadow-lg">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-white text-sm group-hover:text-emerald-400 transition-colors">cdx 3.2 LPU Ultra</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold font-mono">ACTIVE</span>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-mono mt-0.5">Hardware Accelerated • 528 tok/s</div>
+                        </div>
+                        <div class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 border border-emerald-500/30">0.03s</div>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Default ultra-fast local/cloud hybrid inference engine optimized for interactive coding and sub-second stream rendering.
+                    </p>
+                    <div class="flex items-center justify-between pt-2 border-t border-borderBase/60 text-[10px] font-mono text-gray-400">
+                        <span>Speed: <span class="text-emerald-400 font-bold">528 tok/s</span></span>
+                        <span class="text-emerald-400 group-hover:translate-x-1 transition-transform">Select &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: cdx 3.5 Pro (120B) -->
+                <div onclick="selectModel('openai/gpt-oss-120b', 'cdx 3.5 Pro (120B)')" class="group p-4 rounded-xl bg-card hover:bg-cardHover border border-borderBase hover:border-teal-400 transition-all cursor-pointer flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-white text-sm group-hover:text-teal-400 transition-colors">cdx 3.5 Pro (120B)</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-bold font-mono">4096 TOK</span>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-mono mt-0.5">Heavyweight Multi-File Architecture</div>
+                        </div>
+                        <div class="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-950/40 text-teal-400 border border-teal-500/30">120B</div>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Heavyweight multi-turn model with extended token budget for complex repository refactoring, deep dependency tracing, and fullstack scaffolding.
+                    </p>
+                    <div class="flex items-center justify-between pt-2 border-t border-borderBase/60 text-[10px] font-mono text-gray-400">
+                        <span>Context: <span class="text-teal-400 font-bold">Extended</span></span>
+                        <span class="text-teal-400 group-hover:translate-x-1 transition-transform">Select &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: cdx 3.6 DeepSeek R1 -->
+                <div onclick="selectModel('deepseek/deepseek-r1', 'cdx 3.6 DeepSeek R1')" class="group p-4 rounded-xl bg-card hover:bg-cardHover border border-borderBase hover:border-cyan-400 transition-all cursor-pointer flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-white text-sm group-hover:text-cyan-400 transition-colors">cdx 3.6 DeepSeek R1</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold font-mono">REASON</span>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-mono mt-0.5">Deep Chain-of-Thought Trajectory</div>
+                        </div>
+                        <div class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/40 text-cyan-400 border border-cyan-500/30">COT</div>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Reasoning specialist with visible &lt;thought&gt; execution logs, formal mathematical verification, and autonomous edge-case discovery.
+                    </p>
+                    <div class="flex items-center justify-between pt-2 border-t border-borderBase/60 text-[10px] font-mono text-gray-400">
+                        <span>Mode: <span class="text-cyan-400 font-bold">Deep Thought</span></span>
+                        <span class="text-cyan-400 group-hover:translate-x-1 transition-transform">Select &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: cdx 2.7 Fast (20B) -->
+                <div onclick="selectModel('openai/gpt-oss-20b', 'cdx 2.7 Fast (20B)')" class="group p-4 rounded-xl bg-card hover:bg-cardHover border border-borderBase hover:border-purple-400 transition-all cursor-pointer flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-white text-sm group-hover:text-purple-400 transition-colors">cdx 2.7 Fast (20B)</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold font-mono">1.2s</span>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-mono mt-0.5">Ultra-Lightweight Edge Model</div>
+                        </div>
+                        <div class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/40 text-purple-400 border border-purple-500/30">20B</div>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Compact resource-efficient model designed for instant single-line completions, rapid regex debugging, and simple terminal syntax fixes.
+                    </p>
+                    <div class="flex items-center justify-between pt-2 border-t border-borderBase/60 text-[10px] font-mono text-gray-400">
+                        <span>Profile: <span class="text-purple-400 font-bold">Low Memory</span></span>
+                        <span class="text-purple-400 group-hover:translate-x-1 transition-transform">Select &rarr;</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-3.5 border-t border-borderBase bg-card/40 flex items-center justify-between">
+                <div class="text-[11px] text-gray-500 font-mono">
+                    Architected by <span class="text-gray-300 font-semibold">Saad Kashif</span> • Local Hardware First
+                </div>
+                <button onclick="closeModelSelectorModal()" class="btn-press px-4 py-1.5 rounded-lg bg-card hover:bg-cardHover border border-borderBase text-xs text-gray-300 hover:text-white transition-colors cursor-pointer">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MODAL 2: FULLSCREEN AFTER-EFFECTS CINEMATIC SHOWCASE (/brag)
+    ════════════════════════════════════════════════════════════ -->
+    <div id="cinematic-ad-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/95 backdrop-blur-2xl hidden overflow-hidden">
+        <!-- Laser Grid Animated Canvas Effect -->
+        <div class="absolute inset-0 pointer-events-none opacity-40 laser-grid-bg"></div>
+        <div class="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-black"></div>
+
+        <!-- Cinema Frame Container -->
+        <div class="relative w-full max-w-5xl h-[88vh] max-h-[780px] rounded-3xl border border-emerald-500/40 bg-[#07090e]/90 shadow-[0_0_80px_rgba(16,185,129,0.18)] flex flex-col justify-between overflow-hidden animate-scale-up">
+            
+            <!-- Top Bar -->
+            <div class="px-6 py-4 border-b border-borderBase/70 flex items-center justify-between bg-card/30 backdrop-blur-md z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/20 border border-emerald-500/50 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-sm font-black text-white font-mono tracking-wider">CDX PLATFORM</span>
+                        <span class="hidden sm:inline-block ml-2 text-[10px] font-mono text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full bg-emerald-500/10">AFTER EFFECTS SHOWCASE</span>
+                    </div>
+                </div>
+
+                <!-- Scene Counter & Controls -->
+                <div class="flex items-center gap-2">
+                    <span id="ad-scene-indicator" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full">
+                        SCENE 01 / 05
+                    </span>
+                    <button onclick="toggleCinematicAdAudio()" id="ad-sound-btn" class="btn-press w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer" title="Toggle Synthesizer Audio">
+                        <i class="fa-solid fa-volume-high text-xs text-emerald-400"></i>
+                    </button>
+                    <button onclick="replayCinematicAd()" class="btn-press w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer" title="Replay from Scene 1">
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                    </button>
+                    <button onclick="closeCinematicAdModal()" class="btn-press w-8 h-8 rounded-lg bg-card hover:bg-cardHover text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer" title="Close (Esc)">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Central Kinetic Typographic Stage -->
+            <div class="flex-1 flex flex-col justify-center px-8 sm:px-14 relative z-10 overflow-y-auto py-6">
+                <!-- Tag -->
+                <div id="ad-scene-tag" class="text-xs font-mono font-bold uppercase tracking-[0.25em] text-emerald-400 mb-3 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>01 // THE SPEED REVOLUTION</span>
+                </div>
+
+                <!-- Main Giant Kinetic Heading -->
+                <h1 id="ad-scene-title" class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight uppercase leading-[1.1] neon-glow-text">
+                    0.03s COLD START.
+                </h1>
+
+                <!-- Subtitle -->
+                <h2 id="ad-scene-subtitle" class="text-base sm:text-2xl font-bold font-mono text-emerald-400/90 tracking-wide mt-2">
+                    ULTRA-FAST LOCAL LPU INFERENCE
+                </h2>
+
+                <!-- Narrative Description -->
+                <p id="ad-scene-desc" class="text-sm sm:text-base text-gray-300 max-w-3xl mt-5 leading-relaxed font-sans">
+                    Engineered from bare metal for zero-friction developer flow. CDX synthesizes and begins streaming tokens in 30 milliseconds at 528 tokens per second with full local context retention.
+                </p>
+
+                <!-- Feature Badges Row -->
+                <div id="ad-scene-badges" class="flex flex-wrap gap-2.5 mt-8">
+                    <span class="px-3 py-1.5 rounded-xl bg-card border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold shadow-sm">
+                        <i class="fa-solid fa-bolt mr-1.5 text-emerald-400"></i> 0.03s Response
+                    </span>
+                    <span class="px-3 py-1.5 rounded-xl bg-card border border-teal-500/30 text-teal-300 font-mono text-xs font-bold shadow-sm">
+                        <i class="fa-solid fa-gauge-high mr-1.5 text-teal-400"></i> 528 tok/s Velocity
+                    </span>
+                    <span class="px-3 py-1.5 rounded-xl bg-card border border-cyan-500/30 text-cyan-300 font-mono text-xs font-bold shadow-sm">
+                        <i class="fa-solid fa-microchip mr-1.5 text-cyan-400"></i> Local Hardware First
+                    </span>
+                    <span class="px-3 py-1.5 rounded-xl bg-card border border-purple-500/30 text-purple-300 font-mono text-xs font-bold shadow-sm">
+                        <i class="fa-solid fa-terminal mr-1.5 text-purple-400"></i> Dual GUI &amp; CLI
+                    </span>
+                </div>
+            </div>
+
+            <!-- Bottom Control Dock -->
+            <div class="px-8 py-5 border-t border-borderBase/70 bg-card/40 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4 z-10">
+                <!-- Creator Badge -->
+                <div class="text-xs text-gray-400 font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-code text-emerald-400"></i>
+                    <span>Engineered by <span class="text-white font-bold tracking-wide">Saad Kashif</span></span>
+                </div>
+
+                <!-- Stepper Dots & Navigation -->
+                <div class="flex items-center gap-3">
+                    <button onclick="prevAdScene()" class="btn-press px-3 py-1.5 rounded-xl bg-card hover:bg-cardHover border border-borderBase text-xs font-mono text-gray-300 hover:text-white flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i> Prev
+                    </button>
+
+                    <!-- 5 Stepper Buttons -->
+                    <div class="flex items-center gap-1.5" id="ad-stepper-dots">
+                        <button onclick="jumpToAdScene(0)" class="ad-step-dot w-7 h-7 rounded-lg font-mono text-[10px] font-bold bg-emerald-500 text-black flex items-center justify-center transition-all cursor-pointer">01</button>
+                        <button onclick="jumpToAdScene(1)" class="ad-step-dot w-7 h-7 rounded-lg font-mono text-[10px] font-bold bg-card border border-borderBase text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer">02</button>
+                        <button onclick="jumpToAdScene(2)" class="ad-step-dot w-7 h-7 rounded-lg font-mono text-[10px] font-bold bg-card border border-borderBase text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer">03</button>
+                        <button onclick="jumpToAdScene(3)" class="ad-step-dot w-7 h-7 rounded-lg font-mono text-[10px] font-bold bg-card border border-borderBase text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer">04</button>
+                        <button onclick="jumpToAdScene(4)" class="ad-step-dot w-7 h-7 rounded-lg font-mono text-[10px] font-bold bg-card border border-borderBase text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer">05</button>
+                    </div>
+
+                    <button onclick="nextAdScene()" class="btn-press px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+                        Next <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+
+                <!-- Launch Action CTA -->
+                <div class="flex items-center gap-2">
+                    <button onclick="closeCinematicAdModal(); switchTab('swarm')" class="btn-press px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black text-xs font-bold shadow-lg shadow-emerald-500/25 shine-btn cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-play text-[10px]"></i> Launch Swarm
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1668,6 +1912,63 @@
                         subOsc.start(now + i * 0.05);
                         subOsc.stop(now + i * 0.05 + 0.3);
                     });
+                } else if (type === 'modelSwitch') {
+                    // Futuristic dual sci-fi chime
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc1.connect(gain);
+                    osc2.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc1.type = 'sine';
+                    osc2.type = 'triangle';
+                    osc1.frequency.setValueAtTime(587.33, now);
+                    osc1.frequency.exponentialRampToValueAtTime(1174.66, now + 0.12);
+                    osc2.frequency.setValueAtTime(880.00, now);
+                    osc2.frequency.exponentialRampToValueAtTime(1760.00, now + 0.12);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.15);
+                    osc2.stop(now + 0.15);
+                } else if (type === 'whoosh') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.22);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                } else if (type === 'bassDrop') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(110, now);
+                    osc.frequency.exponentialRampToValueAtTime(36, now + 0.45);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'glitch') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(950, now);
+                    osc.frequency.setValueAtTime(350, now + 0.03);
+                    osc.frequency.setValueAtTime(1200, now + 0.06);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                    osc.start(now);
+                    osc.stop(now + 0.09);
                 }
             } catch (e) {
                 console.warn('Audio error:', e);
@@ -1882,7 +2183,7 @@
         });
 
         async function selectModel(modelKey, label, event) {
-            playUiSound('click');
+            playUiSound('modelSwitch');
             currentModel = modelKey;
             
             const sidebarTitle = document.getElementById('sidebar-active-model-title');
@@ -1890,11 +2191,12 @@
             if (sidebarTitle) sidebarTitle.innerText = label;
             if (dockChip) dockChip.innerText = label;
 
-            // Close dropdowns
+            // Close dropdowns & modals
             const sidebarDd = document.getElementById('sidebar-model-dropdown');
             const dockDd = document.getElementById('dock-model-popover');
             if (sidebarDd) sidebarDd.classList.add('hidden');
             if (dockDd) dockDd.classList.add('hidden');
+            closeModelSelectorModal();
             
             showToast(`Switched active model to ${label}`, 'success');
 
@@ -2007,7 +2309,178 @@
             handleSend();
         }
 
+        // ── Slash Commands (/commands) Autocomplete Engine ──
+        const SLASH_COMMANDS = [
+            { cmd: '/commands', title: 'Command Palette', desc: 'Browse all available slash shortcuts & actions', badge: 'HELP', icon: 'fa-terminal', color: 'emerald' },
+            { cmd: '/swarm', title: 'Sub-Agents Swarm', desc: 'Decompose and launch 4-node concurrent DAG pipeline', badge: 'DAG', icon: 'fa-network-wired', color: 'cyan', example: '/swarm Build a crypto trading dashboard' },
+            { cmd: '/code', title: 'Code Synthesis Mode', desc: 'High-precision engineering with CDX 3.5 Pro (4096 tokens)', badge: '4096 TOK', icon: 'fa-code', color: 'teal', example: '/code Write an async FastAPI webhook router' },
+            { cmd: '/brag', title: 'Cinematic After-Effects Showcase', desc: 'Full-screen cinematic ad with Web Audio synthesizer', badge: 'AD', icon: 'fa-clapperboard', color: 'pink' },
+            { cmd: '/preview', title: 'Live Sandbox', desc: 'Toggle live website sandbox preview drawer', badge: 'VIEW', icon: 'fa-window-restore', color: 'emerald' },
+            { cmd: '/terminal', title: 'Linux Shell GUI', desc: 'Open interactive bash CLI shell console', badge: 'BASH', icon: 'fa-square-terminal', color: 'amber' },
+            { cmd: '/agents', title: '220+ Agents Hub', desc: 'Browse and route to specialized developer agents', badge: 'ROUTER', icon: 'fa-robot', color: 'purple' },
+            { cmd: '/models', title: 'Model Selector', desc: 'Open modal to switch between 4 high-speed inference engines', badge: 'INFERENCE', icon: 'fa-microchip', color: 'emerald' },
+            { cmd: '/image', title: 'Generate Image', desc: 'Synthesize images via FLUX / Google Flow', badge: 'MEDIA', icon: 'fa-image', color: 'teal', example: '/image Cyberpunk city skyline in neon rain' },
+            { cmd: '/video', title: 'Generate Video', desc: 'Generate motion storyboard via Google Flow / Veo 2', badge: 'MOTION', icon: 'fa-film', color: 'purple', example: '/video Autonomous drone navigation' },
+            { cmd: '/learn', title: 'Internet Learner', desc: 'Trigger autonomous idle web scraping & fine-tuning data synthesis', badge: 'DATA', icon: 'fa-brain', color: 'violet' },
+            { cmd: '/wifi', title: 'WiFi Telemetry', desc: 'Query active WiFi link speed and interface metrics', badge: 'SYSTEM', icon: 'fa-wifi', color: 'cyan' },
+            { cmd: '/usage', title: 'Quota & Telemetry', desc: 'View daily compute quota, tokens, and inference latency', badge: 'METRICS', icon: 'fa-chart-pie', color: 'amber' },
+            { cmd: '/clear', title: 'Clear Chat', desc: 'Clear the active chat messages and start clean session', badge: 'SESSION', icon: 'fa-trash', color: 'rose' }
+        ];
+        let selectedSlashCmdIndex = 0;
+
+        function renderSlashCommands(filter = '') {
+            const list = document.getElementById('slash-commands-list');
+            if (!list) return;
+            const q = filter.toLowerCase().trim();
+            const filtered = SLASH_COMMANDS.filter(c => c.cmd.includes(q) || c.title.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="p-3 text-center text-xs text-gray-500 font-mono">No matching slash commands found for "${escapeHTML(filter)}"</div>`;
+                return;
+            }
+
+            if (selectedSlashCmdIndex >= filtered.length) selectedSlashCmdIndex = 0;
+
+            list.innerHTML = filtered.map((c, i) => `
+                <div onclick="selectSlashCommand('${c.cmd}', '${c.example ? escapeHTML(c.example) : ''}')" class="slash-cmd-item p-2 rounded-xl border border-transparent flex items-center justify-between cursor-pointer transition-all ${i === selectedSlashCmdIndex ? 'selected' : ''}">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-6 h-6 rounded-lg bg-card border border-borderBase flex items-center justify-center text-xs text-${c.color}-400">
+                            <i class="fa-solid ${c.icon} text-[10px]"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-mono text-xs font-bold text-white">${escapeHTML(c.cmd)}</span>
+                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-card text-gray-400 border border-white/5">${escapeHTML(c.badge)}</span>
+                            </div>
+                            <div class="text-[10px] text-gray-400">${escapeHTML(c.desc)}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-gray-500 font-mono hidden sm:inline-block">${escapeHTML(c.title)}</span>
+                </div>
+            `).join('');
+        }
+
+        function toggleSlashCommandsPalette(e) {
+            if (e) e.stopPropagation();
+            const palette = document.getElementById('slash-commands-palette');
+            if (!palette) return;
+            const isHidden = palette.classList.contains('hidden');
+            if (isHidden) {
+                renderSlashCommands('');
+                palette.classList.remove('hidden');
+                playUiSound('click');
+            } else {
+                palette.classList.add('hidden');
+            }
+        }
+
+        function showSlashCommandsPalette(filter = '') {
+            const palette = document.getElementById('slash-commands-palette');
+            if (!palette) return;
+            renderSlashCommands(filter);
+            palette.classList.remove('hidden');
+        }
+
+        function hideSlashCommandsPalette() {
+            const palette = document.getElementById('slash-commands-palette');
+            if (palette) palette.classList.add('hidden');
+        }
+
+        function navigateSlashCommands(delta) {
+            const items = document.querySelectorAll('.slash-cmd-item');
+            if (items.length === 0) return;
+            items[selectedSlashCmdIndex]?.classList.remove('selected');
+            selectedSlashCmdIndex = (selectedSlashCmdIndex + delta + items.length) % items.length;
+            items[selectedSlashCmdIndex]?.classList.add('selected');
+            items[selectedSlashCmdIndex]?.scrollIntoView({ block: 'nearest' });
+            playUiSound('click');
+        }
+
+        function executeSelectedSlashCommand() {
+            const items = document.querySelectorAll('.slash-cmd-item');
+            if (items[selectedSlashCmdIndex]) {
+                items[selectedSlashCmdIndex].click();
+            }
+        }
+
+        function selectSlashCommand(cmd, example) {
+            hideSlashCommandsPalette();
+            playUiSound('click');
+            if (cmd === '/clear') {
+                clearActiveChat();
+                return;
+            }
+            if (cmd === '/brag') {
+                openCinematicAdModal();
+                return;
+            }
+            if (cmd === '/preview') {
+                openLivePreviewDrawer();
+                return;
+            }
+            if (cmd === '/terminal') {
+                switchTab('terminal');
+                return;
+            }
+            if (cmd === '/agents') {
+                switchTab('agents');
+                return;
+            }
+            if (cmd === '/models') {
+                openModelSelectorModal();
+                return;
+            }
+            if (cmd === '/usage') {
+                switchTab('usage');
+                return;
+            }
+            if (cmd === '/learn') {
+                triggerManualLearning();
+                return;
+            }
+            if (cmd === '/swarm') {
+                switchTab('swarm');
+                return;
+            }
+            userInput.value = example ? example + ' ' : cmd + ' ';
+            autoResizeTextarea(userInput);
+            userInput.focus();
+        }
+
+        function handleTextareaInput(el) {
+            autoResizeTextarea(el);
+            const val = el.value.trim();
+            if (val.startsWith('/')) {
+                showSlashCommandsPalette(val);
+            } else {
+                hideSlashCommandsPalette();
+            }
+        }
+
         function handleTextareaKey(e) {
+            const palette = document.getElementById('slash-commands-palette');
+            const isPaletteOpen = palette && !palette.classList.contains('hidden');
+
+            if (isPaletteOpen) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    navigateSlashCommands(1);
+                    return;
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    navigateSlashCommands(-1);
+                    return;
+                } else if (e.key === 'Enter' || e.key === 'Tab') {
+                    e.preventDefault();
+                    executeSelectedSlashCommand();
+                    return;
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    hideSlashCommandsPalette();
+                    return;
+                }
+            }
+
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSend();
@@ -2017,6 +2490,16 @@
         function autoResizeTextarea(el) {
             el.style.height = 'auto';
             el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+        }
+
+        function clearActiveChat() {
+            sessions[activeSessionIndex].messages = [];
+            chatMessages.innerHTML = '';
+            welcomeScreen.classList.remove('hidden', 'opacity-0');
+            chatMessages.classList.add('hidden');
+            suggestionsBox.classList.remove('hidden');
+            playUiSound('click');
+            showToast('Conversation cleared', 'info');
         }
 
         // ── Deep Reasoning Collapsible & Code Block Enhancement ──
@@ -2277,6 +2760,45 @@
 
             userInput.value = '';
             userInput.style.height = 'auto';
+
+            // Slash Command Dispatch Interceptor
+            const lowerText = text.toLowerCase();
+            if (lowerText === '/brag' || lowerText === '/ad') {
+                openCinematicAdModal();
+                return;
+            }
+            if (lowerText === '/commands' || lowerText === '/help') {
+                toggleSlashCommandsPalette();
+                return;
+            }
+            if (lowerText === '/models' || lowerText === '/model') {
+                openModelSelectorModal();
+                return;
+            }
+            if (lowerText === '/swarm') {
+                switchTab('swarm');
+                return;
+            }
+            if (lowerText === '/agents') {
+                switchTab('agents');
+                return;
+            }
+            if (lowerText === '/terminal') {
+                switchTab('terminal');
+                return;
+            }
+            if (lowerText === '/usage') {
+                switchTab('usage');
+                return;
+            }
+            if (lowerText === '/preview' || lowerText === '/sandbox') {
+                openSwarmLivePreview();
+                return;
+            }
+            if (lowerText === '/clear') {
+                clearChat();
+                return;
+            }
 
             // 1. Image Command (/image <prompt>)
             if (text.startsWith('/image ')) {
@@ -2779,8 +3301,31 @@
             }
         }
 
-        function openSwarmLivePreview() {
+        async function openSwarmLivePreview() {
             playUiSound('click');
+            if (latestSwarmResult) {
+                let htmlContent = '';
+                const synthesis = latestSwarmResult.synthesis || '';
+                const htmlMatch = synthesis.match(/```html([\s\S]*?)```/i);
+                if (htmlMatch) {
+                    htmlContent = htmlMatch[1].trim();
+                } else if (latestSwarmResult.nodes && latestSwarmResult.nodes[2] && latestSwarmResult.nodes[2].output) {
+                    const feMatch = latestSwarmResult.nodes[2].output.match(/```html([\s\S]*?)```/i);
+                    if (feMatch) htmlContent = feMatch[1].trim();
+                }
+
+                if (htmlContent) {
+                    try {
+                        await fetch('/api/preview/save', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ html: htmlContent })
+                        });
+                    } catch (e) {
+                        console.warn('Live preview sync:', e);
+                    }
+                }
+            }
             openLivePreviewDrawer();
         }
 
@@ -2932,18 +3477,261 @@
 
             if (modelKey === 'best') {
                 body.innerHTML = formatMarkdownWithThinking(latestSwarmResult.synthesis || '');
-            } else if (latestSwarmResult.models_comparison && latestSwarmResult.models_comparison[modelKey]) {
-                const comp = latestSwarmResult.models_comparison[modelKey];
-                body.innerHTML = `
-                    <div class="mb-4 p-3 rounded-xl bg-card border border-borderBase flex items-center justify-between">
-                        <span class="font-mono text-xs text-emerald-400">Model: ${escapeHTML(comp.model || modelKey)}</span>
-                        <span class="font-mono text-xs text-amber-300">Score: ${comp.score}/100</span>
-                    </div>
-                    ${formatMarkdownWithThinking(comp.answer || '')}
-                `;
+            } else if (latestSwarmResult.models_comparison) {
+                let comp = null;
+                if (Array.isArray(latestSwarmResult.models_comparison)) {
+                    comp = latestSwarmResult.models_comparison.find(m => m.model_id === modelKey || m.model === modelKey || (m.model && m.model.toLowerCase().includes(modelKey.toLowerCase())));
+                } else if (latestSwarmResult.models_comparison[modelKey]) {
+                    comp = latestSwarmResult.models_comparison[modelKey];
+                }
+                if (comp) {
+                    body.innerHTML = `
+                        <div class="mb-4 p-3 rounded-xl bg-card border border-borderBase flex items-center justify-between">
+                            <span class="font-mono text-xs text-emerald-400">Model: ${escapeHTML(comp.model || modelKey)}</span>
+                            <span class="font-mono text-xs text-amber-300">Score: ${comp.score}/100</span>
+                        </div>
+                        ${formatMarkdownWithThinking(comp.answer || '')}
+                    `;
+                } else {
+                    body.innerHTML = `<div class="p-4 text-xs font-mono text-gray-400">No output generated for ${escapeHTML(modelKey)}</div>`;
+                }
             }
             enhanceCodeBlocks(body);
         }
+
+        function selectSwarmNode(nodeKey) {
+            playUiSound('click');
+            if (!latestSwarmResult || !latestSwarmResult.nodes) {
+                showToast(`DAG Node: ${nodeKey} (Launch swarm mission to inspect outputs)`, 'info');
+                return;
+            }
+            const nodeMap = {
+                architect: latestSwarmResult.nodes[0],
+                backend: latestSwarmResult.nodes[1],
+                frontend: latestSwarmResult.nodes[2],
+                auditor: latestSwarmResult.nodes[3]
+            };
+            const node = nodeMap[nodeKey];
+            if (!node) {
+                showToast(`Node ${nodeKey} not found`, 'warn');
+                return;
+            }
+            const body = document.getElementById('swarm-synthesis-body');
+            const resPanel = document.getElementById('swarm-results-panel');
+            if (resPanel) resPanel.classList.remove('hidden');
+            if (body) {
+                body.innerHTML = `
+                    <div class="mb-4 p-3 rounded-xl bg-card border border-borderBase flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            <span class="font-mono text-xs text-white font-bold uppercase">${escapeHTML(node.role || nodeKey)}</span>
+                            <span class="text-[10px] font-mono text-gray-400">Agent: ${escapeHTML(node.agent || 'CDX')}</span>
+                        </div>
+                        <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">${node.status || 'DONE'}</span>
+                    </div>
+                    ${formatMarkdownWithThinking(node.output || '')}
+                `;
+                enhanceCodeBlocks(body);
+                body.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            showToast(`Inspecting DAG output for ${node.role || nodeKey}`, 'info');
+        }
+
+        // ── Model Matrix Modal Controllers ──
+        function openModelSelectorModal() {
+            playUiSound('click');
+            const modal = document.getElementById('model-selector-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeModelSelectorModal() {
+            const modal = document.getElementById('model-selector-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // ── Fullscreen Cinematic Ad Showcase Engine (/brag) ──
+        let currentAdScene = 0;
+        let adAudioMuted = false;
+
+        const AD_SCENES = [
+            {
+                tag: "01 // THE SPEED REVOLUTION",
+                title: "0.03s COLD START.",
+                subtitle: "ULTRA-FAST LOCAL LPU INFERENCE",
+                desc: "Engineered from bare metal for zero-friction developer flow. CDX synthesizes and begins streaming tokens in 30 milliseconds at 528 tokens per second with full local context retention.",
+                badges: [
+                    { icon: "fa-bolt", text: "0.03s Response", color: "emerald" },
+                    { icon: "fa-gauge-high", text: "528 tok/s Velocity", color: "teal" },
+                    { icon: "fa-microchip", text: "Local Hardware First", color: "cyan" },
+                    { icon: "fa-terminal", text: "Dual GUI & CLI", color: "purple" }
+                ],
+                sound: "whoosh"
+            },
+            {
+                tag: "02 // AUTONOMOUS MULTI-AGENT SWARM",
+                title: "PARALLEL DAG ORCHESTRATION.",
+                subtitle: "FOUR SPECIALIZED AGENTS. ZERO SUPERVISION.",
+                desc: "CDX deconstructs any mission directive into an executable directed acyclic graph. System Architect, FastAPI Backend, React/HTML5 Frontend, and Security Auditor execute concurrently and cross-benchmark 4 frontier models.",
+                badges: [
+                    { icon: "fa-network-wired", text: "Parallel DAG Execution", color: "emerald" },
+                    { icon: "fa-laptop-code", text: "Live Sandbox Sync", color: "teal" },
+                    { icon: "fa-sliders", text: "4-Model Comparison Matrix", color: "cyan" },
+                    { icon: "fa-shield-halved", text: "Automated Security Audit", color: "purple" }
+                ],
+                sound: "swarm"
+            },
+            {
+                tag: "03 // UNRIVALED SPECIALIZATION",
+                title: "220+ EXPERT AGENTS.",
+                subtitle: "FROM LINUX KERNELS TO DEFI PROTOCOLS",
+                desc: "The world's largest catalog of pre-prompted, domain-native software engineering specialists. Each agent comes pre-loaded with specialized verification rubrics, high-performance patterns, and zero hallucinations.",
+                badges: [
+                    { icon: "fa-robot", text: "220+ Agents Hub", color: "emerald" },
+                    { icon: "fa-gears", text: "Rust & Kernel Systems", color: "teal" },
+                    { icon: "fa-coins", text: "Solidity & EVM Protocols", color: "cyan" },
+                    { icon: "fa-cubes", text: "Fullstack Scaffolding", color: "purple" }
+                ],
+                sound: "modelSwitch"
+            },
+            {
+                tag: "04 // CONTINUOUS EVOLUTION",
+                title: "AUTONOMOUS INTERNET LEARNER.",
+                subtitle: "HARVESTING INTELLIGENCE WHILE YOU SLEEP",
+                desc: "When idle, CDX queries web news, arXiv preprints, and release changelogs to synthesize fresh training data directly to ~/.codex/training_data.jsonl. Your engineering assistant stays cutting-edge forever.",
+                badges: [
+                    { icon: "fa-brain", text: "Autonomous Daemon", color: "emerald" },
+                    { icon: "fa-satellite-dish", text: "Live Web & ArXiv Ingestion", color: "teal" },
+                    { icon: "fa-database", text: "Auto-JSONL Synthesis", color: "cyan" },
+                    { icon: "fa-moon", text: "Zero Interruption Idle State", color: "purple" }
+                ],
+                sound: "bassDrop"
+            },
+            {
+                tag: "05 // THE CDX MANIFESTO",
+                title: "NEVER SAYS NO.",
+                subtitle: "ARCHITECTED BY SAAD KASHIF",
+                desc: "The defining virtue of CDX: never say no to an engineering problem. Always find the legal, elegant, high-performance solution. Single-command installation across Linux, macOS, and Windows.",
+                badges: [
+                    { icon: "fa-user-tie", text: "By Saad Kashif", color: "emerald" },
+                    { icon: "fa-scale-balanced", text: "Legal-Compliant Engineering", color: "teal" },
+                    { icon: "fa-download", text: "Single-Command Install", color: "cyan" },
+                    { icon: "fa-laptop-code", text: "Linux / macOS / Windows", color: "purple" }
+                ],
+                sound: "complete"
+            }
+        ];
+
+        function renderCinematicAdScene() {
+            const scene = AD_SCENES[currentAdScene];
+            if (!scene) return;
+
+            const ind = document.getElementById('ad-scene-indicator');
+            const tag = document.getElementById('ad-scene-tag');
+            const title = document.getElementById('ad-scene-title');
+            const subtitle = document.getElementById('ad-scene-subtitle');
+            const desc = document.getElementById('ad-scene-desc');
+            const badges = document.getElementById('ad-scene-badges');
+
+            if (ind) ind.innerText = `SCENE 0${currentAdScene + 1} / 0${AD_SCENES.length}`;
+            if (tag) tag.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>${scene.tag}</span>`;
+            if (title) title.innerText = scene.title;
+            if (subtitle) subtitle.innerText = scene.subtitle;
+            if (desc) desc.innerText = scene.desc;
+
+            if (badges) {
+                badges.innerHTML = scene.badges.map(b => `
+                    <span class="px-3 py-1.5 rounded-xl bg-card border border-${b.color}-500/30 text-${b.color}-300 font-mono text-xs font-bold shadow-sm flex items-center gap-1.5">
+                        <i class="fa-solid ${b.icon} text-${b.color}-400"></i> ${escapeHTML(b.text)}
+                    </span>
+                `).join('');
+            }
+
+            // Update Stepper dots
+            const dots = document.querySelectorAll('#ad-stepper-dots .ad-step-dot');
+            dots.forEach((dot, i) => {
+                if (i === currentAdScene) {
+                    dot.className = "ad-step-dot w-7 h-7 rounded-lg font-mono text-[10px] font-bold bg-emerald-500 text-black flex items-center justify-center transition-all cursor-pointer shadow-md shadow-emerald-500/20";
+                } else {
+                    dot.className = "ad-step-dot w-7 h-7 rounded-lg font-mono text-[10px] font-bold bg-card border border-borderBase text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer";
+                }
+            });
+
+            if (!adAudioMuted) {
+                playUiSound(scene.sound || 'whoosh');
+            }
+        }
+
+        function openCinematicAdModal() {
+            playUiSound('bassDrop');
+            const modal = document.getElementById('cinematic-ad-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                currentAdScene = 0;
+                renderCinematicAdScene();
+            }
+        }
+
+        function closeCinematicAdModal() {
+            const modal = document.getElementById('cinematic-ad-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function nextAdScene() {
+            currentAdScene = (currentAdScene + 1) % AD_SCENES.length;
+            renderCinematicAdScene();
+        }
+
+        function prevAdScene() {
+            currentAdScene = (currentAdScene - 1 + AD_SCENES.length) % AD_SCENES.length;
+            renderCinematicAdScene();
+        }
+
+        function jumpToAdScene(idx) {
+            currentAdScene = idx;
+            renderCinematicAdScene();
+        }
+
+        function replayCinematicAd() {
+            currentAdScene = 0;
+            renderCinematicAdScene();
+            showToast('Replaying cinematic showcase', 'info');
+        }
+
+        function toggleCinematicAdAudio() {
+            adAudioMuted = !adAudioMuted;
+            const btn = document.getElementById('ad-sound-btn');
+            if (btn) {
+                btn.innerHTML = adAudioMuted 
+                    ? '<i class="fa-solid fa-volume-xmark text-xs text-rose-400"></i>' 
+                    : '<i class="fa-solid fa-volume-high text-xs text-emerald-400"></i>';
+            }
+            if (!adAudioMuted) playUiSound('click');
+        }
+
+        // Global Modal Keyboard Shortcuts (ESC, Arrow keys)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModelSelectorModal();
+                closeCinematicAdModal();
+                closeSlashCommandsPalette();
+            }
+            const adModal = document.getElementById('cinematic-ad-modal');
+            if (adModal && !adModal.classList.contains('hidden')) {
+                if (e.key === 'ArrowRight' || e.key === 'Space') {
+                    e.preventDefault();
+                    nextAdScene();
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    prevAdScene();
+                }
+            }
+        });
 
         // ── Agents Hub Filter ──
         function filterAgentsHub(query) {
