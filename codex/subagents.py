@@ -414,6 +414,62 @@ class Orchestrator:
         return logs
 
 
+def query_swarm_live_model(prompt: str, system: str = "", model: str = "qwen/qwen3.8-27b", max_tokens: int = 600) -> Optional[str]:
+    """Query Groq model using user-configured API key pool with fast timeout and round-robin fallback."""
+    import urllib.request
+    import json
+    from codex.config import load_config
+
+    keys_pool = []
+    try:
+        cfg = load_config()
+        if cfg.get("api_key") and not str(cfg["api_key"]).startswith("gsk_test"):
+            keys_pool.append(cfg["api_key"])
+        for bk in cfg.get("backup_keys", []):
+            if bk and not str(bk).startswith("gsk_test") and bk not in keys_pool:
+                keys_pool.append(bk)
+    except Exception:
+        pass
+
+    env_k = os.environ.get("GROQ_API_KEY", "").strip()
+    if env_k and not env_k.startswith("gsk_test") and env_k not in keys_pool:
+        keys_pool.insert(0, env_k)
+
+    for key in keys_pool:
+        if not key or str(key).startswith("gsk_test"):
+            continue
+        try:
+            req_data = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system or "You are CDX Subagent Swarm, created by Saad Kashif. Answer directly with clean code and high-performance design."},
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": max_tokens,
+                "temperature": 0.4
+            }
+            if "gpt-oss" in model:
+                req_data["include_reasoning"] = False
+            req = urllib.request.Request(
+                "https://api.groq.com/openai/v1/chat/completions",
+                data=json.dumps(req_data).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {key}",
+                    "User-Agent": "Groq/Python 0.18.0"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=5.0) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                msg = data["choices"][0]["message"]
+                res = msg.get("content") or msg.get("reasoning")
+                if res and res.strip():
+                    return res.strip()
+        except Exception:
+            continue
+    return None
+
+
 def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, Any]:
     """Execute high-speed multi-subagent swarm mission decomposition using the best models for websites and full-stack engineering."""
     import time
@@ -949,7 +1005,8 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
         },
         "models_comparison": [
             {
-                "model_id": "cdx-3.2-ultra",
+                "model_id": "cdx 3.2",
+                "model": "cdx 3.2 LPU Ultra",
                 "model_name": "CDX 3.2 LPU Ultra",
                 "badge": "BEST FOR WEB",
                 "speed": "528 tok/s",
@@ -959,7 +1016,8 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
                 "answer": ui_output,
             },
             {
-                "model_id": "cdx-3.5-pro",
+                "model_id": "cdx 3.5",
+                "model": "cdx 3.5 Pro Architecture",
                 "model_name": "CDX 3.5 Pro Architecture",
                 "badge": "SYSTEMS LEAD",
                 "speed": "310 tok/s",
@@ -969,7 +1027,8 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
                 "answer": core_output,
             },
             {
-                "model_id": "cdx-3.6-r1",
+                "model_id": "cdx 3.6",
+                "model": "cdx 3.6 DeepSeek R1",
                 "model_name": "CDX 3.6 DeepSeek R1",
                 "badge": "FORMAL REASONING",
                 "speed": "240 tok/s",
@@ -979,8 +1038,9 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
                 "answer": arch_output,
             },
             {
-                "model_id": "cdx-3.0-turbo",
-                "model_name": "CDX 3.0 Turbo Security",
+                "model_id": "cdx 2.7",
+                "model": "cdx 2.7 Fast Security",
+                "model_name": "CDX 2.7 Fast Security",
                 "badge": "OWASP & AST AUDIT",
                 "speed": "540 tok/s",
                 "specialty": "Security Audit & Vulnerability Quarantine",

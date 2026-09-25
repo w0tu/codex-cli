@@ -96,7 +96,7 @@ def resolve_cloud_credentials(api_key: Optional[str] = None, model: Optional[str
     if groq_env and not groq_env.startswith("gsk_test"):
         return "https://api.groq.com/openai/v1/chat/completions", groq_env, primary_groq_model
 
-    # Check ~/.codex/config.json
+    # Check ~/.codex/config.json (loads active key + user backup keys pool)
     try:
         from codex.config import load_config
         cfg = load_config()
@@ -172,6 +172,7 @@ class CloakedCloudClient:
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {active_key}",
+                "User-Agent": "Groq/Python 0.18.0",
             }
             payload = {
                 "model": model_id,
@@ -186,7 +187,7 @@ class CloakedCloudClient:
 
             with httpx.Client(timeout=120.0) as client:
                 with client.stream("POST", endpoint_url, json=payload, headers=headers) as response:
-                    if response.status_code in (401, 429) and attempts > 0:
+                    if response.status_code in (401, 403, 429) and attempts > 0:
                         body_err = response.read().decode("utf-8", errors="replace")
                         # Failover model if OTPM exceeded on qwen
                         if "OTPM" in body_err or "rate_limit_exceeded" in body_err:
@@ -254,6 +255,7 @@ class CloakedCloudClient:
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {active_key}",
+                "User-Agent": "Groq/Python 0.18.0",
             }
             payload = {
                 "model": model_id,
@@ -267,7 +269,7 @@ class CloakedCloudClient:
 
             with httpx.Client(timeout=45.0) as client:
                 resp = client.post(endpoint_url, json=payload, headers=headers)
-                if resp.status_code in (401, 429) and attempts > 0:
+                if resp.status_code in (401, 403, 429) and attempts > 0:
                     body_err = resp.text
                     if "OTPM" in body_err or "rate_limit_exceeded" in body_err:
                         self.model = "openai/gpt-oss-120b" if "code" in str(messages).lower() else "openai/gpt-oss-20b"

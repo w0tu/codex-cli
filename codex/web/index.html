@@ -262,65 +262,108 @@
             50% { height: 14px; }
         }
 
-        /* ── Markdown Content Styling ── */
+        /* ── Markdown Content Styling & Ultra Readability ── */
         .markdown-body {
-            color: #e2e8f0;
-            line-height: 1.65;
-            font-size: 0.875rem;
+            color: #f8fafc;
+            line-height: 1.75;
+            font-size: 0.925rem;
             word-break: break-word;
+            letter-spacing: 0.01em;
         }
-        .markdown-body p { margin-bottom: 0.75rem; }
+        .markdown-body p { margin-bottom: 0.85rem; color: #f1f5f9; }
         .markdown-body p:last-child { margin-bottom: 0; }
         .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
             color: #ffffff;
             font-weight: 700;
-            margin-top: 1.25rem;
-            margin-bottom: 0.5rem;
+            margin-top: 1.35rem;
+            margin-bottom: 0.6rem;
+            letter-spacing: -0.01em;
         }
         .markdown-body ul, .markdown-body ol {
-            margin-left: 1.25rem;
-            margin-bottom: 0.75rem;
+            margin-left: 1.35rem;
+            margin-bottom: 0.85rem;
             list-style-type: disc;
+            color: #f1f5f9;
         }
-        .markdown-body li { margin-bottom: 0.25rem; }
+        .markdown-body li { margin-bottom: 0.35rem; }
         .markdown-body code:not(pre code) {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: rgba(16, 185, 129, 0.12);
             color: #34d399;
-            padding: 0.15rem 0.35rem;
-            border-radius: 0.35rem;
+            padding: 0.2rem 0.45rem;
+            border-radius: 0.4rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.82em;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85em;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.25);
         }
         .markdown-body pre {
-            background-color: #05070c !important;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #05070e !important;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-top: none;
             border-bottom-left-radius: 0.75rem;
             border-bottom-right-radius: 0.75rem;
-            padding: 1rem;
+            padding: 1.15rem;
             overflow-x: auto;
-            margin-bottom: 1rem;
+            margin-bottom: 1.15rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
         .markdown-body pre code {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            line-height: 1.55;
+            font-size: 0.835rem;
+            line-height: 1.6;
+            color: #38bdf8;
             background-color: transparent !important;
             padding: 0 !important;
         }
         .code-header-bar {
-            background: #0a0e17;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-top-left-radius: 0.75rem;
             border-top-right-radius: 0.75rem;
-            padding: 0.4rem 0.85rem;
+            padding: 0.5rem 1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-family: 'JetBrains Mono', monospace;
-            color: #94a3b8;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        /* ── Text Flowing Gradient & Dynamic Shimmer ── */
+        @keyframes flowTextGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .flowing-text-gradient {
+            background: linear-gradient(90deg, #10b981, #06b6d4, #a855f7, #ec4899, #38bdf8, #10b981);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: flowTextGradient 5s ease infinite;
+            display: inline-block;
+        }
+        .flowing-cursor {
+            display: inline-block;
+            width: 7px;
+            height: 16px;
+            background: #10b981;
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: flowBlink 0.75s ease-in-out infinite;
+            box-shadow: 0 0 10px #10b981;
+            border-radius: 2px;
+        }
+        @keyframes flowBlink {
+            0%, 100% { opacity: 1; transform: scaleY(1); }
+            50% { opacity: 0.2; transform: scaleY(0.6); }
+        }
+        .flowing-badge {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15), rgba(168, 85, 247, 0.15));
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            background-size: 200% 200%;
+            animation: flowTextGradient 4s ease infinite;
         }
 
         /* ── Thinking Accordion ── */
@@ -649,8 +692,16 @@
                         <span>CHAT &amp; INFERENCE</span>
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     </h1>
-                    <p class="text-[10px] text-gray-400 font-mono" id="current-view-subtitle">Autonomous Model Router • Full-Stack Synthesis</p>
+                    <p class="text-[11px] text-gray-300 font-mono" id="current-view-subtitle">Autonomous Model Router • Full-Stack Synthesis</p>
                 </div>
+            </div>
+
+            <!-- Flowing Text Ambient Telemetry Pill -->
+            <div class="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0a0d16]/90 border border-emerald-500/30 shadow-md">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="flowing-text-gradient font-mono text-xs font-bold tracking-wide">
+                    ⚡ 0.03s LPU FLOW • 528 tok/s • 220+ Swarm Agents
+                </span>
             </div>
 
             <!-- Right Controls: Idle Learner, Sound, Particles, Live Sandbox -->
@@ -1542,6 +1593,7 @@
             <div class="text-xs text-gray-500 font-mono text-center py-8">
                 <i class="fa-solid fa-spinner fa-spin text-purple-400 mb-2 text-lg"></i>
                 <div>Loading learned knowledge index...</div>
+            </div>
         </div>
     </div>
 
@@ -3398,9 +3450,10 @@
                 });
 
                 if (resPanel && resBody) {
-                    resBody.innerHTML = formatMarkdownWithThinking(data.synthesis || 'Swarm execution finished.');
-                    enhanceCodeBlocks(resBody);
                     resPanel.classList.remove('hidden');
+                    animateTextFlowStreaming(resBody, data.synthesis || 'Swarm execution finished.', () => {
+                        resBody.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    });
                 }
 
                 playUiSound('complete');
@@ -3427,6 +3480,28 @@
                     launchBtn.innerHTML = '<i class="fa-solid fa-network-wired text-xs"></i> Launch Sub-Agents Swarm';
                 }
             }
+        }
+
+        // ── Text Flow Streaming Animation Engine ──
+        function animateTextFlowStreaming(container, fullMarkdownText, onComplete) {
+            const raw = fullMarkdownText || '';
+            const words = raw.split(/(\s+)/);
+            container.innerHTML = '';
+            
+            let idx = 0;
+            const batchSize = Math.max(2, Math.floor(words.length / 32));
+            const timer = setInterval(() => {
+                idx += batchSize;
+                if (idx >= words.length) {
+                    clearInterval(timer);
+                    container.innerHTML = formatMarkdownWithThinking(raw);
+                    enhanceCodeBlocks(container);
+                    if (onComplete) onComplete();
+                } else {
+                    const partial = words.slice(0, idx).join('');
+                    container.innerHTML = formatMarkdownWithThinking(partial) + '<span class="flowing-cursor"></span>';
+                }
+            }, 25);
         }
 
         function copySwarmSynthesis() {
@@ -3464,9 +3539,9 @@
 
         function selectSwarmModelTab(modelKey) {
             document.querySelectorAll('.swarm-model-tab').forEach(b => {
-                b.className = "btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all cursor-pointer";
+                b.className = "btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-medium text-gray-300 hover:text-white bg-card border border-borderBase flex items-center gap-1.5 transition-all cursor-pointer";
             });
-            const activeBtn = document.getElementById(`swarm-tab-${modelKey}`);
+            const activeBtn = document.getElementById(`swarm-tab-${modelKey}`) || document.getElementById(`swarm-tab-${modelKey.replace(/\s+/g, '-')}`);
             if (activeBtn) {
                 activeBtn.className = "btn-press swarm-model-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 transition-all cursor-pointer";
             }
@@ -3476,27 +3551,34 @@
             if (!body || !latestSwarmResult) return;
 
             if (modelKey === 'best') {
-                body.innerHTML = formatMarkdownWithThinking(latestSwarmResult.synthesis || '');
+                animateTextFlowStreaming(body, latestSwarmResult.synthesis || '');
             } else if (latestSwarmResult.models_comparison) {
                 let comp = null;
+                const normalize = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                const targetKey = normalize(modelKey);
                 if (Array.isArray(latestSwarmResult.models_comparison)) {
-                    comp = latestSwarmResult.models_comparison.find(m => m.model_id === modelKey || m.model === modelKey || (m.model && m.model.toLowerCase().includes(modelKey.toLowerCase())));
+                    comp = latestSwarmResult.models_comparison.find(m => {
+                        const mid = normalize(m.model_id);
+                        const mname = normalize(m.model_name || m.model);
+                        return mid === targetKey || mname.includes(targetKey) || targetKey.includes(mid);
+                    });
                 } else if (latestSwarmResult.models_comparison[modelKey]) {
                     comp = latestSwarmResult.models_comparison[modelKey];
                 }
                 if (comp) {
                     body.innerHTML = `
                         <div class="mb-4 p-3 rounded-xl bg-card border border-borderBase flex items-center justify-between">
-                            <span class="font-mono text-xs text-emerald-400">Model: ${escapeHTML(comp.model || modelKey)}</span>
-                            <span class="font-mono text-xs text-amber-300">Score: ${comp.score}/100</span>
+                            <span class="font-mono text-xs text-emerald-400 font-bold">Model: ${escapeHTML(comp.model_name || comp.model || modelKey)}</span>
+                            <span class="font-mono text-xs text-amber-300 font-bold">Score: ${comp.score}/100</span>
                         </div>
-                        ${formatMarkdownWithThinking(comp.answer || '')}
                     `;
+                    const div = document.createElement('div');
+                    body.appendChild(div);
+                    animateTextFlowStreaming(div, comp.answer || '');
                 } else {
-                    body.innerHTML = `<div class="p-4 text-xs font-mono text-gray-400">No output generated for ${escapeHTML(modelKey)}</div>`;
+                    body.innerHTML = `<div class="p-4 text-xs font-mono text-gray-300">Model candidate output for ${escapeHTML(modelKey)} is processing...</div>`;
                 }
             }
-            enhanceCodeBlocks(body);
         }
 
         function selectSwarmNode(nodeKey) {
@@ -3523,15 +3605,16 @@
                 body.innerHTML = `
                     <div class="mb-4 p-3 rounded-xl bg-card border border-borderBase flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                             <span class="font-mono text-xs text-white font-bold uppercase">${escapeHTML(node.role || nodeKey)}</span>
-                            <span class="text-[10px] font-mono text-gray-400">Agent: ${escapeHTML(node.agent || 'CDX')}</span>
+                            <span class="text-[11px] font-mono text-gray-300">Agent: ${escapeHTML(node.name || node.agent || 'CDX')}</span>
                         </div>
-                        <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">${node.status || 'DONE'}</span>
+                        <span class="font-mono text-xs px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">${node.status || 'DONE'}</span>
                     </div>
-                    ${formatMarkdownWithThinking(node.output || '')}
                 `;
-                enhanceCodeBlocks(body);
+                const contentDiv = document.createElement('div');
+                body.appendChild(contentDiv);
+                animateTextFlowStreaming(contentDiv, node.output || node.content || '');
                 body.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
             showToast(`Inspecting DAG output for ${node.role || nodeKey}`, 'info');
@@ -3768,14 +3851,28 @@
         renderSessionsList();
         initParticles();
 
-        function checkUrlHash() {
-            const hash = window.location.hash.replace('#', '');
+        function checkUrlState() {
+            const hash = (window.location.hash || '').replace('#', '');
+            const params = new URLSearchParams(window.location.search || '');
+            const modalParam = params.get('modal') || params.get('open');
+            const tabParam = params.get('tab');
+
             if (['chat', 'swarm', 'agents', 'terminal', 'usage'].includes(hash)) {
                 switchTab(hash);
+            } else if (tabParam && ['chat', 'swarm', 'agents', 'terminal', 'usage'].includes(tabParam)) {
+                switchTab(tabParam);
+            }
+
+            if (hash === 'models' || modalParam === 'models' || modalParam === 'model') {
+                openModelSelectorModal();
+            } else if (hash === 'brag' || hash === 'ad' || modalParam === 'brag' || modalParam === 'ad') {
+                openCinematicAdModal();
             }
         }
-        window.addEventListener('hashchange', checkUrlHash);
-        checkUrlHash();
+        window.addEventListener('hashchange', checkUrlState);
+        window.addEventListener('load', checkUrlState);
+        checkUrlState();
+        setTimeout(checkUrlState, 50);
     </script>
 </body>
 </html>
