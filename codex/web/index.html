@@ -3024,6 +3024,50 @@ Return a JSON object with this exact structure:
 
         // ── Settings & Persistence ──
         function loadSettings() {
+            // First time setup check
+            if (!localStorage.getItem('cdx_setup_done')) {
+                const setupOverlay = document.createElement('div');
+                setupOverlay.className = 'fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 backdrop-blur-md';
+                setupOverlay.innerHTML = `
+                    <div class="bg-card border border-emerald-500/30 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-emerald-900/20">
+                        <div class="w-16 h-16 rounded-full bg-emerald-900/30 border border-emerald-500/50 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-rocket text-2xl text-emerald-400"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-white text-center mb-2">Welcome to CDX 1.7.0</h2>
+                        <p class="text-sm text-gray-400 text-center mb-6">Your ultra-fast autonomous AI coding workspace.</p>
+                        
+                        <div class="space-y-4 mb-8">
+                            <div class="flex items-start gap-3">
+                                <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                                <div>
+                                    <div class="text-sm font-bold text-white">18 API Keys Connected</div>
+                                    <div class="text-xs text-gray-500">Auto-failover cluster is online.</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                                <div>
+                                    <div class="text-sm font-bold text-white">Live Web Access</div>
+                                    <div class="text-xs text-gray-500">Agents can browse real-time info.</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                                <div>
+                                    <div class="text-sm font-bold text-white">Local Models Supported</div>
+                                    <div class="text-xs text-gray-500">Connect to Ollama in settings.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="localStorage.setItem('cdx_setup_done', 'true'); this.closest('.fixed').remove(); playUiSound('complete');" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors">
+                            Initialize Workspace
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(setupOverlay);
+            }
+
             const theme = localStorage.getItem('cdx_theme') || 'oled';
             const autoContinue = localStorage.getItem('cdx_auto_continue') !== 'false';
             const ollamaUrl = localStorage.getItem('cdx_ollama_url') || 'http://localhost:11434';
@@ -3201,6 +3245,17 @@ Return a JSON object with this exact structure:
                 });
             } catch (err) {
                 console.warn('Model switch API sync failed:', err);
+            }
+
+            // Update Per-Model System Prompt & Speed
+            if (modelKey.includes('deepseek')) {
+                currentSystemPrompt = "You are CDX-DeepSeek-R1, a chain-of-thought mathematical reasoning engine. Always output exhaustive <thinking> blocks before answers.";
+            } else if (modelKey.includes('gpt-oss-120b')) {
+                currentSystemPrompt = "You are CDX 3.5 Pro (120B). You are an elite architect. Provide structured, precise software engineering solutions with minimal boilerplate.";
+            } else if (modelKey.includes('20b')) {
+                currentSystemPrompt = "You are CDX 2.7 Fast (20B). You are extremely fast. Provide short, concise fixes without explanation. Output raw code directly.";
+            } else {
+                currentSystemPrompt = "You are CDX 3.2 LPU Ultra, a fast, clean software engineering assistant powered by Groq LPU.";
             }
         }
 
@@ -4605,8 +4660,26 @@ Return a JSON object with this exact structure:
                 playUiSound('complete');
 
             } catch (err) {
-                streamBody.innerHTML = `<span class="text-rose-400 text-xs font-mono">Error: ${err.message}</span>`;
-                showToast('Chat error: ' + err.message, 'error');
+                const errMsg = err.message || "Unknown error";
+                const isRateLimit = errMsg.includes("429") || errMsg.toLowerCase().includes("rate limit");
+                const fixPrompt = isRateLimit ? 
+                    `Fix rate limiting by switching model or backing off.` : 
+                    `Debug this network error: ${errMsg}`;
+                
+                streamBody.innerHTML = `
+                    <div class="bg-rose-950/40 border border-rose-500/30 rounded-xl p-4 mt-2">
+                        <div class="text-rose-400 text-sm font-bold flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            Generation Interrupted
+                        </div>
+                        <div class="text-xs text-rose-300 font-mono mb-4">${escapeHTML(errMsg)}</div>
+                        <div class="text-xs text-gray-400 mb-2">Prompt to fix this via Antigravity:</div>
+                        <code class="block bg-black/60 border border-white/10 rounded-lg p-2 text-emerald-400 text-[10px] select-all cursor-pointer hover:border-emerald-500/50 transition-colors" title="Click to select">
+                            /antigravity ${fixPrompt}
+                        </code>
+                    </div>
+                `;
+                showToast('Generation failed: ' + errMsg, 'error');
             } finally {
                 setLoadingState(false);
             }
