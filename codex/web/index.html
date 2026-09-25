@@ -883,6 +883,13 @@
             color: #0f172a !important;
         }
 
+        /* Settings Tab Light Mode */
+        body.theme-sky #tab-settings { color: #0f172a !important; }
+        body.theme-sky #tab-settings h2, body.theme-sky #tab-settings h3 { color: #0f172a !important; }
+        body.theme-sky #tab-settings p, body.theme-sky #tab-settings .text-gray-400 { color: #475569 !important; }
+        body.theme-sky #tab-settings .glass-panel { background: #ffffff !important; border-color: #e2e8f0 !important; }
+        body.theme-sky #tab-settings input, body.theme-sky #tab-settings select { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+
         /* Chat messages in Light Mode */
         body.theme-sky .chat-user-bubble {
             background: #2563eb !important;
@@ -1046,6 +1053,10 @@
             <button onclick="switchTab('usage')" id="nav-usage" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group btn-press cursor-pointer">
                 <i class="fa-solid fa-chart-simple text-amber-400 group-hover:scale-110 transition-transform"></i>
                 <span class="flex-1 text-left">Telemetry &amp; Quota</span>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-gray-400 hover:text-white hover:bg-card rounded-xl transition-all group btn-press cursor-pointer">
+                <i class="fa-solid fa-gear text-gray-500 group-hover:text-white text-sm"></i>
+                <span class="flex-1 text-left">Settings</span>
             </button>
         </nav>
 
@@ -1841,7 +1852,7 @@
                         <div class="flex items-center gap-2">
                             <span class="text-sm font-bold text-white font-mono flex items-center gap-2">
                                 <i class="fa-solid fa-server text-emerald-400"></i>
-                                Groq Multi-Key Swarm Cluster (13 API Keys)
+                                Groq Multi-Key Swarm Cluster (18 API Keys)
                             </span>
                             <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/40">
                                 Auto-Failover Active
@@ -1887,9 +1898,9 @@
                             <span>API Keys Swarm</span>
                             <i class="fa-solid fa-key text-purple-400 text-xs"></i>
                         </div>
-                        <div class="text-2xl font-extrabold text-purple-300 font-mono mt-1" id="telemetry-keys-count">13 Keys Active</div>
+                        <div class="text-2xl font-extrabold text-purple-300 font-mono mt-1" id="telemetry-keys-count">18 Keys Active</div>
                         <div class="text-[10px] text-emerald-400 flex items-center gap-1 mt-1 font-mono">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 6 New Keys + 7 Fallback Keys
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 11 Primary + 7 Failover Keys
                         </div>
                     </div>
                 </div>
@@ -1900,7 +1911,7 @@
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         Key Rotation: <strong>Round-Robin with Automatic Error Failover</strong>
                     </span>
-                    <span class="text-emerald-400 font-semibold" id="telemetry-cooldown-status">All 13 API Keys Healthy (0 in cooldown)</span>
+                    <span class="text-emerald-400 font-semibold" id="telemetry-cooldown-status">All 18 API Keys Healthy (0 in cooldown)</span>
                 </div>
             </div>
 
@@ -2274,6 +2285,12 @@
             "Zke0cqavwHPwGTBxl2bfWGdyb3FY0HfJSBfzSxk6fSzq1ebVEyjM",
             "5K3G8VpBFmASVTQvufSsWGdyb3FYlh9yv2xaw0o6Qj2wpOo8Rrmr",
             "lJ0V2oAfpNuTFX29GRZ1WGdyb3FY5w2VHEoBjBsAjj98kCFuLrXL",
+            // 5 Additional High-Quota Keys (Verified 2026-09-25)
+            "EeUGhyC0YozW7tmT0b08WGdyb3FYNGCXSgkRzOfdjwKKdHmKOGOy",
+            "HidHKXFv8UYbyGDadbbbWGdyb3FYpZhAx7i1tXhkgbYXe368I0Qn",
+            "eBSq5m6G7aCmYmDYlOzzWGdyb3FY5cN8akoZTjjwAjLAZixqTAuG",
+            "BLT2RXnyhkoYU0qZdnPgWGdyb3FYTCbosycki83lPf3H30oylTB9",
+            "BElDtB7aUBo99hhvx48nWGdyb3FYGx2trgo2R3mLI0sKKAwwuSmt",
             // 7 High-Speed Failover Backup Keys
             "UB552GyjuIRo4Ba6DgZsWGdyb3FYzTRPPAIdx5DwUc1biad0rLrW",
             "DIElRgeMb5t6DMApgrpDWGdyb3FYbvTy9dHU8cWZmqDcXnwKvYPY",
@@ -2340,9 +2357,9 @@
             const elCooldown = document.getElementById('telemetry-cooldown-status');
             if (elCooldown) {
                 if (cooldownCount === 0) {
-                    elCooldown.innerHTML = `<span class="text-emerald-400 font-semibold">All 13 API Keys Healthy (0 in cooldown)</span>`;
+                    elCooldown.innerHTML = `<span class="text-emerald-400 font-semibold">All 18 API Keys Healthy (0 in cooldown)</span>`;
                 } else {
-                    elCooldown.innerHTML = `<span class="text-amber-400 font-semibold">${13 - cooldownCount}/13 Active (${cooldownCount} cooling down)</span>`;
+                    elCooldown.innerHTML = `<span class="text-amber-400 font-semibold">${18 - cooldownCount}/18 Active (${cooldownCount} cooling down)</span>`;
                 }
             }
         }
@@ -2897,7 +2914,8 @@ Return a JSON object with this exact structure:
                 swarm: { title: 'SUB-AGENTS SWARM DAG', sub: 'Architect • Backend • Frontend • Auditor Pipeline' },
                 agents: { title: 'AUTONOMOUS AGENTS HUB', sub: '220+ Specialist Personas Catalog & Router' },
                 terminal: { title: 'LINUX SHELL GUI', sub: 'Real Native Bash Console in Graphical Format' },
-                usage: { title: 'TELEMETRY & QUOTA', sub: 'Live Token Velocity & 35-Day Activity Heatmap' }
+                usage: { title: 'TELEMETRY & QUOTA', sub: 'Live Token Velocity & 35-Day Activity Heatmap' },
+                settings: { title: 'SETTINGS & CONFIG', sub: 'Appearance • API Keys • Model Store • System Preferences' }
             };
 
             const info = tabMeta[tabId] || tabMeta.chat;
@@ -2920,6 +2938,7 @@ Return a JSON object with this exact structure:
             }
 
             if (tabId === 'usage') fetchUsage();
+            if (tabId === 'settings' && typeof loadSettings === 'function') loadSettings();
             if (tabId === 'chat') {
                 setTimeout(() => {
                     if (userInput) userInput.focus();
@@ -5261,9 +5280,9 @@ Return a JSON object with this exact structure:
             const modalParam = params.get('modal') || params.get('open');
             const tabParam = params.get('tab');
 
-            if (['chat', 'swarm', 'agents', 'terminal', 'usage'].includes(hash)) {
+            if (['chat', 'swarm', 'agents', 'terminal', 'usage', 'settings'].includes(hash)) {
                 switchTab(hash);
-            } else if (tabParam && ['chat', 'swarm', 'agents', 'terminal', 'usage'].includes(tabParam)) {
+            } else if (tabParam && ['chat', 'swarm', 'agents', 'terminal', 'usage', 'settings'].includes(tabParam)) {
                 switchTab(tabParam);
             }
 
