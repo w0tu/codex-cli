@@ -488,6 +488,108 @@ async def preview_open_handler(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def code_save_handler(request: web.Request) -> web.Response:
+    """Save generated code directly to the workspace folder."""
+    try:
+        data = await request.json()
+        code = data.get("code", "")
+        if not code:
+            return web.json_response({"error": "No code content provided."}, status=400)
+
+        filename = data.get("filename", "").strip()
+        lang = data.get("lang", "").lower()
+        if not filename:
+            ext_map = {
+                "html": "index.html",
+                "python": "app.py",
+                "py": "app.py",
+                "javascript": "app.js",
+                "js": "app.js",
+                "bash": "run.sh",
+                "sh": "run.sh",
+                "json": "data.json",
+                "css": "style.css",
+            }
+            filename = ext_map.get(lang, "index.html" if ("<html" in code.lower() or "<!doctype" in code.lower()) else "script.py")
+
+        filename = os.path.basename(filename)
+        workspace_dir = Path("/home/feds/.gemini/antigravity/scratch/codex-cli/workspace")
+        workspace_dir.mkdir(parents=True, exist_ok=True)
+        target_path = workspace_dir / filename
+        target_path.write_text(code, encoding="utf-8")
+
+        # Sync to live preview file if HTML
+        if filename.endswith(".html") or "<html" in code.lower() or "<!doctype" in code.lower():
+            Path("/tmp/cdx_live_preview.html").write_text(code, encoding="utf-8")
+
+        return web.json_response({
+            "ok": True,
+            "filename": filename,
+            "path": str(target_path),
+            "size": len(code),
+            "preview_url": "/preview" if (filename.endswith(".html") or "<html" in code.lower() or "<!doctype" in code.lower()) else None,
+        })
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
+async def code_launch_handler(request: web.Request) -> web.Response:
+    """Launch generated code immediately (open HTML in live sandbox/browser or execute script)."""
+    try:
+        data = await request.json()
+        code = data.get("code", "").strip()
+        lang = data.get("lang", "").lower()
+        filename = data.get("filename", "")
+
+        is_html = lang in ("html", "htm") or "<!doctype html" in code.lower() or "<html" in code.lower()
+        if is_html:
+            preview_file = Path("/tmp/cdx_live_preview.html")
+            preview_file.write_text(code, encoding="utf-8")
+            ws_file = Path("/home/feds/.gemini/antigravity/scratch/codex-cli/workspace/index.html")
+            ws_file.parent.mkdir(parents=True, exist_ok=True)
+            ws_file.write_text(code, encoding="utf-8")
+            return web.json_response({
+                "ok": True,
+                "type": "web",
+                "url": "/preview",
+                "message": "Application launched in live sandbox!",
+            })
+        elif lang in ("python", "py"):
+            tmp_py = Path("/tmp/cdx_run_script.py")
+            tmp_py.write_text(code, encoding="utf-8")
+            loop = asyncio.get_running_loop()
+            proc = await loop.run_in_executor(None, lambda: subprocess.run([sys.executable, str(tmp_py)], capture_output=True, text=True, timeout=12))
+            return web.json_response({
+                "ok": True,
+                "type": "cli",
+                "stdout": proc.stdout,
+                "stderr": proc.stderr,
+                "exit_code": proc.returncode,
+                "message": "Python script executed successfully" if proc.returncode == 0 else "Script finished with errors",
+            })
+        elif lang in ("bash", "sh", "shell"):
+            loop = asyncio.get_running_loop()
+            proc = await loop.run_in_executor(None, lambda: subprocess.run(["bash", "-c", code], capture_output=True, text=True, timeout=10))
+            return web.json_response({
+                "ok": True,
+                "type": "cli",
+                "stdout": proc.stdout,
+                "stderr": proc.stderr,
+                "exit_code": proc.returncode,
+                "message": "Command executed",
+            })
+        else:
+            if "<" in code and ">" in code and ("<body" in code.lower() or "<div" in code.lower() or "<html" in code.lower()):
+                Path("/tmp/cdx_live_preview.html").write_text(code, encoding="utf-8")
+                return web.json_response({"ok": True, "type": "web", "url": "/preview"})
+            loop = asyncio.get_running_loop()
+            proc = await loop.run_in_executor(None, lambda: subprocess.run(["bash", "-c", code], capture_output=True, text=True, timeout=10))
+            return web.json_response({"ok": True, "type": "cli", "stdout": proc.stdout, "stderr": proc.stderr, "exit_code": proc.returncode})
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
+
 async def media_image_handler(request: web.Request) -> web.Response:
     """Generate image asset via MediaEngine."""
     try:

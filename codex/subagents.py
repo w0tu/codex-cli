@@ -414,7 +414,55 @@ class Orchestrator:
         return logs
 
 
-def query_swarm_live_model(prompt: str, system: str = "", model: str = "qwen/qwen3.8-27b", max_tokens: int = 750) -> Optional[str]:
+def extract_html_code(text: Optional[str]) -> Optional[str]:
+    """Extract clean executable HTML from markdown response with self-healing closing tags."""
+    if not text:
+        return None
+    cleaned = text.strip()
+    if "```html" in cleaned.lower():
+        start = cleaned.lower().find("```html") + 7
+        end = cleaned.rfind("```")
+        cleaned = cleaned[start:end].strip() if end > start else cleaned[start:].strip()
+    elif "```" in cleaned:
+        start = cleaned.find("```") + 3
+        end = cleaned.rfind("```")
+        cleaned = cleaned[start:end].strip() if end > start else cleaned[start:].strip()
+    
+    if "<!DOCTYPE" in cleaned.upper() or "<HTML" in cleaned.upper():
+        if "</html>" not in cleaned.lower():
+            if "</script>" not in cleaned.lower() and "<script" in cleaned.lower():
+                cleaned += "\n</script>"
+            if "</body>" not in cleaned.lower():
+                cleaned += "\n</body>"
+            cleaned += "\n</html>"
+        return cleaned
+    return None
+
+
+def extract_python_code(text: Optional[str]) -> Optional[str]:
+    """Extract clean executable Python code from markdown response."""
+    if not text:
+        return None
+    cleaned = text.strip()
+    if "```python" in cleaned.lower():
+        start = cleaned.lower().find("```python") + 9
+        end = cleaned.rfind("```")
+        cleaned = cleaned[start:end].strip() if end > start else cleaned[start:].strip()
+    elif "```py" in cleaned.lower():
+        start = cleaned.lower().find("```py") + 5
+        end = cleaned.rfind("```")
+        cleaned = cleaned[start:end].strip() if end > start else cleaned[start:].strip()
+    elif "```" in cleaned:
+        start = cleaned.find("```") + 3
+        end = cleaned.rfind("```")
+        cleaned = cleaned[start:end].strip() if end > start else cleaned[start:].strip()
+    
+    if "import " in cleaned or "from " in cleaned or "def " in cleaned:
+        return cleaned
+    return None
+
+
+def query_swarm_live_model(prompt: str, system: str = "", model: str = "qwen/qwen3.8-27b", max_tokens: int = 1200) -> Optional[str]:
     """Query Groq model using user-configured API key pool with fast timeout and round-robin fallback."""
     import urllib.request
     import urllib.error
@@ -953,14 +1001,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
             system="You are CDX Sub-Agent Frontend Stylist by Saad Kashif. Write short, concise, elegant, fully working single-file web code."
         )
         if live_res:
-            m = re.search(r"(<!DOCTYPE[\s\S]*?</html>)", live_res, re.IGNORECASE)
-            if not m:
-                m = re.search(r"(<html[\s\S]*?</html>)", live_res, re.IGNORECASE)
-            if m:
-                live_ui_code = m.group(1).strip()
-            elif "<!DOCTYPE" in live_res.upper() or "<HTML" in live_res.upper():
-                clean_lines = [l for l in live_res.splitlines() if not l.strip().startswith("```")]
-                live_ui_code = "\n".join(clean_lines).strip()
+            live_ui_code = extract_html_code(live_res)
     except Exception:
         live_ui_code = None
 
@@ -979,12 +1020,7 @@ def orchestrate_subagent_swarm(mission: str, client: Any = None) -> Dict[str, An
             system="You are CDX Sub-Agent Backend Lead by Saad Kashif. Write concise, clean, working FastAPI code."
         )
         if b_res:
-            bm = re.search(r"```(?:python|py)?\s*([\s\S]*?)```", b_res, re.IGNORECASE)
-            if bm:
-                live_backend_code = bm.group(1).strip()
-            elif "from fastapi import" in b_res or "import fastapi" in b_res or "FastAPI(" in b_res:
-                clean_lines = [l for l in b_res.splitlines() if not l.strip().startswith("```")]
-                live_backend_code = "\n".join(clean_lines).strip()
+            live_backend_code = extract_python_code(b_res)
     except Exception:
         live_backend_code = None
 
