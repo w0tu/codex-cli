@@ -757,11 +757,41 @@
         }
 
         /* Telemetry Tab Specific Light Mode */
-        body.theme-sky #tab-usage h2 { color: #0f172a !important; }
-        body.theme-sky #tab-usage p { color: #475569 !important; }
-        body.theme-sky #tab-usage .border-borderBase { border-color: #e2e8f0 !important; }
-        body.theme-sky #tab-usage .heat-cell { border-color: #e2e8f0 !important; }
-        body.theme-sky #tab-usage .heat-0 { background: #e2e8f0 !important; color: #64748b !important; }
+        body.theme-sky #tab-usage {
+            color: #0f172a !important;
+        }
+        body.theme-sky #tab-usage h2,
+        body.theme-sky #tab-usage h3,
+        body.theme-sky #tab-usage .text-white {
+            color: #0f172a !important;
+        }
+        body.theme-sky #tab-usage p,
+        body.theme-sky #tab-usage .text-gray-400,
+        body.theme-sky #tab-usage .text-gray-300,
+        body.theme-sky #tab-usage .text-gray-500 {
+            color: #475569 !important;
+        }
+        body.theme-sky #tab-usage .border-borderBase {
+            border-color: #e2e8f0 !important;
+        }
+        body.theme-sky #tab-usage .glass-panel {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+        }
+        body.theme-sky #tab-usage .glass-panel div.text-white,
+        body.theme-sky #tab-usage .glass-panel span.text-white {
+            color: #0f172a !important;
+        }
+        body.theme-sky #tab-usage .heat-cell {
+            border-color: #cbd5e1 !important;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        body.theme-sky #tab-usage .heat-0 {
+            background: #e2e8f0 !important;
+            color: #64748b !important;
+        }
 
         /* Swarm Tab Light Mode */
         body.theme-sky #tab-swarm h2 { color: #0f172a !important; }
