@@ -659,6 +659,8 @@ def create_app() -> web.Application:
     app.router.add_get("/preview", preview_get_handler)
     app.router.add_post("/api/preview/save", preview_save_handler)
     app.router.add_post("/api/preview/open", preview_open_handler)
+    app.router.add_post("/api/code/save", code_save_handler)
+    app.router.add_post("/api/code/launch", code_launch_handler)
     app.router.add_get("/api/status", status_handler)
     app.router.add_get("/api/usage", usage_handler)
     app.router.add_post("/api/model", model_handler)

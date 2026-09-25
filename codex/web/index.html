@@ -1157,14 +1157,17 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <button onclick="openSwarmLivePreview()" class="btn-press px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 shine-btn cursor-pointer">
-                            <i class="fa-solid fa-play text-[10px]"></i> Live Sandbox
+                        <button onclick="launchSwarmApp()" class="btn-press px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/25 flex items-center gap-1.5 shine-btn cursor-pointer">
+                            <i class="fa-solid fa-rocket text-[11px]"></i> Launch Live App
+                        </button>
+                        <button onclick="saveSwarmCode()" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-cyan-500/30 text-cyan-300 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-floppy-disk text-[11px]"></i> Save Code
                         </button>
                         <button onclick="copySwarmSynthesis()" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-regular fa-copy text-xs"></i> Copy Code
+                            <i class="fa-regular fa-copy text-xs"></i> Copy
                         </button>
                         <button onclick="sendSwarmToChat()" class="btn-press px-3 py-1.5 bg-card hover:bg-cardHover border border-borderBase rounded-xl text-xs text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-paper-plane text-xs"></i> Open in Chat
+                            <i class="fa-solid fa-paper-plane text-xs"></i> In Chat
                         </button>
                     </div>
                 </div>
@@ -2717,12 +2720,18 @@
                 const header = document.createElement('div');
                 header.className = 'code-header-bar';
                 header.innerHTML = `
-                    <span class="font-mono text-emerald-400 font-semibold">${escapeHTML(lang)}</span>
-                    <div class="flex items-center gap-2">
-                        <button class="px-2 py-0.5 rounded bg-card hover:bg-cardHover border border-borderBase text-gray-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 btn-press" onclick="runCodeInTerminal(this)" title="Execute command in GUI Terminal">
-                            <i class="fa-solid fa-play text-[9px] text-cyan-400"></i> Run in CLI
+                    <span class="font-mono text-emerald-400 font-semibold text-[11px]">${escapeHTML(lang)}</span>
+                    <div class="flex items-center gap-1.5">
+                        <button class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 btn-press font-semibold text-[11px]" onclick="launchCodeSnippet(this)" title="Launch / Run this application live">
+                            <i class="fa-solid fa-rocket text-[10px] text-emerald-400"></i> Launch
                         </button>
-                        <button class="px-2 py-0.5 rounded bg-card hover:bg-cardHover border border-borderBase text-gray-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 btn-press" onclick="copyCodeSnippet(this)" title="Copy snippet">
+                        <button class="px-2.5 py-1 rounded-lg bg-card hover:bg-cardHover border border-cyan-500/30 text-cyan-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 btn-press font-medium text-[11px]" onclick="saveCodeSnippet(this)" title="Save to workspace folder">
+                            <i class="fa-solid fa-floppy-disk text-[10px]"></i> Save
+                        </button>
+                        <button class="px-2 py-0.5 rounded bg-card hover:bg-cardHover border border-borderBase text-gray-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 btn-press text-[11px]" onclick="runCodeInTerminal(this)" title="Execute command in GUI Terminal">
+                            <i class="fa-solid fa-terminal text-[9px] text-gray-400"></i> CLI
+                        </button>
+                        <button class="px-2 py-0.5 rounded bg-card hover:bg-cardHover border border-borderBase text-gray-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 btn-press text-[11px]" onclick="copyCodeSnippet(this)" title="Copy snippet">
                             <i class="fa-regular fa-copy text-[9px]"></i> Copy
                         </button>
                     </div>
@@ -2730,6 +2739,152 @@
                 pre.parentNode.insertBefore(header, pre);
                 hljs.highlightElement(code);
             });
+        }
+
+        async function launchCodeSnippet(btn) {
+            playUiSound('click');
+            const pre = btn.closest('.code-header-bar').nextElementSibling;
+            const codeEl = pre ? pre.querySelector('code') : null;
+            if (!codeEl) return;
+            const code = codeEl.innerText.trim();
+            let lang = 'code';
+            codeEl.classList.forEach(cls => {
+                if (cls.startsWith('language-')) lang = cls.replace('language-', '').toLowerCase();
+            });
+
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Launching...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/code/launch', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ code, lang })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    if (data.type === 'web') {
+                        playUiSound('complete');
+                        showToast('🚀 App launched! Opening live preview...', 'success');
+                        openLivePreviewDrawer();
+                    } else if (data.type === 'cli') {
+                        playUiSound('complete');
+                        showToast('⚙️ Executed: ' + (data.message || 'Complete'), data.exit_code === 0 ? 'success' : 'warn');
+                        if (data.stdout || data.stderr) {
+                            switchTab('terminal');
+                            const termOut = document.getElementById('terminal-logs') || document.getElementById('cli-output');
+                            if (termOut) {
+                                termOut.innerHTML += `\n<span class="text-cyan-400 font-bold">--- Live Execution Output ---</span>\n${escapeHTML(data.stdout || '')}${escapeHTML(data.stderr || '')}\n`;
+                                termOut.scrollTop = termOut.scrollHeight;
+                            }
+                        }
+                    }
+                } else {
+                    showToast('Launch failed: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                showToast('Launch error: ' + err.message, 'error');
+            } finally {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
+        }
+
+        async function saveCodeSnippet(btn) {
+            playUiSound('click');
+            const pre = btn.closest('.code-header-bar').nextElementSibling;
+            const codeEl = pre ? pre.querySelector('code') : null;
+            if (!codeEl) return;
+            const code = codeEl.innerText;
+            let lang = 'code';
+            codeEl.classList.forEach(cls => {
+                if (cls.startsWith('language-')) lang = cls.replace('language-', '').toLowerCase();
+            });
+
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Saving...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/code/save', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ code, lang })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    playUiSound('complete');
+                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400 text-[10px]"></i> Saved!';
+                    showToast(`💾 Saved code to ${data.filename} (${data.size} B)!`, 'success');
+                    
+                    // Also trigger browser file download as backup
+                    const blob = new Blob([code], { type: 'text/plain' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = data.filename;
+                    a.click();
+                    setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 2000);
+                } else {
+                    showToast('Save failed: ' + (data.error || 'Unknown error'), 'error');
+                    btn.innerHTML = origHtml;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                showToast('Save error: ' + err.message, 'error');
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
+        }
+
+        async function launchSwarmApp() {
+            playUiSound('click');
+            await openSwarmLivePreview();
+            showToast('🚀 Swarm application launched in Live Sandbox!', 'success');
+        }
+
+        async function saveSwarmCode() {
+            playUiSound('click');
+            if (!latestSwarmResult) {
+                showToast('No active swarm deliverables to save', 'warn');
+                return;
+            }
+            try {
+                let htmlCode = '';
+                let pyCode = '';
+                if (latestSwarmResult.nodes) {
+                    const fe = latestSwarmResult.nodes.find(n => n.id.includes('frontend') || (n.role && n.role.includes('Website')));
+                    if (fe && fe.output) {
+                        const m = fe.output.match(/```html([\s\S]*?)```/i);
+                        if (m) htmlCode = m[1].trim();
+                        else if (fe.output.includes('<!DOCTYPE') || fe.output.includes('<html')) htmlCode = fe.output;
+                    }
+                    const be = latestSwarmResult.nodes.find(n => n.id.includes('backend') || (n.role && n.role.includes('Backend')));
+                    if (be && be.output) {
+                        const m = be.output.match(/```(?:python|py)?([\s\S]*?)```/i);
+                        if (m) pyCode = m[1].trim();
+                        else if (be.output.includes('FastAPI(') || be.output.includes('import fastapi')) pyCode = be.output;
+                    }
+                }
+                if (htmlCode) {
+                    await fetch('/api/code/save', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ code: htmlCode, filename: 'index.html', lang: 'html' })
+                    });
+                }
+                if (pyCode) {
+                    await fetch('/api/code/save', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ code: pyCode, filename: 'main.py', lang: 'python' })
+                    });
+                }
+                playUiSound('complete');
+                showToast('💾 All Swarm artifacts saved to workspace/ folder!', 'success');
+            } catch (err) {
+                showToast('Failed to save code: ' + err.message, 'error');
+            }
         }
 
         function copyCodeSnippet(btn) {
