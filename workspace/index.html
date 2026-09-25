@@ -3,57 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stopwatch</title>
+<title>RaftKV — Distributed Key-Value Store</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-  .glass{background:rgba(255,255,255,.06);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.12)}
-  .glow{box-shadow:0 0 60px rgba(56,189,248,.25),0 0 120px rgba(168,85,247,.15)}
-  .num{font-variant-numeric:tabular-nums}
+  body{font-family:ui-sans-serif,system-ui,sans-serif}
+  .glass{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08)}
+  .glow{box-shadow:0 0 24px -6px rgba(56,189,248,.5)}
+  .pulse{animation:p 1.6s ease-in-out infinite}
+  @keyframes p{50%{opacity:.35}}
+  ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
 </style>
 </head>
-<body class="min-h-screen bg-[#07070c] text-white flex items-center justify-center p-6 overflow-hidden relative">
-  <div class="absolute -top-40 -left-40 w-96 h-96 bg-sky-500/20 rounded-full blur-[120px]"></div>
-  <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-[120px]"></div>
+<body class="min-h-screen bg-[#070b14] text-slate-200">
+<div class="fixed inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(56,189,248,.12),transparent),radial-gradient(40%_40%_at_80%_100%,rgba(168,85,247,.10),transparent)]"></div>
 
-  <div class="glass glow rounded-[2rem] p-10 w-full max-w-sm text-center relative">
-    <p class="text-xs tracking-[0.4em] text-white/40 mb-6 uppercase">Stopwatch</p>
-    <div class="num text-6xl font-light mb-10">
-      <span id="min">00</span><span class="text-white/30">:</span><span id="sec">00</span><span class="text-white/30">.</span><span id="ms" class="text-3xl text-white/60">00</span>
+<div class="max-w-6xl mx-auto p-4 md:p-6 space-y-4">
+  <header class="glass rounded-2xl p-4 flex flex-wrap items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-fuchsia-500 grid place-items-center glow"><i class="fa-solid fa-cubes text-white"></i></div>
+      <div><h1 class="text-lg font-bold tracking-tight">RaftKV</h1><p class="text-xs text-slate-400">Distributed KV · Raft Consensus</p></div>
     </div>
-    <div class="flex gap-4 justify-center">
-      <button id="start" class="flex-1 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 transition active:scale-95 font-medium">
-        <i class="fa-solid fa-play mr-2"></i>Start
-      </button>
-      <button id="reset" class="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition active:scale-95 font-medium">
-        <i class="fa-solid fa-rotate-left mr-2"></i>Reset
-      </button>
+    <div class="ml-auto flex flex-wrap gap-2 text-xs">
+      <span id="term" class="glass rounded-lg px-3 py-1.5"><i class="fa-solid fa-layer-group text-sky-400 mr-1"></i>Term <b class="text-white">1</b></span>
+      <span id="state" class="glass rounded-lg px-3 py-1.5"><i class="fa-solid fa-heart-pulse text-emerald-400 mr-1"></i>Leader</span>
+      <span id="log" class="glass rounded-lg px-3 py-1.5"><i class="fa-solid fa-database text-fuchsia-400 mr-1"></i>Log <b class="text-white">0</b></span>
     </div>
-  </div>
+  </header>
 
-<script>
-  let t=0,raf=null,last=0,running=false;
-  const min=document.getElementById('min'),sec=document.getElementById('sec'),ms=document.getElementById('ms');
-  const start=document.getElementById('start'),reset=document.getElementById('reset');
-  const pad=n=>String(n).padStart(2,'0');
-  function render(){
-    const m=Math.floor(t/60000),s=Math.floor(t/1000)%60,x=Math.floor(t/10)%100;
-    min.textContent=pad(m);sec.textContent=pad(s);ms.textContent=pad(x);
-  }
-  function loop(now){
-    t+=now-last;last=now;render();raf=requestAnimationFrame(loop);
-  }
-  start.onclick=()=>{
-    running=!running;
-    if(running){last=performance.now();raf=requestAnimationFrame(loop);
-      start.innerHTML='<i class="fa-solid fa-stop mr-2"></i>Stop';start.classList.replace('bg-sky-500','bg-rose-500');start.classList.replace('hover:bg-sky-400','hover:bg-rose-400');
-    }else{cancelAnimationFrame(raf);
-      start.innerHTML='<i class="fa-solid fa-play mr-2"></i>Start';start.classList.replace('bg-rose-500','bg-sky-500');start.classList.replace('hover:bg-rose-400','hover:bg-sky-400');
-    }
-  };
-  reset.onclick=()=>{running=false;cancelAnimationFrame(raf);t=0;render();
-    start.innerHTML='<i class="fa-solid fa-play mr-2"></i>Start';start.classList.replace('bg-rose-500','bg-sky-500');start.classList.replace('hover:bg-rose-400','hover:bg-sky-400');};
-  render();
-</script>
+  <div class="grid lg:grid-cols-3 gap-4">
+    <section class="glass rounded-2xl p-4 lg:col-span-2">
+      <h2 class="text-sm font-semibold mb-3 flex items-center gap-2"><i class="fa-solid fa-server text-sky-400"></i>Cluster Nodes</h2>
+      <div id="nodes" class="grid sm:grid-cols-2 gap-3"></div>
+    </section>
+
+    <section class="glass rounded-2xl p-4 flex flex-col">
+      <h2 class="text-sm font-semibold mb-3 flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-fuchsia-400"></i>Write / Read</h2>
+      <div class="flex gap-2 mb-2"><input id="k" placeholder="key" class="flex-1 bg-black/30 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 ring-sky-500"></div>
+      <div class="flex gap-2 mb-3"><input id="v" placeholder="value" class="flex-1 bg-black/30 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 ring-sky-500"></div>
+      <div class="flex gap-2 mb-3">
+        <button onclick="set()" class="flex-1 bg-sky-500 hover:bg-sky-400 text-white rounded-lg py-2 text-sm font-medium"><i class="fa-solid fa-plus mr-1"></i>Set</button>
+        <button onclick="get()" class="flex-1 bg-white/10 hover:bg-white/20 rounded-lg py-2 text-sm font-medium"><i class="fa-solid fa-magnifying-glass mr-1"></i>Get</button>
 </body>
 </html>

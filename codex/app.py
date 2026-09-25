@@ -16,6 +16,8 @@ Serves the standalone desktop application UI and provides REST and Streaming end
 import asyncio
 import json
 import os
+import sys
+import subprocess
 from pathlib import Path
 from typing import Any
 
